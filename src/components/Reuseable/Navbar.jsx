@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { logoutUser } from "../../api/auth";
 
 const SunIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -20,82 +22,87 @@ const MoonIcon = () => (
   </svg>
 );
 
-export default function Navbar({ user = null }) {
-  const [dark, setDark] = useState(false);
+export default function Navbar({ dark = false, onToggleDark }) {
+  const navigate = useNavigate();
+
+  const user = (() => {
+    try {
+      const raw = localStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch {
+      // silently ignore
+    } finally {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+      toast.success("Logged out successfully.");
+      navigate("/login");
+    }
+  };
 
   return (
     <nav
       className={`w-full border-b px-6 py-3 flex items-center justify-between transition-colors duration-300 ${
-        dark
-          ? "bg-[#121213] border-[#3A3A3C]"
-          : "bg-[#F9F9F9] border-[#D3D6DA]"
+        dark ? "bg-[#121213] border-[#3A3A3C]" : "bg-[#F9F9F9] border-[#D3D6DA]"
       }`}
     >
-      {/* Logo */}
-      <a
-        href="/"
+      <Link
+        to="/"
         className={`text-lg font-bold tracking-tight select-none ${
           dark ? "text-white" : "text-[#1A1A1B]"
         }`}
         style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
       >
         MindLeap
-      </a>
+      </Link>
 
-      {/* Right side */}
       <div className="flex items-center gap-6">
-        {/* Nav links */}
-        <a
-          href="/leaderboard"
+        <Link
+          to="/leaderboard"
           className={`text-sm font-medium transition-colors duration-150 hover:text-[#6AAA64] ${
             dark ? "text-[#818384]" : "text-[#787C7E]"
           }`}
         >
           Leaderboard
-        </a>
+        </Link>
 
         {user ? (
-          <>
-            <a
-              href="/profile"
-              className={`text-sm font-medium transition-colors duration-150 hover:text-[#6AAA64] ${
-                dark ? "text-[#818384]" : "text-[#787C7E]"
-              }`}
-            >
-              Profile
-            </a>
-            <button
-              className="text-sm font-medium text-white bg-[#6AAA64] hover:bg-[#538d4e] px-4 py-1.5 rounded-md transition-colors duration-150"
-            >
-              Logout
-            </button>
-          </>
+          <button
+            onClick={handleLogout}
+            className="text-sm font-medium text-white bg-[#787C7E] hover:bg-[#5f6368] px-4 py-1.5 rounded-md transition-colors duration-150"
+          >
+            Logout
+          </button>
         ) : (
           <>
-            <a
-              href="/login"
+            <Link
+              to="/login"
               className={`text-sm font-medium transition-colors duration-150 hover:text-[#6AAA64] ${
                 dark ? "text-[#818384]" : "text-[#787C7E]"
               }`}
             >
               Login
-            </a>
-            <a
-              href="/register"
+            </Link>
+            <Link
+              to="/register"
               className="text-sm font-medium text-white bg-[#6AAA64] hover:bg-[#538d4e] px-4 py-1.5 rounded-md transition-colors duration-150"
             >
               Register
-            </a>
+            </Link>
           </>
         )}
 
-        {/* Theme toggle */}
         <button
-          onClick={() => setDark(!dark)}
+          onClick={onToggleDark}
           className={`p-1.5 rounded-md transition-colors duration-150 ${
-            dark
-              ? "text-[#C9B458] hover:bg-[#1A1A1B]"
-              : "text-[#C9B458] hover:bg-[#EFEFEF]"
+            dark ? "text-[#C9B458] hover:bg-[#1A1A1B]" : "text-[#C9B458] hover:bg-[#EFEFEF]"
           }`}
           aria-label="Toggle dark mode"
         >
