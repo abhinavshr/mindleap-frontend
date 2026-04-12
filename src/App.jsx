@@ -1,17 +1,37 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import HomePage from './pages/HomePage'
+import { Toaster } from 'react-hot-toast'
+import HomePage     from './pages/HomePage'
+import LoginPage    from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
-import LoginPage from './pages/LoginPage'
 
 function App() {
   return (
     <BrowserRouter>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#1A1A1B',
+            color: '#ffffff',
+            fontSize: '14px',
+            fontWeight: '600',
+            borderRadius: '8px',
+            padding: '10px 16px',
+          },
+          success: {
+            iconTheme: { primary: '#6AAA64', secondary: '#fff' },
+          },
+          error: {
+            iconTheme: { primary: '#E24B4A', secondary: '#fff' },
+          },
+        }}
+      />
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/"         element={<HomePage />} />
+        <Route path="/login"    element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/login" element={<LoginPage />} />
-
-        {/* Add more routes here as you build them:
+        {/* Coming next:
             <Route path="/game"        element={<GamePage />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />
             <Route path="/profile"     element={<ProfilePage />} />

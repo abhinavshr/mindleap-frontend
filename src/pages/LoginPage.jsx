@@ -1,35 +1,49 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import toast from "react-hot-toast";
 import Navbar from "../components/Reuseable/Navbar";
+import { loginUser } from "../api/auth";
 
 export default function LoginPage() {
-  const [dark, setDark] = useState(false);
-  const [form, setForm] = useState({ username: "", password: "" });
-  const [error, setError] = useState("");
+  const [dark, setDark]       = useState(false);
+  const [form, setForm]       = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const navigate              = useNavigate();
+  const [searchParams]        = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("verified") === "true") {
+      toast.success("Email verified! You can now log in.");
+    }
+  }, [searchParams]);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
 
-    if (!form.username || !form.password) {
-      setError("All fields are required.");
+    if (!form.email || !form.password) {
+      toast.error("Email and password are required.");
       return;
     }
 
     try {
       setLoading(true);
-      // TODO: replace with real API call
-      // await authStore.login(form);
-      navigate("/game");
+      const res = await loginUser({ email: form.email, password: form.password });
+
+      const { accessToken, user } = res.data;
+
+      // Save both token and user info to localStorage
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      toast.success("Login successful!");
+      navigate("/");
     } catch (err) {
-      setError(err?.response?.data?.message || "Invalid username or password.");
+      const msg = err?.response?.data?.message || "Invalid email or password.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -46,92 +60,47 @@ export default function LoginPage() {
   }`;
 
   return (
-    <div
-      className={`min-h-screen flex flex-col transition-colors duration-300 ${
-        dark ? "bg-[#121213]" : "bg-[#F9F9F9]"
-      }`}
-    >
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
       <Navbar dark={dark} onToggleDark={() => setDark(!dark)} />
 
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-12">
-        {/* Heading */}
         <h1
-          className={`text-4xl font-bold mb-8 tracking-tight ${
-            dark ? "text-white" : "text-[#1A1A1B]"
-          }`}
+          className={`text-4xl font-bold mb-8 tracking-tight ${dark ? "text-white" : "text-[#1A1A1B]"}`}
           style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
         >
           Login
         </h1>
 
-        {/* Card */}
-        <div
-          className={`w-full max-w-[460px] rounded-2xl border px-8 py-8 ${
-            dark
-              ? "bg-[#1A1A1B] border-[#3A3A3C]"
-              : "bg-white border-[#D3D6DA]"
-          }`}
-        >
-          {/* Error banner */}
-          {error && (
-            <div className="mb-5 px-4 py-2.5 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm font-medium">
-              {error}
-            </div>
-          )}
-
+        <div className={`w-full max-w-115 rounded-2xl border px-8 py-8 ${dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#D3D6DA]"}`}>
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            {/* Username */}
             <div>
-              <label className={labelBase}>Username</label>
+              <label className={labelBase}>Email</label>
               <input
-                type="text"
-                name="username"
-                placeholder="Enter username"
-                value={form.username}
-                onChange={handleChange}
-                className={inputBase}
-                autoComplete="username"
-                autoFocus
+                type="email" name="email" placeholder="Enter your email"
+                value={form.email} onChange={handleChange}
+                className={inputBase} autoComplete="email" autoFocus
               />
             </div>
-
-            {/* Password */}
             <div>
               <label className={labelBase}>Password</label>
               <input
-                type="password"
-                name="password"
-                placeholder="Enter password"
-                value={form.password}
-                onChange={handleChange}
-                className={inputBase}
-                autoComplete="current-password"
+                type="password" name="password" placeholder="Enter password"
+                value={form.password} onChange={handleChange}
+                className={inputBase} autoComplete="current-password"
               />
             </div>
 
-            {/* Submit */}
             <button
-              type="submit"
-              disabled={loading}
+              type="submit" disabled={loading}
               className="w-full py-3 rounded-lg bg-[#6AAA64] hover:bg-[#538d4e] active:bg-[#4a7d45] text-white font-bold text-sm tracking-wide transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
             >
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 
-          {/* Register link */}
-          <p
-            className={`text-center text-sm mt-5 ${
-              dark ? "text-[#818384]" : "text-[#787C7E]"
-            }`}
-          >
+          <p className={`text-center text-sm mt-5 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
             Don't have an account?{" "}
-            <Link
-              to="/register"
-              className="text-[#6AAA64] hover:underline font-medium"
-            >
-              Register
-            </Link>
+            <Link to="/register" className="text-[#6AAA64] hover:underline font-medium">Register</Link>
           </p>
         </div>
       </main>
