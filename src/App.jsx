@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
-import HomePage     from './pages/HomePage'
-import LoginPage    from './pages/LoginPage'
+import HomePage from './pages/HomePage'
+import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import LeaderboardPage from './pages/LeaderboardPage'
 
 function App() {
   return (
@@ -28,14 +29,10 @@ function App() {
         }}
       />
       <Routes>
-        <Route path="/"         element={<HomePage />} />
-        <Route path="/login"    element={<LoginPage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        {/* Coming next:
-            <Route path="/game"        element={<GamePage />} />
-            <Route path="/leaderboard" element={<LeaderboardPage />} />
-            <Route path="/profile"     element={<ProfilePage />} />
-        */}
+        <Route path="/leaderboard" element={<LeaderboardPage />} />
       </Routes>
     </BrowserRouter>
   )
