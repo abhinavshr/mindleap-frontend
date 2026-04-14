@@ -11,11 +11,10 @@ const RankDisplay = ({ rank }) => {
   return <span className="font-semibold">{rank}</span>;
 };
 
-export default function LeaderboardPage() {
-  const [dark, setDark]               = useState(false);
+export default function LeaderboardPage({ dark, onToggleDark }) {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading]         = useState(true);
-  const [myStats, setMyStats]           = useState(null);
+  const [myStats, setMyStats]         = useState(null);
 
   const currentUser = useMemo(() => {
     try {
@@ -50,7 +49,7 @@ export default function LeaderboardPage() {
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-white"}`}>
-      <Navbar dark={dark} onToggleDark={() => setDark(!dark)} />
+      <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <div className="flex flex-col items-center py-10 px-4">
         <h1 className={`text-2xl font-bold tracking-widest uppercase mb-6 ${dark ? "text-white" : "text-gray-900"}`}>
@@ -142,12 +141,10 @@ export default function LeaderboardPage() {
                     : `border-gray-100 ${isYou ? "bg-green-50" : "bg-white"}`
                 }`}
               >
-                {/* Rank */}
                 <span className={`flex items-center ${dark ? "text-white" : "text-gray-900"}`}>
                   <RankDisplay rank={p.rank} />
                 </span>
 
-                {/* Player */}
                 <span className={`font-semibold flex items-center gap-2 ${dark ? "text-white" : "text-gray-900"}`}>
                   {p.username}
                   {isYou && (
@@ -157,18 +154,15 @@ export default function LeaderboardPage() {
                   )}
                 </span>
 
-                {/* Wins */}
                 <span className={`text-right ${dark ? "text-white" : "text-gray-900"}`}>
                   {p.total_wins}
                 </span>
 
-                {/* Streak */}
                 <div className={`flex items-center justify-end gap-1.5 ${dark ? "text-white" : "text-gray-900"}`}>
                   <FaFire className="text-orange-500" size={15} />
                   {p.current_streak}
                 </div>
 
-                {/* Avg attempts */}
                 <span className={`text-right text-sm ${dark ? "text-[#818384]" : "text-gray-400"}`}>
                   {p.avg_attempts} avg
                 </span>

@@ -8,19 +8,18 @@ import Board from "../components/Board/Board";
 import Keyboard from "../components/Keyboard/Keyboard";
 import { fetchDailyInfo, submitGuessApi, checkAlreadyPlayed } from "../api/game";
 
-export default function HomePage() {
-  const [dark, setDark]               = useState(false);
+export default function HomePage({ dark, onToggleDark }) {
   const [currentGuess, setCurrentGuess] = useState("");
-  const [guesses, setGuesses]         = useState([]);
-  const [gameOver, setGameOver]       = useState(false);
-  const [message, setMessage]         = useState("");
+  const [guesses, setGuesses] = useState([]);
+  const [gameOver, setGameOver] = useState(false);
+  const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("info");
   const [keyStatuses, setKeyStatuses] = useState({});
-  const [maxGuesses, setMaxGuesses]   = useState(5);  
-  const [wordLength, setWordLength]   = useState(5);
-  const [isAuth, setIsAuth]           = useState(false);
-  const [loading, setLoading]         = useState(true);
-  const [submitting, setSubmitting]   = useState(false);
+  const [maxGuesses, setMaxGuesses] = useState(5);
+  const [wordLength, setWordLength] = useState(5);
+  const [isAuth, setIsAuth] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [revealedWord, setRevealedWord] = useState("");
 
   const showMessage = (msg, type = "info", duration = 2500) => {
@@ -33,8 +32,8 @@ export default function HomePage() {
 
   const saveGuestSession = (guessArray, isOver, revealed = "") => {
     localStorage.setItem(GUEST_KEY, JSON.stringify({
-      guesses:      guessArray,
-      gameOver:     isOver,
+      guesses: guessArray,
+      gameOver: isOver,
       revealedWord: revealed,
     }));
   };
@@ -64,7 +63,7 @@ export default function HomePage() {
     const loadGame = async () => {
       try {
         setLoading(true);
-        const res  = await fetchDailyInfo();
+        const res = await fetchDailyInfo();
         const data = res.data;
 
         setMaxGuesses(data.maxGuesses);
@@ -87,7 +86,7 @@ export default function HomePage() {
 
         if (data.isAuth && data.guesses?.length) {
           const restored = data.guesses.map((g) => ({
-            word:   g.guess.toUpperCase(),
+            word: g.guess.toUpperCase(),
             result: g.result,
           }));
           setGuesses(restored);
@@ -119,7 +118,7 @@ export default function HomePage() {
     };
 
     loadGame();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const submitGuess = useCallback(async () => {
@@ -131,11 +130,11 @@ export default function HomePage() {
 
     try {
       setSubmitting(true);
-      const res  = await submitGuessApi(currentGuess.toLowerCase());
+      const res = await submitGuessApi(currentGuess.toLowerCase());
       const data = res.data;
 
       const newGuess = {
-        word:   currentGuess,
+        word: currentGuess,
         result: data.result,
       };
       const newGuesses = [...guesses, newGuess];
@@ -175,15 +174,15 @@ export default function HomePage() {
       }
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to submit guess.";
-      if (msg.includes("5 letters"))         showMessage("Word must be 5 letters", "info");
+      if (msg.includes("5 letters")) showMessage("Word must be 5 letters", "info");
       else if (msg.includes("only letters")) showMessage("Letters only!", "info");
-      else if (msg.includes("already won"))  showMessage("You already won today!", "win");
+      else if (msg.includes("already won")) showMessage("You already won today!", "win");
       else if (msg.includes("all your guesses")) showMessage("No guesses left!", "lose");
-      else                                   toast.error(msg);
+      else toast.error(msg);
     } finally {
       setSubmitting(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentGuess, guesses, gameOver, submitting, wordLength]);
 
   const handleKey = useCallback((key) => {
@@ -206,7 +205,7 @@ export default function HomePage() {
   }, [handleKey]);
 
   const toastStyles = {
-    win:  "bg-[#6AAA64] text-white",
+    win: "bg-[#6AAA64] text-white",
     lose: "bg-[#787C7E] text-white",
     info: "bg-[#1A1A1B] text-white",
   };
@@ -214,7 +213,7 @@ export default function HomePage() {
   if (loading) {
     return (
       <div className={`min-h-screen flex flex-col ${dark ? "bg-[#121213]" : "bg-white"}`}>
-        <Navbar dark={dark} onToggleDark={() => setDark(!dark)} />
+        <Navbar dark={dark} onToggleDark={onToggleDark} />
         <div className="flex-1 flex items-center justify-center">
           <div className="w-8 h-8 border-4 border-[#6AAA64] border-t-transparent rounded-full animate-spin" />
         </div>
@@ -224,7 +223,7 @@ export default function HomePage() {
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-white"}`}>
-      <Navbar dark={dark} onToggleDark={() => setDark(!dark)} />
+      <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       {!isAuth && (
         <div className="w-full bg-[#EAF4E6] border-b border-[#6AAA64] px-4 py-2 text-center text-sm text-[#3B6D11]">
@@ -242,8 +241,8 @@ export default function HomePage() {
         }`}
       >
         <div className={`flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-lg shadow-lg ${toastStyles[messageType]}`}>
-          {messageType === "win"  && <FaTrophy size={14} />}
-          {messageType === "lose" && <MdClose  size={16} />}
+          {messageType === "win" && <FaTrophy size={14} />}
+          {messageType === "lose" && <MdClose size={16} />}
           <span>{message}</span>
         </div>
       </div>

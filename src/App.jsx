@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import HomePage from './pages/HomePage'
@@ -7,6 +8,22 @@ import LeaderboardPage from './pages/LeaderboardPage'
 import ProfilePage from './pages/ProfilePage'
 
 function App() {
+  const [dark, setDark] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+  }, [dark]);
+
+  const handleToggleDark = () => {
+    setDark(prev => {
+      const next = !prev;
+      localStorage.setItem("theme", next ? "dark" : "light");
+      return next;
+    });
+  };
+
   return (
     <BrowserRouter>
       <Toaster
@@ -30,11 +47,11 @@ function App() {
         }}
       />
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/leaderboard" element={<LeaderboardPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/" element={<HomePage dark={dark} onToggleDark={handleToggleDark} />} />
+        <Route path="/login" element={<LoginPage dark={dark} onToggleDark={handleToggleDark} />} />
+        <Route path="/register" element={<RegisterPage dark={dark} onToggleDark={handleToggleDark} />} />
+        <Route path="/leaderboard" element={<LeaderboardPage dark={dark} onToggleDark={handleToggleDark} />} />
+        <Route path="/profile" element={<ProfilePage dark={dark} onToggleDark={handleToggleDark} />} />
       </Routes>
     </BrowserRouter>
   )

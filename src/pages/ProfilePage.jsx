@@ -4,8 +4,7 @@ import toast from "react-hot-toast";
 import Navbar from "../components/Reuseable/Navbar";
 import { logoutUser, getMe } from "../api/auth";
 
-export default function ProfilePage() {
-  const [dark, setDark] = useState(false);
+export default function ProfilePage({ dark, onToggleDark }) {
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState(null);
   const navigate = useNavigate();
@@ -27,10 +26,10 @@ export default function ProfilePage() {
   }, []);
 
   const joinDate = profileData?.profile?.joined_at
-    ? new Date(profileData.profile.joined_at).toLocaleDateString("en-US", { 
-        year: "numeric", 
-        month: "long", 
-        day: "numeric" 
+    ? new Date(profileData.profile.joined_at).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       })
     : "—";
 
@@ -71,7 +70,7 @@ export default function ProfilePage() {
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
-      <Navbar dark={dark} onToggleDark={() => setDark(!dark)} />
+      <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 sm:py-10">
         {/* Page title */}
