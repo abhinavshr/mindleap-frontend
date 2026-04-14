@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { FaFire, FaTrophy, FaMedal } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
-import { getLeaderboard } from "../api/leaderboard";
+import { getLeaderboard, getMyRank } from "../api/leaderboard";
 import toast from "react-hot-toast";
 
 const RankDisplay = ({ rank }) => {
@@ -15,6 +15,7 @@ export default function LeaderboardPage() {
   const [dark, setDark]               = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading]         = useState(true);
+  const [myStats, setMyStats]           = useState(null);
 
   const currentUser = (() => {
     try {
@@ -27,10 +28,18 @@ export default function LeaderboardPage() {
     const load = async () => {
       try {
         setLoading(true);
-        const res = await getLeaderboard();
-        setLeaderboard(res.data.leaderboard || []);
-      } catch {
-        toast.error("Failed to load leaderboard.");
+        const [boardRes, meRes] = await Promise.allSettled([
+          getLeaderboard(),
+          currentUser ? getMyRank() : Promise.reject(),
+        ]);
+        if (boardRes.status === "fulfilled") {
+          setLeaderboard(boardRes.value.data.leaderboard || []);
+        } else {
+          toast.error("Failed to load leaderboard.");
+        }
+        if (meRes.status === "fulfilled") {
+          setMyStats(meRes.value.data);
+        }
       } finally {
         setLoading(false);
       }
@@ -46,6 +55,52 @@ export default function LeaderboardPage() {
         <h1 className={`text-2xl font-bold tracking-widest uppercase mb-6 ${dark ? "text-white" : "text-gray-900"}`}>
           Leaderboard
         </h1>
+
+        {/* My rank card */}
+        {currentUser && myStats && (
+          <div className={`w-full max-w-2xl rounded-xl border px-6 py-4 mb-4 ${
+            dark ? "bg-[#1a2e1a] border-[#3A3A3C]" : "bg-green-50 border-green-200"
+          }`}>
+            <p className={`text-xs font-semibold uppercase tracking-wide mb-3 ${dark ? "text-[#818384]" : "text-gray-400"}`}>
+              Your stats
+            </p>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-3">
+                <div className={`text-2xl font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+                  #{myStats.rank ?? "—"}
+                </div>
+                <div>
+                  <p className={`font-semibold text-sm ${dark ? "text-white" : "text-[#1A1A1B]"}`}>{currentUser.username}</p>
+                  <p className={`text-xs ${dark ? "text-[#818384]" : "text-gray-400"}`}>Global rank</p>
+                </div>
+              </div>
+              <div className="flex gap-6 text-center">
+                <div>
+                  <p className={`text-lg font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>{myStats.total_wins ?? 0}</p>
+                  <p className={`text-xs ${dark ? "text-[#818384]" : "text-gray-400"}`}>Wins</p>
+                </div>
+                <div>
+                  <p className={`text-lg font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>{myStats.total_games ?? 0}</p>
+                  <p className={`text-xs ${dark ? "text-[#818384]" : "text-gray-400"}`}>Games</p>
+                </div>
+                <div>
+                  <p className={`text-lg font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>{myStats.win_rate ?? 0}%</p>
+                  <p className={`text-xs ${dark ? "text-[#818384]" : "text-gray-400"}`}>Win rate</p>
+                </div>
+                <div>
+                  <p className={`text-lg font-bold flex items-center gap-1 justify-center ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+                    <FaFire className="text-orange-500" size={14} />{myStats.current_streak ?? 0}
+                  </p>
+                  <p className={`text-xs ${dark ? "text-[#818384]" : "text-gray-400"}`}>Streak</p>
+                </div>
+                <div>
+                  <p className={`text-lg font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>{myStats.avg_attempts ?? "—"}</p>
+                  <p className={`text-xs ${dark ? "text-[#818384]" : "text-gray-400"}`}>Avg</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className={`w-full max-w-2xl border rounded-xl overflow-hidden ${dark ? "border-[#3A3A3C]" : "border-gray-200"}`}>
           {/* Header */}
