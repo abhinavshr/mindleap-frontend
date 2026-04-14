@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FaFire, FaTrophy, FaMedal } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { getLeaderboard, getMyRank } from "../api/leaderboard";
@@ -17,12 +17,12 @@ export default function LeaderboardPage() {
   const [loading, setLoading]         = useState(true);
   const [myStats, setMyStats]           = useState(null);
 
-  const currentUser = (() => {
+  const currentUser = useMemo(() => {
     try {
       const raw = localStorage.getItem("user");
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
-  })();
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -45,7 +45,8 @@ export default function LeaderboardPage() {
       }
     };
     load();
-  }, [currentUser]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-white"}`}>
