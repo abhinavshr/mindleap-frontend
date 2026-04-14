@@ -1,51 +1,73 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import Navbar from "../components/Reuseable/Navbar";
-import { logoutUser } from "../api/auth";
-
-const stats = [
-  { label: "Total Games",    value: 156   },
-  { label: "Win Rate",       value: "89%" },
-  { label: "Current Streak", value: 5     },
-  { label: "Max Streak",     value: 12    },
-];
-
-const distribution = [
-  { guess: 1, count: 8  },
-  { guess: 2, count: 32 },
-  { guess: 3, count: 58 },
-  { guess: 4, count: 34 },
-  { guess: 5, count: 12 },
-  { guess: 6, count: 4  },
-];
+import { logoutUser, getMe } from "../api/auth";
 
 export default function ProfilePage() {
   const [dark, setDark] = useState(false);
-  const navigate        = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [profileData, setProfileData] = useState(null);
+  const navigate = useNavigate();
 
-  const user = (() => {
-    try {
-      const raw = localStorage.getItem("user");
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-  })();
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await getMe();
+        setProfileData(response.data);
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+        toast.error("Failed to load profile data");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const joinDate = user?.created_at
-    ? new Date(user.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
-    : "April 14, 2026";
+    fetchProfile();
+  }, []);
 
-  const maxCount = Math.max(...distribution.map((d) => d.count));
+  const joinDate = profileData?.profile?.joined_at
+    ? new Date(profileData.profile.joined_at).toLocaleDateString("en-US", { 
+        year: "numeric", 
+        month: "long", 
+        day: "numeric" 
+      })
+    : "—";
+
+  const stats = [
+    { label: "Total Games", value: profileData?.stats?.total_games ?? 0 },
+    { label: "Win Rate", value: profileData?.stats ? `${Math.round(profileData.stats.win_rate * 100)}%` : "0%" },
+    { label: "Current Streak", value: profileData?.stats?.current_streak ?? 0 },
+    { label: "Max Streak", value: profileData?.stats?.max_streak ?? 0 },
+  ];
+
+  const distribution = Object.entries(profileData?.guess_distribution ?? {}).map(([guess, count]) => ({
+    guess: parseInt(guess),
+    count: count,
+  }));
+
+  const maxCount = Math.max(...distribution.map((d) => d.count), 1);
 
   const handleLogout = async () => {
-    try { await logoutUser(); } catch { /* ignore */ }
-    finally {
+    try {
+      await logoutUser();
+    } catch {
+      /* ignore */
+    } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
       toast.success("Logged out successfully.");
       navigate("/login");
     }
   };
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
+        <div className={`text-lg ${dark ? "text-white" : "text-[#1A1A1B]"}`}>Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
@@ -61,15 +83,17 @@ export default function ProfilePage() {
         </h1>
 
         {/* User card */}
-        <div className={`rounded-2xl border px-4 sm:px-6 py-4 sm:py-5 mb-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 ${
-          dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
-        }`}>
+        <div
+          className={`rounded-2xl border px-4 sm:px-6 py-4 sm:py-5 mb-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 ${
+            dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
+          }`}
+        >
           <div className="flex flex-col gap-1">
             <p className={`text-xl font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
-              {user?.username ?? "Guest"}
+              {profileData?.profile?.username ?? "Guest"}
             </p>
             <p className={`text-sm ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
-              {user?.email ?? "—"}
+              {profileData?.profile?.email ?? "—"}
             </p>
             <p className={`text-sm ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
               Joined {joinDate}
@@ -107,9 +131,11 @@ export default function ProfilePage() {
         </div>
 
         {/* Guess distribution */}
-        <div className={`rounded-2xl border px-4 sm:px-6 py-5 sm:py-6 ${
-          dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
-        }`}>
+        <div
+          className={`rounded-2xl border px-4 sm:px-6 py-5 sm:py-6 ${
+            dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
+          }`}
+        >
           <h2 className={`text-lg font-bold mb-5 ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
             Guess Distribution
           </h2>
