@@ -65,6 +65,15 @@ export default function Navbar({ dark = false, onToggleDark }) {
 
       <div className="flex items-center gap-6">
         <Link
+          to="/"
+          className={`text-sm font-medium transition-colors duration-150 hover:text-[#6AAA64] ${
+            dark ? "text-[#818384]" : "text-[#787C7E]"
+          }`}
+        >
+          Home
+        </Link>
+
+        <Link
           to="/leaderboard"
           className={`text-sm font-medium transition-colors duration-150 hover:text-[#6AAA64] ${
             dark ? "text-[#818384]" : "text-[#787C7E]"
