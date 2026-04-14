@@ -23,18 +23,16 @@ export default function HomePage() {
   const [submitting, setSubmitting]   = useState(false);
   const [revealedWord, setRevealedWord] = useState("");
 
-
   const showMessage = (msg, type = "info", duration = 2500) => {
     setMessage(msg);
     setMessageType(type);
     setTimeout(() => setMessage(""), duration);
   };
 
-  // ── Guest session helpers (sessionStorage — clears on tab close) ────────────
   const GUEST_KEY = `guest_game_${new Date().toISOString().slice(0, 10)}`;
 
   const saveGuestSession = (guessArray, isOver, revealed = "") => {
-    sessionStorage.setItem(GUEST_KEY, JSON.stringify({
+    localStorage.setItem(GUEST_KEY, JSON.stringify({
       guesses:      guessArray,
       gameOver:     isOver,
       revealedWord: revealed,
@@ -43,12 +41,11 @@ export default function HomePage() {
 
   const loadGuestSession = () => {
     try {
-      const raw = sessionStorage.getItem(GUEST_KEY);
+      const raw = localStorage.getItem(GUEST_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   };
 
-  // ── Build keyStatuses from existing guesses ───────────────────────────────
   const buildKeyStatuses = (guessArray) => {
     const priority = { correct: 3, present: 2, absent: 1 };
     const statuses = {};
@@ -63,7 +60,6 @@ export default function HomePage() {
     return statuses;
   };
 
-  // ── Fetch daily info on mount ─────────────────────────────────────────────
   useEffect(() => {
     const loadGame = async () => {
       try {
@@ -75,7 +71,6 @@ export default function HomePage() {
         setWordLength(data.wordLength);
         setIsAuth(data.isAuth);
 
-        // Restore guest session from sessionStorage
         if (!data.isAuth) {
           const session = loadGuestSession();
           if (session) {
@@ -90,7 +85,6 @@ export default function HomePage() {
           }
         }
 
-        // Restore in-progress guesses for auth users
         if (data.isAuth && data.guesses?.length) {
           const restored = data.guesses.map((g) => ({
             word:   g.guess.toUpperCase(),
@@ -100,13 +94,11 @@ export default function HomePage() {
           setKeyStatuses(buildKeyStatuses(restored));
         }
 
-        // Game already finished today
         if (data.alreadyPlayed) {
           setGameOver(true);
           if (data.won) {
             showMessage("You already won today!", "win", 5000);
           } else {
-            // Fetch the revealed word from already-played endpoint
             try {
               const playedRes = await checkAlreadyPlayed();
               const playedData = playedRes.data;
@@ -114,7 +106,7 @@ export default function HomePage() {
                 setRevealedWord(playedData.word.toUpperCase());
               }
             } catch {
-              // ignore
+              // Ignore reveal errors
             }
             showMessage("You've used all your guesses today.", "lose", 5000);
           }
@@ -130,7 +122,6 @@ export default function HomePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Submit a guess ────────────────────────────────────────────────────────
   const submitGuess = useCallback(async () => {
     if (gameOver || submitting) return;
     if (currentGuess.length < wordLength) {
@@ -151,12 +142,10 @@ export default function HomePage() {
       setGuesses(newGuesses);
       setCurrentGuess("");
 
-      // Save guest progress to sessionStorage
       if (!data.isAuth) {
         saveGuestSession(newGuesses, false, "");
       }
 
-      // Update key colors
       const priority = { correct: 3, present: 2, absent: 1 };
       setKeyStatuses((prev) => {
         const updated = { ...prev };
@@ -174,33 +163,29 @@ export default function HomePage() {
         setGameOver(true);
         if (!data.isAuth) saveGuestSession(newGuesses, true, "");
       } else if (data.gameOver) {
-        // Auth user — server explicitly says game over
         if (data.word) {
           setRevealedWord(data.word.toUpperCase());
           showMessage(`The word was ${data.word.toUpperCase()}`, "lose", 6000);
         }
         setGameOver(true);
       } else if (!data.isAuth && newGuesses.length >= maxGuesses) {
-        // Guest — track locally since API doesn't send gameOver
         showMessage("Game over! Login to track your stats.", "lose", 6000);
         setGameOver(true);
         saveGuestSession(newGuesses, true, "");
       }
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to submit guess.";
-      // Map known API errors to friendly messages
-      if (msg.includes("5 letters"))       showMessage("Word must be 5 letters", "info");
+      if (msg.includes("5 letters"))         showMessage("Word must be 5 letters", "info");
       else if (msg.includes("only letters")) showMessage("Letters only!", "info");
-      else if (msg.includes("already won")) showMessage("You already won today!", "win");
+      else if (msg.includes("already won"))  showMessage("You already won today!", "win");
       else if (msg.includes("all your guesses")) showMessage("No guesses left!", "lose");
-      else                                  toast.error(msg);
+      else                                   toast.error(msg);
     } finally {
       setSubmitting(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentGuess, guesses, gameOver, submitting, wordLength]);
 
-  // ── Keyboard handler ──────────────────────────────────────────────────────
   const handleKey = useCallback((key) => {
     if (gameOver || submitting) return;
     if (key === "ENTER") { submitGuess(); return; }
@@ -241,7 +226,6 @@ export default function HomePage() {
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-white"}`}>
       <Navbar dark={dark} onToggleDark={() => setDark(!dark)} />
 
-      {/* Guest banner */}
       {!isAuth && (
         <div className="w-full bg-[#EAF4E6] border-b border-[#6AAA64] px-4 py-2 text-center text-sm text-[#3B6D11]">
           You have <strong>5 guesses</strong> as a guest.{" "}
@@ -252,7 +236,6 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Toast */}
       <div
         className={`fixed top-16 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${
           message ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
@@ -274,7 +257,6 @@ export default function HomePage() {
             wordLength={wordLength}
           />
         </div>
-        {/* Revealed word after losing */}
         {gameOver && revealedWord && (
           <div className="flex items-center gap-3">
             <span className={`text-sm font-medium ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
