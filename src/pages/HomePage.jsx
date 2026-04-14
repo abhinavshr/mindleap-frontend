@@ -16,7 +16,7 @@ export default function HomePage() {
   const [message, setMessage]         = useState("");
   const [messageType, setMessageType] = useState("info");
   const [keyStatuses, setKeyStatuses] = useState({});
-  const [maxGuesses, setMaxGuesses]   = useState(5);   // 5 guest / 6 auth
+  const [maxGuesses, setMaxGuesses]   = useState(5);  
   const [wordLength, setWordLength]   = useState(5);
   const [isAuth, setIsAuth]           = useState(false);
   const [loading, setLoading]         = useState(true);
@@ -28,6 +28,24 @@ export default function HomePage() {
     setMessage(msg);
     setMessageType(type);
     setTimeout(() => setMessage(""), duration);
+  };
+
+  // ── Guest session helpers (sessionStorage — clears on tab close) ────────────
+  const GUEST_KEY = `guest_game_${new Date().toISOString().slice(0, 10)}`;
+
+  const saveGuestSession = (guessArray, isOver, revealed = "") => {
+    sessionStorage.setItem(GUEST_KEY, JSON.stringify({
+      guesses:      guessArray,
+      gameOver:     isOver,
+      revealedWord: revealed,
+    }));
+  };
+
+  const loadGuestSession = () => {
+    try {
+      const raw = sessionStorage.getItem(GUEST_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
   };
 
   // ── Build keyStatuses from existing guesses ───────────────────────────────
@@ -56,6 +74,21 @@ export default function HomePage() {
         setMaxGuesses(data.maxGuesses);
         setWordLength(data.wordLength);
         setIsAuth(data.isAuth);
+
+        // Restore guest session from sessionStorage
+        if (!data.isAuth) {
+          const session = loadGuestSession();
+          if (session) {
+            setGuesses(session.guesses || []);
+            setKeyStatuses(buildKeyStatuses(session.guesses || []));
+            if (session.gameOver) {
+              setGameOver(true);
+              if (session.revealedWord) setRevealedWord(session.revealedWord);
+            }
+            setLoading(false);
+            return;
+          }
+        }
 
         // Restore in-progress guesses for auth users
         if (data.isAuth && data.guesses?.length) {
@@ -94,6 +127,7 @@ export default function HomePage() {
     };
 
     loadGame();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Submit a guess ────────────────────────────────────────────────────────
@@ -109,9 +143,6 @@ export default function HomePage() {
       const res  = await submitGuessApi(currentGuess.toLowerCase());
       const data = res.data;
 
-      console.log("API response:", data);
-      console.log("result array:", data.result);
-
       const newGuess = {
         word:   currentGuess,
         result: data.result,
@@ -119,6 +150,11 @@ export default function HomePage() {
       const newGuesses = [...guesses, newGuess];
       setGuesses(newGuesses);
       setCurrentGuess("");
+
+      // Save guest progress to sessionStorage
+      if (!data.isAuth) {
+        saveGuestSession(newGuesses, false, "");
+      }
 
       // Update key colors
       const priority = { correct: 3, present: 2, absent: 1 };
@@ -136,6 +172,7 @@ export default function HomePage() {
       if (data.won) {
         showMessage("You won!", "win", 4000);
         setGameOver(true);
+        if (!data.isAuth) saveGuestSession(newGuesses, true, "");
       } else if (data.gameOver) {
         // Auth user — server explicitly says game over
         if (data.word) {
@@ -145,8 +182,9 @@ export default function HomePage() {
         setGameOver(true);
       } else if (!data.isAuth && newGuesses.length >= maxGuesses) {
         // Guest — track locally since API doesn't send gameOver
-        showMessage("Login to see the answer!", "lose", 6000);
+        showMessage("Game over! Login to track your stats.", "lose", 6000);
         setGameOver(true);
+        saveGuestSession(newGuesses, true, "");
       }
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to submit guess.";
@@ -159,7 +197,8 @@ export default function HomePage() {
     } finally {
       setSubmitting(false);
     }
-  }, [gameOver, submitting, currentGuess, wordLength, guesses, maxGuesses]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentGuess, guesses, gameOver, submitting, wordLength]);
 
   // ── Keyboard handler ──────────────────────────────────────────────────────
   const handleKey = useCallback((key) => {
@@ -209,7 +248,7 @@ export default function HomePage() {
           <a href="/register" className="font-bold underline hover:text-[#6AAA64]">
             Register
           </a>{" "}
-          to get 6 guesses + leaderboard access.
+          to get 6 guesses, see the answer + leaderboard access.
         </div>
       )}
 
