@@ -45,7 +45,7 @@ export default function LeaderboardPage() {
       }
     };
     load();
-  }, []);
+  }, [currentUser]);
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-white"}`}>
