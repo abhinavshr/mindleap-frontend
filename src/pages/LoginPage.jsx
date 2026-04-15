@@ -4,8 +4,7 @@ import toast from "react-hot-toast";
 import Navbar from "../components/Reuseable/Navbar";
 import { loginUser } from "../api/auth";
 
-export default function LoginPage() {
-  const [dark, setDark]       = useState(false);
+export default function LoginPage({ dark, onToggleDark }) {
   const [form, setForm]       = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const navigate              = useNavigate();
@@ -35,7 +34,6 @@ export default function LoginPage() {
 
       const { accessToken, user } = res.data;
 
-      // Save both token and user info to localStorage
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("user", JSON.stringify(user));
 
@@ -61,7 +59,7 @@ export default function LoginPage() {
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
-      <Navbar dark={dark} onToggleDark={() => setDark(!dark)} />
+      <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-12">
         <h1
