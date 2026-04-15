@@ -4,8 +4,7 @@ import toast from "react-hot-toast";
 import Navbar from "../components/Reuseable/Navbar";
 import { registerUser } from "../api/auth";
 
-export default function RegisterPage() {
-  const [dark, setDark]       = useState(false);
+export default function RegisterPage({ dark, onToggleDark }) {
   const [form, setForm]       = useState({ username: "", email: "", password: "", confirmPassword: "" });
   const [loading, setLoading] = useState(false);
   const navigate              = useNavigate();
@@ -55,7 +54,7 @@ export default function RegisterPage() {
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
-      <Navbar dark={dark} onToggleDark={() => setDark(!dark)} />
+      <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-12">
         <h1
