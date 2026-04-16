@@ -2,13 +2,16 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import Navbar from "../components/Reuseable/Navbar";
 import { registerUser } from "../api/auth";
 
 export default function RegisterPage({ dark, onToggleDark }) {
-  const [form, setForm]       = useState({ username: "", email: "", password: "", confirmPassword: "" });
+  const [form, setForm] = useState({ username: "", email: "", password: "", confirmPassword: "" });
   const [loading, setLoading] = useState(false);
-  const navigate              = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -53,40 +56,21 @@ export default function RegisterPage({ dark, onToggleDark }) {
     dark ? "text-[#D7D7D7]" : "text-[#1A1A1B]"
   }`;
 
-  // Animation variants
+  const eyeIconClass = `absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-xl ${dark ? "text-[#565758] hover:text-[#A0A0A0]" : "text-[#878A8C] hover:text-[#555]"} transition-colors duration-150`;
+
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
-    }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
   };
 
   const formVariants = {
     hidden: { opacity: 0, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.4,
-        ease: "easeOut"
-      }
-    }
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: "easeOut" } }
   };
 
   return (
@@ -131,16 +115,38 @@ export default function RegisterPage({ dark, onToggleDark }) {
 
             <motion.div variants={itemVariants}>
               <label className={labelBase}>Password</label>
-              <input type="password" name="password" placeholder="Create a password"
-                value={form.password} onChange={handleChange}
-                className={inputBase} autoComplete="new-password" />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Create a password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className={`${inputBase} pr-10`}
+                  autoComplete="new-password"
+                />
+                <span className={eyeIconClass} onClick={() => setShowPassword((prev) => !prev)}>
+                  {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                </span>
+              </div>
             </motion.div>
 
             <motion.div variants={itemVariants}>
               <label className={labelBase}>Confirm Password</label>
-              <input type="password" name="confirmPassword" placeholder="Confirm your password"
-                value={form.confirmPassword} onChange={handleChange}
-                className={inputBase} autoComplete="new-password" />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Confirm your password"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  className={`${inputBase} pr-10`}
+                  autoComplete="new-password"
+                />
+                <span className={eyeIconClass} onClick={() => setShowConfirmPassword((prev) => !prev)}>
+                  {showConfirmPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                </span>
+              </div>
             </motion.div>
 
             <motion.button

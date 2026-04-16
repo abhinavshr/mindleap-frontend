@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import Navbar from "../components/Reuseable/Navbar";
 import { loginUser } from "../api/auth";
 
 export default function LoginPage({ dark, onToggleDark }) {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -56,6 +58,8 @@ export default function LoginPage({ dark, onToggleDark }) {
   const labelBase = `block text-sm font-semibold mb-1.5 ${dark ? "text-[#D7D7D7]" : "text-[#1A1A1B]"
     }`;
 
+  const eyeIconClass = `absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-xl ${dark ? "text-[#565758] hover:text-[#A0A0A0]" : "text-[#878A8C] hover:text-[#555]"} transition-colors duration-150`;
+
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
@@ -88,11 +92,20 @@ export default function LoginPage({ dark, onToggleDark }) {
             </div>
             <div>
               <label className={labelBase}>Password</label>
-              <input
-                type="password" name="password" placeholder="Enter password"
-                value={form.password} onChange={handleChange}
-                className={inputBase} autoComplete="current-password"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Enter password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className={`${inputBase} pr-10`}
+                  autoComplete="current-password"
+                />
+                <span className={eyeIconClass} onClick={() => setShowPassword((prev) => !prev)}>
+                  {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                </span>
+              </div>
             </div>
 
             <motion.button
