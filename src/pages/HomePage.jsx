@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { FaTrophy } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
@@ -215,7 +215,11 @@ export default function HomePage({ dark, onToggleDark }) {
       <div className={`min-h-screen flex flex-col ${dark ? "bg-[#121213]" : "bg-white"}`}>
         <Navbar dark={dark} onToggleDark={onToggleDark} />
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-[#6AAA64] border-t-transparent rounded-full animate-spin" />
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-8 h-8 border-4 border-[#6AAA64] border-t-transparent rounded-full"
+          />
         </div>
       </div>
     );
@@ -225,62 +229,127 @@ export default function HomePage({ dark, onToggleDark }) {
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-white"}`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
-      {!isAuth && (
-        <div className="w-full bg-[#EAF4E6] border-b border-[#6AAA64] px-4 py-2 text-center text-sm text-[#3B6D11]">
-          You have <strong>5 guesses</strong> as a guest.{" "}
-          <a href="/register" className="font-bold underline hover:text-[#6AAA64]">
-            Register
-          </a>{" "}
-          to get 6 guesses, see the answer + leaderboard access.
-        </div>
-      )}
+      <AnimatePresence>
+        {!isAuth && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="w-full bg-[#EAF4E6] border-b border-[#6AAA64] overflow-hidden"
+          >
+            <div className="px-4 py-2 text-center text-sm text-[#3B6D11]">
+              You have <strong>5 guesses</strong> as a guest.{" "}
+              <a href="/register" className="font-bold underline hover:text-[#6AAA64]">
+                Register
+              </a>{" "}
+              to get 6 guesses, see the answer + leaderboard access.
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div
-        className={`fixed top-16 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${
-          message ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
-        }`}
-      >
-        <div className={`flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-lg shadow-lg ${toastStyles[messageType]}`}>
-          {messageType === "win" && <FaTrophy size={14} />}
-          {messageType === "lose" && <MdClose size={16} />}
-          <span>{message}</span>
-        </div>
-      </div>
+      <AnimatePresence>
+        {message && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-50"
+          >
+            <div className={`flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-lg shadow-lg ${toastStyles[messageType]}`}>
+              {messageType === "win" && (
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                >
+                  <FaTrophy size={14} />
+                </motion.div>
+              )}
+              {messageType === "lose" && (
+                <motion.div
+                  initial={{ scale: 0, rotate: 180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                >
+                  <MdClose size={16} />
+                </motion.div>
+              )}
+              <span>{message}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className="flex-1 flex flex-col items-center justify-between py-8 gap-6">
-        <div className="flex-1 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="flex-1 flex items-center justify-center"
+        >
           <Board
             guesses={guesses}
             currentGuess={currentGuess}
             maxGuesses={maxGuesses}
             wordLength={wordLength}
           />
-        </div>
-        {gameOver && revealedWord && (
-          <div className="flex items-center gap-3">
-            <span className={`text-sm font-medium ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
-              The word was
-            </span>
-            <div className="flex gap-1.5">
-              {revealedWord.split("").map((letter, i) => (
-                <div
-                  key={i}
-                  className="w-10 h-10 bg-[#787C7E] text-white flex items-center justify-center text-base font-bold rounded"
-                >
-                  {letter}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        </motion.div>
 
-        <div className="w-full flex justify-center px-2">
+        <AnimatePresence>
+          {gameOver && revealedWord && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="flex items-center gap-3"
+            >
+              <motion.span
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className={`text-sm font-medium ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}
+              >
+                The word was
+              </motion.span>
+              <div className="flex gap-1.5">
+                {revealedWord.split("").map((letter, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, rotateX: -90, scale: 0.8 }}
+                    animate={{ opacity: 1, rotateX: 0, scale: 1 }}
+                    transition={{
+                      delay: 0.3 + i * 0.1,
+                      duration: 0.4,
+                      type: "spring",
+                      stiffness: 200,
+                      damping: 15
+                    }}
+                    className="w-10 h-10 bg-[#787C7E] text-white flex items-center justify-center text-base font-bold rounded"
+                  >
+                    {letter}
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+          className="w-full flex justify-center px-2"
+        >
           <Keyboard
             onKey={handleKey}
             keyStatuses={keyStatuses}
             disabled={submitting || gameOver}
           />
-        </div>
+        </motion.div>
       </main>
     </div>
   );
