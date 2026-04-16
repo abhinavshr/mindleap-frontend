@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import Navbar from "../components/Reuseable/Navbar";
 import { registerUser } from "../api/auth";
@@ -52,58 +53,117 @@ export default function RegisterPage({ dark, onToggleDark }) {
     dark ? "text-[#D7D7D7]" : "text-[#1A1A1B]"
   }`;
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const formVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut"
+      }
+    }
+  };
+
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-12">
-        <h1
+        <motion.h1
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
           className={`text-4xl font-bold mb-8 tracking-tight ${dark ? "text-white" : "text-[#1A1A1B]"}`}
           style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
         >
           Register
-        </h1>
+        </motion.h1>
 
-        <div className={`w-full max-w-115 rounded-2xl border px-8 py-8 ${dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#D3D6DA]"}`}>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <div>
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={formVariants}
+          className={`w-full max-w-115 rounded-2xl border px-8 py-8 ${dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#D3D6DA]"}`}
+        >
+          <motion.form
+            onSubmit={handleSubmit}
+            variants={containerVariants}
+            className="flex flex-col gap-5"
+          >
+            <motion.div variants={itemVariants}>
               <label className={labelBase}>Username</label>
               <input type="text" name="username" placeholder="Choose a username"
                 value={form.username} onChange={handleChange}
                 className={inputBase} autoComplete="username" />
-            </div>
-            <div>
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
               <label className={labelBase}>Email</label>
               <input type="email" name="email" placeholder="Enter your email"
                 value={form.email} onChange={handleChange}
                 className={inputBase} autoComplete="email" />
-            </div>
-            <div>
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
               <label className={labelBase}>Password</label>
               <input type="password" name="password" placeholder="Create a password"
                 value={form.password} onChange={handleChange}
                 className={inputBase} autoComplete="new-password" />
-            </div>
-            <div>
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
               <label className={labelBase}>Confirm Password</label>
               <input type="password" name="confirmPassword" placeholder="Confirm your password"
                 value={form.confirmPassword} onChange={handleChange}
                 className={inputBase} autoComplete="new-password" />
-            </div>
+            </motion.div>
 
-            <button
+            <motion.button
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               type="submit" disabled={loading}
               className="w-full py-3 rounded-lg bg-[#6AAA64] hover:bg-[#538d4e] active:bg-[#4a7d45] text-white font-bold text-sm tracking-wide transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
             >
               {loading ? "Registering..." : "Register"}
-            </button>
-          </form>
+            </motion.button>
+          </motion.form>
 
-          <p className={`text-center text-sm mt-5 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
+            className={`text-center text-sm mt-5 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}
+          >
             Already have an account?{" "}
             <Link to="/login" className="text-[#6AAA64] hover:underline font-medium">Login</Link>
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </main>
     </div>
   );
