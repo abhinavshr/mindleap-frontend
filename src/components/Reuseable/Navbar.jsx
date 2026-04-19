@@ -78,7 +78,8 @@ export default function Navbar({ dark = false, onToggleDark }) {
 
           {user ? (
             <>
-              <Link to="/profile" className={navLink}>Profile</Link>
+              <Link to="/speed-game" className={navLink}>Speed Game</Link>
+              <Link to="/profile"    className={navLink}>Profile</Link>
               <button
                 onClick={handleLogout}
                 className="text-sm font-medium text-white bg-[#787C7E] hover:bg-[#5f6368] px-4 py-1.5 rounded-md transition-colors duration-150"
@@ -133,7 +134,8 @@ export default function Navbar({ dark = false, onToggleDark }) {
 
           {user ? (
             <>
-              <Link to="/profile" className={navLink} onClick={() => setMenuOpen(false)}>Profile</Link>
+              <Link to="/speed-game" className={navLink} onClick={() => setMenuOpen(false)}>Speed Game</Link>
+              <Link to="/profile"    className={navLink} onClick={() => setMenuOpen(false)}>Profile</Link>
               <button
                 onClick={handleLogout}
                 className="text-sm font-medium text-white bg-[#787C7E] hover:bg-[#5f6368] px-4 py-2 rounded-md transition-colors duration-150 text-left"
