@@ -4,14 +4,14 @@ import { MdClose } from "react-icons/md";
 import Navbar from "../components/Reuseable/Navbar";
 import Board from "../components/Board/Board";
 import Keyboard from "../components/Keyboard/Keyboard";
-import { startSpeedGame } from "../api/speedGame";
+import { startSpeedGame, submitSpeedGuess } from "../api/speedGame";
 import toast from "react-hot-toast";
 
 export default function SpeedGamePage({ dark = false, onToggleDark }) {
   const [gameState, setGameState]       = useState("idle");   // idle | loading | playing | won | lost | timeup
   const [sessionId, setSessionId]       = useState(null);
   const [timeLeft, setTimeLeft]         = useState(60);
-  const [timeLimit, setTimeLimit]       = useState(60);       // actual limit from API (for progress bar)
+  const [timeLimit, setTimeLimit]       = useState(60);
   const [wordLength, setWordLength]     = useState(5);
   const [maxGuesses, setMaxGuesses]     = useState(6);
   const [currentGuess, setCurrentGuess] = useState("");
@@ -22,6 +22,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   const [xpEarned, setXpEarned]         = useState(0);
   const [timeTaken, setTimeTaken]       = useState(0);
   const [revealedWord, setRevealedWord] = useState("");
+  const [submitting, setSubmitting]     = useState(false);
   const timerRef = useRef(null);
 
   // ── Timer ─────────────────────────────────────────────────────────────────
@@ -48,6 +49,18 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
     setMessage(msg);
     setMessageType(type);
     if (duration > 0) setTimeout(() => setMessage(""), duration);
+  };
+
+  const buildKeyStatuses = (prev, word, result) => {
+    const priority = { correct: 3, present: 2, absent: 1 };
+    const updated  = { ...prev };
+    word.split("").forEach((letter, i) => {
+      const s = result[i];
+      if (!updated[letter] || priority[s] > priority[updated[letter]]) {
+        updated[letter] = s;
+      }
+    });
+    return updated;
   };
 
   // ── Start game ────────────────────────────────────────────────────────────
@@ -83,18 +96,76 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   };
 
   // ── Submit guess ──────────────────────────────────────────────────────────
-  const submitGuess = useCallback(() => {
-    if (gameState !== "playing") return;
+  const submitGuess = useCallback(async () => {
+    if (gameState !== "playing" || submitting) return;
     if (currentGuess.length < wordLength) {
       showMessage("Not enough letters", "info");
       return;
     }
-    // /speed/guess coming soon — no-op for now
-  }, [currentGuess, gameState, wordLength]);
+
+    try {
+      setSubmitting(true);
+      const attempts = guesses.length + 1; // this guess is attempt #N
+      const res  = await submitSpeedGuess(sessionId, currentGuess.toLowerCase(), attempts);
+      const data = res.data;
+
+      // ── Time expired on the server side ──────────────────────────
+      if (data.timeUp) {
+        clearInterval(timerRef.current);
+        if (data.secret) setRevealedWord(data.secret.toUpperCase());
+        setGameState("timeup");
+        showMessage("Time's up!", "lose", 0);
+        return;
+      }
+
+      // ── Append guess to board ─────────────────────────────────────
+      const newGuess   = { word: currentGuess, result: data.result };
+      const newGuesses = [...guesses, newGuess];
+      setGuesses(newGuesses);
+      setCurrentGuess("");
+      setKeyStatuses((prev) => buildKeyStatuses(prev, currentGuess, data.result));
+
+      // ── Won ───────────────────────────────────────────────────────
+      if (data.won) {
+        clearInterval(timerRef.current);
+        setTimeTaken(data.timeTaken);
+        setXpEarned(data.xpEarned);
+        setGameState("won");
+        showMessage("You won!", "win", 0);
+        return;
+      }
+
+      // ── Lost — used all guesses ───────────────────────────────────
+      if (data.lost) {
+        clearInterval(timerRef.current);
+        if (data.secret) setRevealedWord(data.secret.toUpperCase());
+        setGameState("lost");
+        showMessage(`The word was ${data.secret?.toUpperCase()}`, "lose", 0);
+        return;
+      }
+
+      // ── Still playing — sync server timeLeft ──────────────────────
+      if (data.timeLeft !== undefined) {
+        setTimeLeft(data.timeLeft);
+      }
+
+    } catch (err) {
+      const msg = err?.response?.data?.message || "";
+      if (msg.includes("5 letters"))         showMessage("Word must be 5 letters", "info");
+      else if (msg.includes("only letters")) showMessage("Letters only!", "info");
+      else if (msg.includes("Session already ended")) {
+        showMessage("Session expired.", "lose", 0);
+        setGameState("timeup");
+      }
+      else toast.error(msg || "Failed to submit guess.");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [currentGuess, guesses, gameState, submitting, wordLength, sessionId]);
 
   // ── Keyboard handler ──────────────────────────────────────────────────────
   const handleKey = useCallback((key) => {
-    if (gameState !== "playing") return;
+    if (gameState !== "playing" || submitting) return;
     if (key === "ENTER") { submitGuess(); return; }
     if (key === "BACKSPACE" || key === "Backspace") {
       setCurrentGuess((prev) => prev.slice(0, -1));
@@ -103,7 +174,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
     if (/^[A-Z]$/.test(key) && currentGuess.length < wordLength) {
       setCurrentGuess((prev) => prev + key);
     }
-  }, [currentGuess, gameState, wordLength, submitGuess]);
+  }, [currentGuess, gameState, submitting, wordLength, submitGuess]);
 
   useEffect(() => {
     const handler = (e) =>
@@ -206,7 +277,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
 
             {/* Keyboard */}
             <div className="w-full flex justify-center">
-              <Keyboard onKey={handleKey} keyStatuses={keyStatuses} />
+              <Keyboard onKey={handleKey} keyStatuses={keyStatuses} disabled={submitting} />
             </div>
           </>
         )}
@@ -271,4 +342,4 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       </main>
     </div>
   );
-}
+}   
