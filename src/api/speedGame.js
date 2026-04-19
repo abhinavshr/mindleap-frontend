@@ -5,3 +5,6 @@ export const startSpeedGame = () =>
 
 export const submitSpeedGuess = (sessionId, guess, attempts) =>
   api.post("/speed/guess", { sessionId, guess, attempts });
+
+export const getSpeedLeaderboard = () =>
+  api.get("/speed/leaderboard");
