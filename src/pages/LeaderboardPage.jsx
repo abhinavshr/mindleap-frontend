@@ -7,7 +7,7 @@ import {
 } from "framer-motion";
 import Navbar from "../components/Reuseable/Navbar";
 import { getLeaderboard, getMyRank } from "../api/leaderboard";
-import { getSpeedLeaderboard } from "../api/speedGame";
+import { getSpeedLeaderboard, getMySpeedStats } from "../api/speedGame";
 import toast from "react-hot-toast";
 
 /* ─────────────────────────────────────────
@@ -149,6 +149,8 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
   const [loadingSpeed, setLoadingSpeed]   = useState(false);
   const [speedLoaded, setSpeedLoaded]     = useState(false); // fetch once
   const [myStats, setMyStats]             = useState(null);
+  const [mySpeedStats, setMySpeedStats]   = useState(null);
+  const [speedStatsLoaded, setSpeedStatsLoaded] = useState(false);
   const shouldReduceMotion                = useReducedMotion();
 
   const currentUser = useMemo(() => {
@@ -203,6 +205,24 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
     };
     load();
   }, [activeTab, speedLoaded]);
+
+  // ── Load speed stats on first speed tab switch ────────────────────────────
+  useEffect(() => {
+    if (activeTab !== "speed" || speedStatsLoaded || !currentUser) return;
+    const load = async () => {
+      try {
+        const res = await getMySpeedStats();
+        // res.data shape: { rank, stats, recentGames }
+        setMySpeedStats(res.data);
+        setSpeedStatsLoaded(true);
+      } catch (err) {
+        // Silently fail - user may not have played speed mode yet
+        console.log("Speed stats not available:", err);
+        setSpeedStatsLoaded(true);
+      }
+    };
+    load();
+  }, [activeTab, speedStatsLoaded, currentUser]);
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-white"}`}>
@@ -400,6 +420,83 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
+              {/* My Speed Stats Card */}
+              <AnimatePresence>
+                {currentUser && mySpeedStats && mySpeedStats.stats && (
+                  <motion.div
+                    className={`w-full rounded-xl border px-6 py-4 mb-4 ${
+                      dark ? "bg-[#1a2e1a] border-[#3A3A3C]" : "bg-green-50 border-green-200"
+                    }`}
+                    variants={slideIn}
+                    initial="hidden"
+                    animate="visible"
+                    exit={{ opacity: 0, y: -10 }}
+                    layout
+                  >
+                    <p className={`text-xs font-semibold uppercase tracking-wide mb-3 ${dark ? "text-[#818384]" : "text-gray-400"}`}>
+                      Your Speed Stats
+                    </p>
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                      <motion.div
+                        className="flex items-center gap-3"
+                        initial={{ opacity: 0, x: -16 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.15, duration: 0.4 }}
+                      >
+                        <div className={`text-2xl font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+                          #{mySpeedStats.rank ?? "—"}
+                        </div>
+                        <div>
+                          <p className={`font-semibold text-sm ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+                            {currentUser.username}
+                          </p>
+                          <p className={`text-xs ${dark ? "text-[#818384]" : "text-gray-400"}`}>Speed rank</p>
+                        </div>
+                      </motion.div>
+                      <motion.div
+                        className="flex gap-6"
+                        initial="hidden"
+                        animate="visible"
+                        variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+                      >
+                        <StatPill 
+                          label="Best time" 
+                          value={mySpeedStats.stats.best_time ? `${mySpeedStats.stats.best_time}s` : "—"}
+                          dark={dark} 
+                          delay={0}
+                          icon={<FaBolt className="text-[#C9B458]" size={14} />}
+                        />
+                        <StatPill 
+                          label="Avg time" 
+                          value={mySpeedStats.stats.avg_time ? `${parseFloat(mySpeedStats.stats.avg_time).toFixed(1)}s` : "—"}
+                          dark={dark} 
+                          delay={1}
+                        />
+                        <StatPill 
+                          label="Wins" 
+                          value={mySpeedStats.stats.total_speed_wins ?? 0}
+                          dark={dark} 
+                          delay={2}
+                        />
+                        <StatPill 
+                          label="Streak" 
+                          value={mySpeedStats.stats.current_streak ?? 0}
+                          dark={dark} 
+                          delay={3}
+                          icon={<FaFire className="text-orange-500" size={14} />}
+                        />
+                        <StatPill 
+                          label="XP" 
+                          value={mySpeedStats.stats.total_xp ?? 0}
+                          dark={dark} 
+                          delay={4}
+                        />
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <motion.div
                 className={`w-full border rounded-xl overflow-hidden ${dark ? "border-[#3A3A3C]" : "border-gray-200"}`}
                 initial={{ opacity: 0, y: 24 }}

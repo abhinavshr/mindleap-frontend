@@ -8,3 +8,6 @@ export const submitSpeedGuess = (sessionId, guess, attempts) =>
 
 export const getSpeedLeaderboard = () =>
   api.get("/speed/leaderboard");
+
+export const getMySpeedStats = () =>
+  api.get("/speed/stats");
