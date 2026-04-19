@@ -4,16 +4,16 @@ import { MdClose } from "react-icons/md";
 import Navbar from "../components/Reuseable/Navbar";
 import Board from "../components/Board/Board";
 import Keyboard from "../components/Keyboard/Keyboard";
-
-// ── Static demo data ──────────────────────────────────────────────────────────
-const WORD_LENGTH  = 5;
-const MAX_GUESSES  = 6;
-const TIME_LIMIT   = 60;
-const SECRET_WORD  = "BRAVE"; // replace with API
+import { startSpeedGame } from "../api/speedGame";
+import toast from "react-hot-toast";
 
 export default function SpeedGamePage({ dark = false, onToggleDark }) {
-  const [gameState, setGameState]       = useState("idle");    // idle | playing | won | lost | timeup
-  const [timeLeft, setTimeLeft]         = useState(TIME_LIMIT);
+  const [gameState, setGameState]       = useState("idle");   // idle | loading | playing | won | lost | timeup
+  const [sessionId, setSessionId]       = useState(null);
+  const [timeLeft, setTimeLeft]         = useState(60);
+  const [timeLimit, setTimeLimit]       = useState(60);       // actual limit from API (for progress bar)
+  const [wordLength, setWordLength]     = useState(5);
+  const [maxGuesses, setMaxGuesses]     = useState(6);
   const [currentGuess, setCurrentGuess] = useState("");
   const [guesses, setGuesses]           = useState([]);
   const [keyStatuses, setKeyStatuses]   = useState({});
@@ -21,6 +21,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   const [messageType, setMessageType]   = useState("info");
   const [xpEarned, setXpEarned]         = useState(0);
   const [timeTaken, setTimeTaken]       = useState(0);
+  const [revealedWord, setRevealedWord] = useState("");
   const timerRef = useRef(null);
 
   // ── Timer ─────────────────────────────────────────────────────────────────
@@ -49,64 +50,47 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
     if (duration > 0) setTimeout(() => setMessage(""), duration);
   };
 
-  const startGame = () => {
-    setGameState("playing");
-    setTimeLeft(TIME_LIMIT);
-    setCurrentGuess("");
-    setGuesses([]);
-    setKeyStatuses({});
-    setMessage("");
-    setXpEarned(0);
-    setTimeTaken(0);
+  // ── Start game ────────────────────────────────────────────────────────────
+  const startGame = async () => {
+    try {
+      setGameState("loading");
+      const res  = await startSpeedGame();
+      const data = res.data;
+      // data shape: { sessionId, timeLeft, wordLength, maxGuesses, resumed }
+
+      setSessionId(data.sessionId);
+      setTimeLeft(data.timeLeft);
+      setTimeLimit(data.timeLeft);
+      setWordLength(data.wordLength);
+      setMaxGuesses(data.maxGuesses);
+      setCurrentGuess("");
+      setGuesses([]);
+      setKeyStatuses({});
+      setMessage("");
+      setXpEarned(0);
+      setTimeTaken(0);
+      setRevealedWord("");
+      setGameState("playing");
+
+      if (data.resumed) {
+        showMessage("Session resumed!", "info", 2000);
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to start the game.";
+      toast.error(msg);
+      setGameState("idle");
+    }
   };
 
   // ── Submit guess ──────────────────────────────────────────────────────────
   const submitGuess = useCallback(() => {
     if (gameState !== "playing") return;
-    if (currentGuess.length < WORD_LENGTH) {
+    if (currentGuess.length < wordLength) {
       showMessage("Not enough letters", "info");
       return;
     }
-
-    const result = currentGuess.split("").map((letter, i) => {
-      if (SECRET_WORD[i] === letter) return "correct";
-      if (SECRET_WORD.includes(letter)) return "present";
-      return "absent";
-    });
-
-    const newGuess   = { word: currentGuess, result };
-    const newGuesses = [...guesses, newGuess];
-    setGuesses(newGuesses);
-    setCurrentGuess("");
-
-    // Update key colors
-    const priority = { correct: 3, present: 2, absent: 1 };
-    setKeyStatuses((prev) => {
-      const updated = { ...prev };
-      currentGuess.split("").forEach((letter, i) => {
-        const s = result[i];
-        if (!updated[letter] || priority[s] > priority[updated[letter]]) {
-          updated[letter] = s;
-        }
-      });
-      return updated;
-    });
-
-    const elapsed = TIME_LIMIT - timeLeft;
-
-    if (currentGuess === SECRET_WORD) {
-      clearInterval(timerRef.current);
-      const xp = Math.max(100 - elapsed * 1.5 + (MAX_GUESSES - newGuesses.length) * 10, 10);
-      setXpEarned(Math.round(xp));
-      setTimeTaken(elapsed);
-      setGameState("won");
-      showMessage("You won!", "win", 0);
-    } else if (newGuesses.length >= MAX_GUESSES) {
-      clearInterval(timerRef.current);
-      setGameState("lost");
-      showMessage(`The word was ${SECRET_WORD}`, "lose", 0);
-    }
-  }, [currentGuess, guesses, gameState, timeLeft]);
+    // /speed/guess coming soon — no-op for now
+  }, [currentGuess, gameState, wordLength]);
 
   // ── Keyboard handler ──────────────────────────────────────────────────────
   const handleKey = useCallback((key) => {
@@ -116,10 +100,10 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       setCurrentGuess((prev) => prev.slice(0, -1));
       return;
     }
-    if (/^[A-Z]$/.test(key) && currentGuess.length < WORD_LENGTH) {
+    if (/^[A-Z]$/.test(key) && currentGuess.length < wordLength) {
       setCurrentGuess((prev) => prev + key);
     }
-  }, [currentGuess, gameState, submitGuess]);
+  }, [currentGuess, gameState, wordLength, submitGuess]);
 
   useEffect(() => {
     const handler = (e) =>
@@ -129,17 +113,8 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   }, [handleKey]);
 
   // ── Timer color ───────────────────────────────────────────────────────────
-  const timerColor = timeLeft > 20
-    ? "text-[#6AAA64]"
-    : timeLeft > 10
-    ? "text-[#C9B458]"
-    : "text-red-500";
-
-  const timerBg = timeLeft > 20
-    ? "bg-[#6AAA64]"
-    : timeLeft > 10
-    ? "bg-[#C9B458]"
-    : "bg-red-500";
+  const timerColor = timeLeft > 20 ? "text-[#6AAA64]" : timeLeft > 10 ? "text-[#C9B458]" : "text-red-500";
+  const timerBg    = timeLeft > 20 ? "bg-[#6AAA64]"   : timeLeft > 10 ? "bg-[#C9B458]"   : "bg-red-500";
 
   const toastStyles = {
     win:  "bg-[#6AAA64] text-white",
@@ -162,15 +137,17 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
 
       <main className="flex-1 flex flex-col items-center py-6 px-4 gap-5">
 
-        {/* ── IDLE: Start screen ─────────────────────────────────────── */}
-        {gameState === "idle" && (
+        {/* ── IDLE / LOADING ─────────────────────────────────────────── */}
+        {(gameState === "idle" || gameState === "loading") && (
           <div className="flex flex-col items-center justify-center flex-1 gap-6 max-w-sm text-center">
             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${dark ? "bg-[#1A1A1B]" : "bg-[#EAF4E6]"}`}>
               <FaBolt className="text-[#C9B458]" size={28} />
             </div>
             <div>
-              <h1 className={`text-3xl font-bold mb-2 ${dark ? "text-white" : "text-[#1A1A1B]"}`}
-                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+              <h1
+                className={`text-3xl font-bold mb-2 ${dark ? "text-white" : "text-[#1A1A1B]"}`}
+                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+              >
                 Speed Game
               </h1>
               <p className={`text-sm ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
@@ -179,15 +156,23 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
               </p>
             </div>
             <div className={`w-full rounded-xl border px-5 py-4 flex flex-col gap-2 text-sm ${dark ? "bg-[#1A1A1B] border-[#3A3A3C] text-[#818384]" : "bg-[#F9F9F9] border-[#E0E0E0] text-[#787C7E]"}`}>
-              <div className="flex justify-between"><span>Time limit</span><span className="font-semibold text-[#1A1A1B] dark:text-white">60 seconds</span></div>
+              <div className="flex justify-between"><span>Time limit</span><span className="font-semibold">60 seconds</span></div>
               <div className="flex justify-between"><span>Max guesses</span><span className="font-semibold">6</span></div>
               <div className="flex justify-between"><span>XP reward</span><span className="font-semibold text-[#C9B458]">Up to 100 XP</span></div>
             </div>
             <button
               onClick={startGame}
-              className="w-full py-3 rounded-xl bg-[#6AAA64] hover:bg-[#538d4e] text-white font-bold text-base transition-colors duration-150 flex items-center justify-center gap-2"
+              disabled={gameState === "loading"}
+              className="w-full py-3 rounded-xl bg-[#6AAA64] hover:bg-[#538d4e] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-base transition-colors duration-150 flex items-center justify-center gap-2"
             >
-              <FaBolt size={16} /> Start Game
+              {gameState === "loading" ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Starting…
+                </>
+              ) : (
+                <><FaBolt size={16} /> Start Game</>
+              )}
             </button>
           </div>
         )}
@@ -204,7 +189,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
               <div className={`w-full h-2 rounded-full ${dark ? "bg-[#3A3A3C]" : "bg-[#E0E0E0]"}`}>
                 <div
                   className={`h-2 rounded-full transition-all duration-1000 ${timerBg}`}
-                  style={{ width: `${(timeLeft / TIME_LIMIT) * 100}%` }}
+                  style={{ width: `${(timeLeft / timeLimit) * 100}%` }}
                 />
               </div>
             </div>
@@ -214,8 +199,8 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
               <Board
                 guesses={guesses}
                 currentGuess={currentGuess}
-                maxGuesses={MAX_GUESSES}
-                wordLength={WORD_LENGTH}
+                maxGuesses={maxGuesses}
+                wordLength={wordLength}
               />
             </div>
 
@@ -231,9 +216,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
           <div className="flex flex-col items-center justify-center flex-1 gap-5 max-w-sm text-center w-full">
             {/* Icon */}
             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${
-              gameState === "won"
-                ? "bg-[#EAF4E6]"
-                : dark ? "bg-[#2A2A2B]" : "bg-[#F3F3F3]"
+              gameState === "won" ? "bg-[#EAF4E6]" : dark ? "bg-[#2A2A2B]" : "bg-[#F3F3F3]"
             }`}>
               {gameState === "won"
                 ? <FaTrophy className="text-[#C9B458]" size={28} />
@@ -241,20 +224,22 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
               }
             </div>
 
-            {/* Title */}
+            {/* Title + subtitle */}
             <div>
-              <h2 className={`text-2xl font-bold mb-1 ${dark ? "text-white" : "text-[#1A1A1B]"}`}
-                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
-                {gameState === "won"   ? "You Won!"      :
-                 gameState === "timeup"? "Time's Up!"    : "Better luck!"}
+              <h2
+                className={`text-2xl font-bold mb-1 ${dark ? "text-white" : "text-[#1A1A1B]"}`}
+                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+              >
+                {gameState === "won"    ? "You Won!"    :
+                 gameState === "timeup" ? "Time's Up!"  : "Better luck!"}
               </h2>
               <p className={`text-sm ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
                 {gameState === "won"
                   ? `Solved in ${timeTaken}s with ${guesses.length} guess${guesses.length !== 1 ? "es" : ""}`
-                  : `The word was `}
-                {gameState !== "won" && (
-                  <span className="font-bold text-[#1A1A1B]">{SECRET_WORD}</span>
-                )}
+                  : revealedWord
+                    ? <>The word was <span className={`font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>{revealedWord}</span></>
+                    : "Better luck next time!"
+                }
               </p>
             </div>
 
@@ -266,12 +251,12 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
               </div>
             )}
 
-            {/* Board (frozen result) */}
+            {/* Board (frozen) */}
             <Board
               guesses={guesses}
               currentGuess=""
-              maxGuesses={MAX_GUESSES}
-              wordLength={WORD_LENGTH}
+              maxGuesses={maxGuesses}
+              wordLength={wordLength}
             />
 
             {/* Play again */}
