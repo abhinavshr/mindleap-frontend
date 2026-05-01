@@ -6,8 +6,10 @@ import {
   AnimatePresence,
   useReducedMotion,
 } from "framer-motion";
+import { FaBolt, FaStar } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { logoutUser, getMe } from "../api/auth";
+import { getMyLevel } from "../api/level";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -34,28 +36,18 @@ function AnimatedNumber({ value }) {
 
   useEffect(() => {
     if (shouldReduce || typeof value !== "number") return;
-
     let startTime = null;
     const duration = 600;
-
     const animate = (time) => {
       if (!startTime) startTime = time;
       const progress = Math.min((time - startTime) / duration, 1);
-
       setDisplay(Math.floor(progress * value));
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
+      if (progress < 1) requestAnimationFrame(animate);
     };
-
     requestAnimationFrame(animate);
   }, [value, shouldReduce]);
 
-  if (shouldReduce || typeof value !== "number") {
-    return <>{value}</>;
-  }
-
+  if (shouldReduce || typeof value !== "number") return <>{value}</>;
   return <>{display}</>;
 }
 
@@ -72,18 +64,10 @@ const StatCard = ({ label, value, index, dark }) => {
         dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
       }`}
     >
-      <span
-        className={`text-2xl sm:text-3xl font-bold ${
-          dark ? "text-white" : "text-[#1A1A1B]"
-        }`}
-      >
+      <span className={`text-2xl sm:text-3xl font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
         {isNumeric ? <AnimatedNumber value={value} /> : value}
       </span>
-      <span
-        className={`text-xs text-center ${
-          dark ? "text-[#818384]" : "text-[#787C7E]"
-        }`}
-      >
+      <span className={`text-xs text-center ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
         {label}
       </span>
     </motion.div>
@@ -98,11 +82,7 @@ const DistBar = ({ guess, count, pct, dark, index }) => (
     initial="hidden"
     animate="visible"
   >
-    <span
-      className={`text-sm font-medium w-4 text-right ${
-        dark ? "text-[#818384]" : "text-[#787C7E]"
-      }`}
-    >
+    <span className={`text-sm font-medium w-4 text-right ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
       {guess}
     </span>
     <div className="flex-1">
@@ -126,56 +106,48 @@ const DistBar = ({ guess, count, pct, dark, index }) => (
 );
 
 export default function ProfilePage({ dark, onToggleDark }) {
-  const [loading, setLoading] = useState(true);
-  const [profileData, setProfileData] = useState(null);
-  const navigate = useNavigate();
+  const [loading, setLoading]           = useState(true);
+  const [profileData, setProfileData]   = useState(null);
+  const [levelData, setLevelData]       = useState(null);
+  const navigate                        = useNavigate();
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchAll = async () => {
       try {
-        const response = await getMe();
-        setProfileData(response.data);
-      } catch (error) {
-        console.error("Failed to fetch profile:", error);
-        toast.error("Failed to load profile data");
+        const [profileRes, levelRes] = await Promise.allSettled([
+          getMe(),
+          getMyLevel(),
+        ]);
+        if (profileRes.status === "fulfilled") setProfileData(profileRes.value.data);
+        if (levelRes.status  === "fulfilled") setLevelData(levelRes.value.data);
+        if (profileRes.status === "rejected") toast.error("Failed to load profile data");
       } finally {
         setLoading(false);
       }
     };
-    fetchProfile();
+    fetchAll();
   }, []);
 
   const joinDate = profileData?.profile?.joined_at
     ? new Date(profileData.profile.joined_at).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
+        year: "numeric", month: "long", day: "numeric",
       })
     : "—";
 
   const stats = [
-    { label: "Total Games", value: profileData?.stats?.total_games ?? 0 },
-    {
-      label: "Win Rate",
-      value: profileData?.stats
-        ? `${Math.round(profileData.stats.win_rate * 100)}%`
-        : "0%",
-    },
-    { label: "Current Streak", value: profileData?.stats?.current_streak ?? 0 },
-    { label: "Max Streak", value: profileData?.stats?.max_streak ?? 0 },
+    { label: "Total Games",    value: profileData?.stats?.total_games      ?? 0    },
+    { label: "Win Rate",       value: profileData?.stats ? `${Math.round(profileData.stats.win_rate * 100)}%` : "0%" },
+    { label: "Current Streak", value: profileData?.stats?.current_streak   ?? 0    },
+    { label: "Max Streak",     value: profileData?.stats?.max_streak       ?? 0    },
   ];
 
-  const distribution = Object.entries(
-    profileData?.guess_distribution ?? {}
-  ).map(([guess, count]) => ({ guess: parseInt(guess), count }));
+  const distribution = Object.entries(profileData?.guess_distribution ?? {})
+    .map(([guess, count]) => ({ guess: parseInt(guess), count }));
   const maxCount = Math.max(...distribution.map((d) => d.count), 1);
 
   const handleLogout = async () => {
-    try {
-      await logoutUser();
-    } catch {
-      /* ignore */
-    } finally {
+    try { await logoutUser(); } catch { /* ignore */ }
+    finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
       toast.success("Logged out successfully.");
@@ -185,11 +157,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
 
   if (loading) {
     return (
-      <div
-        className={`min-h-screen flex items-center justify-center ${
-          dark ? "bg-[#121213]" : "bg-[#F9F9F9]"
-        }`}
-      >
+      <div className={`min-h-screen flex items-center justify-center ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
         <motion.div
           className="w-8 h-8 border-4 border-[#6AAA64] border-t-transparent rounded-full"
           animate={{ rotate: 360 }}
@@ -200,19 +168,14 @@ export default function ProfilePage({ dark, onToggleDark }) {
   }
 
   return (
-    <div
-      className={`min-h-screen flex flex-col transition-colors duration-300 ${
-        dark ? "bg-[#121213]" : "bg-[#F9F9F9]"
-      }`}
-    >
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 sm:py-10">
+
         {/* Title */}
         <motion.h1
-          className={`text-2xl sm:text-3xl font-bold text-center mb-8 ${
-            dark ? "text-white" : "text-[#1A1A1B]"
-          }`}
+          className={`text-2xl sm:text-3xl font-bold text-center mb-8 ${dark ? "text-white" : "text-[#1A1A1B]"}`}
           style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
           initial={{ opacity: 0, y: -18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -236,25 +199,13 @@ export default function ProfilePage({ dark, onToggleDark }) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <p
-              className={`text-xl font-bold ${
-                dark ? "text-white" : "text-[#1A1A1B]"
-              }`}
-            >
+            <p className={`text-xl font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
               {profileData?.profile?.username ?? "Guest"}
             </p>
-            <p
-              className={`text-sm ${
-                dark ? "text-[#818384]" : "text-[#787C7E]"
-              }`}
-            >
+            <p className={`text-sm ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
               {profileData?.profile?.email ?? "—"}
             </p>
-            <p
-              className={`text-sm ${
-                dark ? "text-[#818384]" : "text-[#787C7E]"
-              }`}
-            >
+            <p className={`text-sm ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
               Joined {joinDate}
             </p>
           </motion.div>
@@ -279,15 +230,90 @@ export default function ProfilePage({ dark, onToggleDark }) {
         {/* Stats grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
           {stats.map(({ label, value }, i) => (
-            <StatCard
-              key={label}
-              label={label}
-              value={value}
-              index={i}
-              dark={dark}
-            />
+            <StatCard key={label} label={label} value={value} index={i} dark={dark} />
           ))}
         </div>
+
+        {/* ── Level card ───────────────────────────────────────────────── */}
+        {levelData && (
+          <motion.div
+            className={`rounded-2xl border px-4 sm:px-6 py-5 mb-5 ${
+              dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
+            }`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.32, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {/* Header row */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#2A2A2B]" : "bg-[#EAF4E6]"}`}>
+                  <FaStar className="text-[#C9B458]" size={14} />
+                </div>
+                <div>
+                  <p className={`text-sm font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+                    Level {levelData.currentLevel} — {levelData.currentTitle}
+                  </p>
+                  <p className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                    {levelData.totalXp} total XP
+                  </p>
+                </div>
+              </div>
+              {levelData.isMaxLevel ? (
+                <span className="text-xs font-semibold text-[#C9B458] bg-yellow-50 border border-yellow-200 px-3 py-1 rounded-full">
+                  Max Level
+                </span>
+              ) : (
+                <span className={`text-xs font-semibold ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                  {levelData.xpToNextLevel} XP to go
+                </span>
+              )}
+            </div>
+
+            {/* XP progress bar */}
+            {!levelData.isMaxLevel && (
+              <>
+                <div className={`w-full h-3 rounded-full overflow-hidden ${dark ? "bg-[#3A3A3C]" : "bg-[#E0E0E0]"}`}>
+                  <motion.div
+                    className="h-3 rounded-full bg-[#C9B458]"
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${levelData.progressPercent}%` }}
+                    transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1.5">
+                  <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                    {levelData.currentLevelXp} XP
+                  </span>
+                  <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                    {levelData.nextLevelXp} XP
+                  </span>
+                </div>
+              </>
+            )}
+
+            {/* Recent XP log */}
+            {levelData.recentXpLog?.length > 0 && (
+              <div className={`mt-4 pt-4 border-t ${dark ? "border-[#3A3A3C]" : "border-[#F0F0F0]"}`}>
+                <p className={`text-xs font-semibold uppercase tracking-wide mb-2 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                  Recent XP
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {levelData.recentXpLog.slice(0, 5).map((log, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                        {log.reason ?? "Game"}
+                      </span>
+                      <span className="text-xs font-semibold text-[#C9B458] flex items-center gap-1">
+                        <FaBolt size={9} />+{log.xp_earned ?? log.amount ?? 0}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* Guess distribution */}
         <motion.div
@@ -299,9 +325,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
           transition={{ duration: 0.45, delay: 0.38, ease: [0.22, 1, 0.36, 1] }}
         >
           <motion.h2
-            className={`text-lg font-bold mb-5 ${
-              dark ? "text-white" : "text-[#1A1A1B]"
-            }`}
+            className={`text-lg font-bold mb-5 ${dark ? "text-white" : "text-[#1A1A1B]"}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.45 }}
@@ -309,23 +333,22 @@ export default function ProfilePage({ dark, onToggleDark }) {
             Guess Distribution
           </motion.h2>
 
-          <div className="flex flex-col gap-3">
-            <AnimatePresence>
-              {distribution.map(({ guess, count }, i) => {
-                const pct = Math.max((count / maxCount) * 100, 8);
-                return (
-                  <DistBar
-                    key={guess}
-                    guess={guess}
-                    count={count}
-                    pct={pct}
-                    dark={dark}
-                    index={i}
-                  />
-                );
-              })}
-            </AnimatePresence>
-          </div>
+          {distribution.length === 0 ? (
+            <p className={`text-sm text-center py-4 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+              No games played yet.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <AnimatePresence>
+                {distribution.map(({ guess, count }, i) => {
+                  const pct = Math.max((count / maxCount) * 100, 8);
+                  return (
+                    <DistBar key={guess} guess={guess} count={count} pct={pct} dark={dark} index={i} />
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          )}
         </motion.div>
       </main>
     </div>
