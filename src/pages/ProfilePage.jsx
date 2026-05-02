@@ -6,12 +6,12 @@ import {
   AnimatePresence,
   useReducedMotion,
 } from "framer-motion";
-import { FaBolt, FaStar, FaGift, FaChevronRight } from "react-icons/fa";
+import { FaBolt, FaStar, FaGift, FaChevronRight, FaTrophy } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { logoutUser, getMe } from "../api/auth";
 import { getMyLevel, getMyBadges, getMyRewards } from "../api/level";
 
-// ── Simple in-memory cache — survives re-renders, clears on page refresh ──────
+// ── Simple in-memory cache ─────────────────────────────────────────────────────
 let _profileCache = null;
 
 const fadeUp = {
@@ -174,6 +174,26 @@ const RewardCard = ({ reward, dark, index }) => {
     </motion.div>
   );
 };
+
+// ── Reusable nav button used for both "View All Levels" and "Hall of Fame" ────
+const NavButton = ({ onClick, icon: Icon, iconColor, label, dark }) => (
+  <motion.button
+    onClick={onClick}
+    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-colors duration-150 ${
+      dark
+        ? "border-[#3A3A3C] text-[#D7D7D7] hover:bg-[#2A2A2B]"
+        : "border-[#E0E0E0] text-[#1A1A1B] hover:bg-[#F5F5F5]"
+    }`}
+    whileHover={{ scale: 1.01 }}
+    whileTap={{ scale: 0.99 }}
+  >
+    <span className="flex items-center gap-2">
+      <Icon size={12} style={{ color: iconColor }} />
+      {label}
+    </span>
+    <FaChevronRight size={11} className={dark ? "text-[#818384]" : "text-[#B0B0B0]"} />
+  </motion.button>
+);
 
 export default function ProfilePage({ dark, onToggleDark }) {
   const [loading, setLoading]         = useState(true);
@@ -391,23 +411,23 @@ export default function ProfilePage({ dark, onToggleDark }) {
               </div>
             )}
 
-            {/* ── View All Levels button ── */}
-            <motion.button
-              onClick={() => navigate("/levels")}
-              className={`mt-4 w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-colors duration-150 ${
-                dark
-                  ? "border-[#3A3A3C] text-[#D7D7D7] hover:bg-[#2A2A2B]"
-                  : "border-[#E0E0E0] text-[#1A1A1B] hover:bg-[#F5F5F5]"
-              }`}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-            >
-              <span className="flex items-center gap-2">
-                <FaStar size={12} className="text-[#C9B458]" />
-                View All Levels
-              </span>
-              <FaChevronRight size={11} className={dark ? "text-[#818384]" : "text-[#B0B0B0]"} />
-            </motion.button>
+            {/* Nav buttons */}
+            <div className={`mt-4 flex flex-col gap-2 ${levelData.recentXpLog?.length > 0 ? "pt-4 border-t " + (dark ? "border-[#3A3A3C]" : "border-[#F0F0F0]") : ""}`}>
+              <NavButton
+                onClick={() => navigate("/levels")}
+                icon={FaStar}
+                iconColor="#C9B458"
+                label="View All Levels"
+                dark={dark}
+              />
+              <NavButton
+                onClick={() => navigate("/hall-of-fame")}
+                icon={FaTrophy}
+                iconColor="#C9B458"
+                label="Hall of Fame"
+                dark={dark}
+              />
+            </div>
           </motion.div>
         )}
 
