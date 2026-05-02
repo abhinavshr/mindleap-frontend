@@ -6,10 +6,10 @@ import {
   AnimatePresence,
   useReducedMotion,
 } from "framer-motion";
-import { FaBolt, FaStar } from "react-icons/fa";
+import { FaBolt, FaStar, FaGift } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { logoutUser, getMe } from "../api/auth";
-import { getMyLevel, getMyBadges } from "../api/level";
+import { getMyLevel, getMyBadges, getMyRewards } from "../api/level";
 
 // ── Simple in-memory cache — survives re-renders, clears on page refresh ──────
 let _profileCache = null;
@@ -123,11 +123,66 @@ const BADGE_EMOJIS = {
   speedster:     "🚀",
 };
 
+// Reward type display config
+const REWARD_TYPE_CONFIG = {
+  xp_boost:    { emoji: "⚡", label: "XP Boost",    color: "#C9B458" },
+  theme:       { emoji: "🎨", label: "Theme",        color: "#6AAA64" },
+  avatar:      { emoji: "🖼️", label: "Avatar",       color: "#5B8BDF" },
+  title:       { emoji: "📜", label: "Title",        color: "#B06AB3" },
+  badge_frame: { emoji: "🖼️", label: "Badge Frame",  color: "#E07B54" },
+};
+
+const RewardCard = ({ reward, dark, index }) => {
+  const config = REWARD_TYPE_CONFIG[reward.reward_type] ?? { emoji: "🎁", label: reward.reward_type ?? "Reward", color: "#6AAA64" };
+  const unlockedDate = reward.unlocked_at
+    ? new Date(reward.unlocked_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : null;
+
+  return (
+    <motion.div
+      custom={index}
+      variants={cardVariant}
+      initial="hidden"
+      animate="visible"
+      whileHover={{ y: -2, transition: { duration: 0.2 } }}
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
+        dark ? "bg-[#1E1E1F] border-[#3A3A3C]" : "bg-[#F9F9F9] border-[#E0E0E0]"
+      }`}
+    >
+      {/* Icon */}
+      <div
+        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-xl"
+        style={{ backgroundColor: `${config.color}22` }}
+      >
+        {config.emoji}
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm font-semibold truncate ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+          {reward.name ?? reward.reward_key ?? "Reward"}
+        </p>
+        <p className={`text-xs truncate ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+          {reward.description ?? config.label}
+        </p>
+      </div>
+
+      {/* Date */}
+      {unlockedDate && (
+        <span className={`text-xs shrink-0 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+          {unlockedDate}
+        </span>
+      )}
+    </motion.div>
+  );
+};
+
 export default function ProfilePage({ dark, onToggleDark }) {
   const [loading, setLoading]         = useState(true);
   const [profileData, setProfileData] = useState(null);
   const [levelData, setLevelData]     = useState(null);
   const [badges, setBadges]           = useState([]);
+  const [rewards, setRewards]         = useState([]);
   const navigate                      = useNavigate();
 
   useEffect(() => {
@@ -138,15 +193,17 @@ export default function ProfilePage({ dark, onToggleDark }) {
           ? Promise.resolve({ data: _profileCache })
           : getMe().then((res) => { _profileCache = res.data; return res; });
 
-        const [profileRes, levelRes, badgesRes] = await Promise.allSettled([
+        const [profileRes, levelRes, badgesRes, rewardsRes] = await Promise.allSettled([
           profilePromise,
           getMyLevel(),
           getMyBadges(),
+          getMyRewards(),
         ]);
 
         if (profileRes.status === "fulfilled") setProfileData(profileRes.value.data);
         if (levelRes.status   === "fulfilled") setLevelData(levelRes.value.data);
         if (badgesRes.status  === "fulfilled") setBadges(badgesRes.value.data.badges || []);
+        if (rewardsRes.status === "fulfilled") setRewards(rewardsRes.value.data.rewards || []);
         if (profileRes.status === "rejected")  toast.error("Failed to load profile data");
       } finally {
         setLoading(false);
@@ -376,6 +433,35 @@ export default function ProfilePage({ dark, onToggleDark }) {
                     </span>
                   )}
                 </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Rewards */}
+        {rewards.length > 0 && (
+          <motion.div
+            className={`rounded-2xl border px-4 sm:px-6 py-5 mb-5 ${
+              dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
+            }`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.46, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#2A2A2B]" : "bg-[#EAF4E6]"}`}>
+                  <FaGift className="text-[#6AAA64]" size={14} />
+                </div>
+                <h2 className={`text-lg font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>Rewards</h2>
+              </div>
+              <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                {rewards.length} unlocked
+              </span>
+            </div>
+            <div className="flex flex-col gap-2">
+              {rewards.map((reward, i) => (
+                <RewardCard key={reward.id ?? i} reward={reward} dark={dark} index={i} />
               ))}
             </div>
           </motion.div>
