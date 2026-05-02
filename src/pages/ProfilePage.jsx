@@ -9,7 +9,10 @@ import {
 import { FaBolt, FaStar } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { logoutUser, getMe } from "../api/auth";
-import { getMyLevel } from "../api/level";
+import { getMyLevel, getMyBadges } from "../api/level";
+
+// ── Simple in-memory cache — survives re-renders, clears on page refresh ──────
+let _profileCache = null;
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -105,22 +108,46 @@ const DistBar = ({ guess, count, pct, dark, index }) => (
   </motion.div>
 );
 
+const BADGE_EMOJIS = {
+  first_game:    "👣",
+  first_win:     "🏆",
+  speed_demon:   "⚡",
+  big_brain:     "🧠",
+  on_fire:       "🔥",
+  unstoppable:   "💥",
+  level_10:      "⭐",
+  level_25:      "🌟",
+  level_50:      "👑",
+  century:       "💯",
+  perfectionist: "✨",
+  speedster:     "🚀",
+};
+
 export default function ProfilePage({ dark, onToggleDark }) {
-  const [loading, setLoading]           = useState(true);
-  const [profileData, setProfileData]   = useState(null);
-  const [levelData, setLevelData]       = useState(null);
-  const navigate                        = useNavigate();
+  const [loading, setLoading]         = useState(true);
+  const [profileData, setProfileData] = useState(null);
+  const [levelData, setLevelData]     = useState(null);
+  const [badges, setBadges]           = useState([]);
+  const navigate                      = useNavigate();
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [profileRes, levelRes] = await Promise.allSettled([
-          getMe(),
+        // Use cache for getMe — avoids re-hitting rate limit on revisit
+        const profilePromise = _profileCache
+          ? Promise.resolve({ data: _profileCache })
+          : getMe().then((res) => { _profileCache = res.data; return res; });
+
+        const [profileRes, levelRes, badgesRes] = await Promise.allSettled([
+          profilePromise,
           getMyLevel(),
+          getMyBadges(),
         ]);
+
         if (profileRes.status === "fulfilled") setProfileData(profileRes.value.data);
-        if (levelRes.status  === "fulfilled") setLevelData(levelRes.value.data);
-        if (profileRes.status === "rejected") toast.error("Failed to load profile data");
+        if (levelRes.status   === "fulfilled") setLevelData(levelRes.value.data);
+        if (badgesRes.status  === "fulfilled") setBadges(badgesRes.value.data.badges || []);
+        if (profileRes.status === "rejected")  toast.error("Failed to load profile data");
       } finally {
         setLoading(false);
       }
@@ -135,10 +162,10 @@ export default function ProfilePage({ dark, onToggleDark }) {
     : "—";
 
   const stats = [
-    { label: "Total Games",    value: profileData?.stats?.total_games      ?? 0    },
+    { label: "Total Games",    value: profileData?.stats?.total_games    ?? 0    },
     { label: "Win Rate",       value: profileData?.stats ? `${Math.round(profileData.stats.win_rate * 100)}%` : "0%" },
-    { label: "Current Streak", value: profileData?.stats?.current_streak   ?? 0    },
-    { label: "Max Streak",     value: profileData?.stats?.max_streak       ?? 0    },
+    { label: "Current Streak", value: profileData?.stats?.current_streak ?? 0    },
+    { label: "Max Streak",     value: profileData?.stats?.max_streak     ?? 0    },
   ];
 
   const distribution = Object.entries(profileData?.guess_distribution ?? {})
@@ -148,6 +175,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
   const handleLogout = async () => {
     try { await logoutUser(); } catch { /* ignore */ }
     finally {
+      _profileCache = null; // clear cache on logout
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
       toast.success("Logged out successfully.");
@@ -234,7 +262,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
           ))}
         </div>
 
-        {/* ── Level card ───────────────────────────────────────────────── */}
+        {/* Level card */}
         {levelData && (
           <motion.div
             className={`rounded-2xl border px-4 sm:px-6 py-5 mb-5 ${
@@ -244,7 +272,6 @@ export default function ProfilePage({ dark, onToggleDark }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Header row */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#2A2A2B]" : "bg-[#EAF4E6]"}`}>
@@ -270,7 +297,6 @@ export default function ProfilePage({ dark, onToggleDark }) {
               )}
             </div>
 
-            {/* XP progress bar */}
             {!levelData.isMaxLevel && (
               <>
                 <div className={`w-full h-3 rounded-full overflow-hidden ${dark ? "bg-[#3A3A3C]" : "bg-[#E0E0E0]"}`}>
@@ -282,17 +308,12 @@ export default function ProfilePage({ dark, onToggleDark }) {
                   />
                 </div>
                 <div className="flex justify-between mt-1.5">
-                  <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
-                    {levelData.currentLevelXp} XP
-                  </span>
-                  <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
-                    {levelData.nextLevelXp} XP
-                  </span>
+                  <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>{levelData.currentLevelXp} XP</span>
+                  <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>{levelData.nextLevelXp} XP</span>
                 </div>
               </>
             )}
 
-            {/* Recent XP log */}
             {levelData.recentXpLog?.length > 0 && (
               <div className={`mt-4 pt-4 border-t ${dark ? "border-[#3A3A3C]" : "border-[#F0F0F0]"}`}>
                 <p className={`text-xs font-semibold uppercase tracking-wide mb-2 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
@@ -302,16 +323,61 @@ export default function ProfilePage({ dark, onToggleDark }) {
                   {levelData.recentXpLog.slice(0, 5).map((log, i) => (
                     <div key={i} className="flex items-center justify-between">
                       <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
-                        {log.reason ?? "Game"}
+                        {log.description ?? log.reason ?? "Game"}
                       </span>
                       <span className="text-xs font-semibold text-[#C9B458] flex items-center gap-1">
-                        <FaBolt size={9} />+{log.xp_earned ?? log.amount ?? 0}
+                        <FaBolt size={9} />+{log.xp_amount ?? log.xp_earned ?? log.amount ?? 0}
                       </span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
+          </motion.div>
+        )}
+
+        {/* Badges */}
+        {badges.length > 0 && (
+          <motion.div
+            className={`rounded-2xl border px-4 sm:px-6 py-5 mb-5 ${
+              dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
+            }`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.40, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-lg font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>Badges</h2>
+              <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                {badges.filter(b => b.earned).length} / {badges.length} earned
+              </span>
+            </div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              {badges.map((b) => (
+                <motion.div
+                  key={b.key}
+                  whileHover={{ scale: 1.05 }}
+                  title={b.description}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-colors ${
+                    b.earned
+                      ? dark ? "bg-[#1E2D1E] border-[#3A3A3C]" : "bg-[#EAF4E6] border-[#6AAA64]"
+                      : dark ? "bg-[#1A1A1B] border-[#2A2A2B] opacity-40" : "bg-[#F9F9F9] border-[#E0E0E0] opacity-40"
+                  }`}
+                >
+                  <span className="text-2xl">{b.earned ? (BADGE_EMOJIS[b.key] ?? "🏅") : "🔒"}</span>
+                  <span className={`text-xs font-semibold text-center leading-tight ${
+                    b.earned ? dark ? "text-white" : "text-[#1A1A1B]" : dark ? "text-[#818384]" : "text-[#787C7E]"
+                  }`}>
+                    {b.name}
+                  </span>
+                  {b.earned && b.earned_at && (
+                    <span className={`text-[10px] ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                      {new Date(b.earned_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </span>
+                  )}
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
         )}
 
@@ -332,7 +398,6 @@ export default function ProfilePage({ dark, onToggleDark }) {
           >
             Guess Distribution
           </motion.h2>
-
           {distribution.length === 0 ? (
             <p className={`text-sm text-center py-4 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
               No games played yet.
@@ -342,9 +407,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
               <AnimatePresence>
                 {distribution.map(({ guess, count }, i) => {
                   const pct = Math.max((count / maxCount) * 100, 8);
-                  return (
-                    <DistBar key={guess} guess={guess} count={count} pct={pct} dark={dark} index={i} />
-                  );
+                  return <DistBar key={guess} guess={guess} count={count} pct={pct} dark={dark} index={i} />;
                 })}
               </AnimatePresence>
             </div>
