@@ -6,7 +6,7 @@ import {
   AnimatePresence,
   useReducedMotion,
 } from "framer-motion";
-import { FaBolt, FaStar, FaGift } from "react-icons/fa";
+import { FaBolt, FaStar, FaGift, FaChevronRight } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { logoutUser, getMe } from "../api/auth";
 import { getMyLevel, getMyBadges, getMyRewards } from "../api/level";
@@ -123,19 +123,22 @@ const BADGE_EMOJIS = {
   speedster:     "🚀",
 };
 
-// Reward type display config
 const REWARD_TYPE_CONFIG = {
-  xp_boost:    { emoji: "⚡", label: "XP Boost",    color: "#C9B458" },
-  theme:       { emoji: "🎨", label: "Theme",        color: "#6AAA64" },
-  avatar:      { emoji: "🖼️", label: "Avatar",       color: "#5B8BDF" },
-  title:       { emoji: "📜", label: "Title",        color: "#B06AB3" },
-  badge_frame: { emoji: "🖼️", label: "Badge Frame",  color: "#E07B54" },
+  xp_boost:    { emoji: "⚡", label: "XP Boost",   color: "#C9B458" },
+  theme:       { emoji: "🎨", label: "Theme",       color: "#6AAA64" },
+  avatar:      { emoji: "🖼️", label: "Avatar",      color: "#5B8BDF" },
+  title:       { emoji: "📜", label: "Title",       color: "#B06AB3" },
+  badge_frame: { emoji: "🖼️", label: "Badge Frame", color: "#E07B54" },
 };
 
 const RewardCard = ({ reward, dark, index }) => {
-  const config = REWARD_TYPE_CONFIG[reward.reward_type] ?? { emoji: "🎁", label: reward.reward_type ?? "Reward", color: "#6AAA64" };
+  const config = REWARD_TYPE_CONFIG[reward.reward_type] ?? {
+    emoji: "🎁", label: reward.reward_type ?? "Reward", color: "#6AAA64",
+  };
   const unlockedDate = reward.unlocked_at
-    ? new Date(reward.unlocked_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    ? new Date(reward.unlocked_at).toLocaleDateString("en-US", {
+        month: "short", day: "numeric", year: "numeric",
+      })
     : null;
 
   return (
@@ -149,15 +152,12 @@ const RewardCard = ({ reward, dark, index }) => {
         dark ? "bg-[#1E1E1F] border-[#3A3A3C]" : "bg-[#F9F9F9] border-[#E0E0E0]"
       }`}
     >
-      {/* Icon */}
       <div
         className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-xl"
         style={{ backgroundColor: `${config.color}22` }}
       >
         {config.emoji}
       </div>
-
-      {/* Info */}
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-semibold truncate ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
           {reward.name ?? reward.reward_key ?? "Reward"}
@@ -166,8 +166,6 @@ const RewardCard = ({ reward, dark, index }) => {
           {reward.description ?? config.label}
         </p>
       </div>
-
-      {/* Date */}
       {unlockedDate && (
         <span className={`text-xs shrink-0 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
           {unlockedDate}
@@ -188,7 +186,6 @@ export default function ProfilePage({ dark, onToggleDark }) {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        // Use cache for getMe — avoids re-hitting rate limit on revisit
         const profilePromise = _profileCache
           ? Promise.resolve({ data: _profileCache })
           : getMe().then((res) => { _profileCache = res.data; return res; });
@@ -232,7 +229,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
   const handleLogout = async () => {
     try { await logoutUser(); } catch { /* ignore */ }
     finally {
-      _profileCache = null; // clear cache on logout
+      _profileCache = null;
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
       toast.success("Logged out successfully.");
@@ -329,6 +326,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
+            {/* Level header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#2A2A2B]" : "bg-[#EAF4E6]"}`}>
@@ -354,6 +352,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
               )}
             </div>
 
+            {/* Progress bar */}
             {!levelData.isMaxLevel && (
               <>
                 <div className={`w-full h-3 rounded-full overflow-hidden ${dark ? "bg-[#3A3A3C]" : "bg-[#E0E0E0]"}`}>
@@ -371,6 +370,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
               </>
             )}
 
+            {/* Recent XP log */}
             {levelData.recentXpLog?.length > 0 && (
               <div className={`mt-4 pt-4 border-t ${dark ? "border-[#3A3A3C]" : "border-[#F0F0F0]"}`}>
                 <p className={`text-xs font-semibold uppercase tracking-wide mb-2 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
@@ -390,6 +390,24 @@ export default function ProfilePage({ dark, onToggleDark }) {
                 </div>
               </div>
             )}
+
+            {/* ── View All Levels button ── */}
+            <motion.button
+              onClick={() => navigate("/levels")}
+              className={`mt-4 w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-colors duration-150 ${
+                dark
+                  ? "border-[#3A3A3C] text-[#D7D7D7] hover:bg-[#2A2A2B]"
+                  : "border-[#E0E0E0] text-[#1A1A1B] hover:bg-[#F5F5F5]"
+              }`}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+            >
+              <span className="flex items-center gap-2">
+                <FaStar size={12} className="text-[#C9B458]" />
+                View All Levels
+              </span>
+              <FaChevronRight size={11} className={dark ? "text-[#818384]" : "text-[#B0B0B0]"} />
+            </motion.button>
           </motion.div>
         )}
 
