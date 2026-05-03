@@ -6,12 +6,12 @@ import {
   AnimatePresence,
   useReducedMotion,
 } from "framer-motion";
-import { FaBolt, FaStar, FaGift, FaChevronRight, FaTrophy } from "react-icons/fa";
+import { FaBolt, FaStar } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { logoutUser, getMe } from "../api/auth";
 import { getMyLevel, getMyBadges, getMyRewards } from "../api/level";
 
-// ── Simple in-memory cache ─────────────────────────────────────────────────────
+// ── Simple in-memory cache — survives re-renders, clears on page refresh ──────
 let _profileCache = null;
 
 const fadeUp = {
@@ -123,89 +123,30 @@ const BADGE_EMOJIS = {
   speedster:     "🚀",
 };
 
-const REWARD_TYPE_CONFIG = {
-  xp_boost:    { emoji: "⚡", label: "XP Boost",   color: "#C9B458" },
-  theme:       { emoji: "🎨", label: "Theme",       color: "#6AAA64" },
-  avatar:      { emoji: "🖼️", label: "Avatar",      color: "#5B8BDF" },
-  title:       { emoji: "📜", label: "Title",       color: "#B06AB3" },
-  badge_frame: { emoji: "🖼️", label: "Badge Frame", color: "#E07B54" },
+const REWARD_TYPE_LABEL = {
+  theme:       "Theme",
+  title:       "Title",
+  badge_frame: "Badge Frame",
 };
 
-const RewardCard = ({ reward, dark, index }) => {
-  const config = REWARD_TYPE_CONFIG[reward.reward_type] ?? {
-    emoji: "🎁", label: reward.reward_type ?? "Reward", color: "#6AAA64",
-  };
-  const unlockedDate = reward.unlocked_at
-    ? new Date(reward.unlocked_at).toLocaleDateString("en-US", {
-        month: "short", day: "numeric", year: "numeric",
-      })
-    : null;
-
-  return (
-    <motion.div
-      custom={index}
-      variants={cardVariant}
-      initial="hidden"
-      animate="visible"
-      whileHover={{ y: -2, transition: { duration: 0.2 } }}
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
-        dark ? "bg-[#1E1E1F] border-[#3A3A3C]" : "bg-[#F9F9F9] border-[#E0E0E0]"
-      }`}
-    >
-      <div
-        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-xl"
-        style={{ backgroundColor: `${config.color}22` }}
-      >
-        {config.emoji}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold truncate ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
-          {reward.name ?? reward.reward_key ?? "Reward"}
-        </p>
-        <p className={`text-xs truncate ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
-          {reward.description ?? config.label}
-        </p>
-      </div>
-      {unlockedDate && (
-        <span className={`text-xs shrink-0 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
-          {unlockedDate}
-        </span>
-      )}
-    </motion.div>
-  );
+const REWARD_TYPE_EMOJI = {
+  theme:       "🎨",
+  title:       "🏷️",
+  badge_frame: "🖼️",
 };
-
-// ── Reusable nav button used for both "View All Levels" and "Hall of Fame" ────
-const NavButton = ({ onClick, icon: Icon, iconColor, label, dark }) => (
-  <motion.button
-    onClick={onClick}
-    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-colors duration-150 ${
-      dark
-        ? "border-[#3A3A3C] text-[#D7D7D7] hover:bg-[#2A2A2B]"
-        : "border-[#E0E0E0] text-[#1A1A1B] hover:bg-[#F5F5F5]"
-    }`}
-    whileHover={{ scale: 1.01 }}
-    whileTap={{ scale: 0.99 }}
-  >
-    <span className="flex items-center gap-2">
-      <Icon size={12} style={{ color: iconColor }} />
-      {label}
-    </span>
-    <FaChevronRight size={11} className={dark ? "text-[#818384]" : "text-[#B0B0B0]"} />
-  </motion.button>
-);
 
 export default function ProfilePage({ dark, onToggleDark }) {
   const [loading, setLoading]         = useState(true);
   const [profileData, setProfileData] = useState(null);
   const [levelData, setLevelData]     = useState(null);
   const [badges, setBadges]           = useState([]);
-  const [rewards, setRewards]         = useState([]);
+  const [rewards, setRewards]           = useState([]);
   const navigate                      = useNavigate();
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
+        // Use cache for getMe — avoids re-hitting rate limit on revisit
         const profilePromise = _profileCache
           ? Promise.resolve({ data: _profileCache })
           : getMe().then((res) => { _profileCache = res.data; return res; });
@@ -217,11 +158,11 @@ export default function ProfilePage({ dark, onToggleDark }) {
           getMyRewards(),
         ]);
 
-        if (profileRes.status === "fulfilled") setProfileData(profileRes.value.data);
-        if (levelRes.status   === "fulfilled") setLevelData(levelRes.value.data);
-        if (badgesRes.status  === "fulfilled") setBadges(badgesRes.value.data.badges || []);
-        if (rewardsRes.status === "fulfilled") setRewards(rewardsRes.value.data.rewards || []);
-        if (profileRes.status === "rejected")  toast.error("Failed to load profile data");
+        if (profileRes.status  === "fulfilled") setProfileData(profileRes.value.data);
+        if (levelRes.status    === "fulfilled") setLevelData(levelRes.value.data);
+        if (badgesRes.status   === "fulfilled") setBadges(badgesRes.value.data.badges || []);
+        if (rewardsRes.status  === "fulfilled") setRewards(rewardsRes.value.data.rewards || []);
+        if (profileRes.status  === "rejected")  toast.error("Failed to load profile data");
       } finally {
         setLoading(false);
       }
@@ -237,7 +178,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
 
   const stats = [
     { label: "Total Games",    value: profileData?.stats?.total_games    ?? 0    },
-    { label: "Win Rate",       value: profileData?.stats ? `${Math.round(profileData.stats.win_rate * 100)}%` : "0%" },
+    { label: "Win Rate",       value: profileData?.stats ? `${Math.round(profileData.stats.win_rate)}%` : "0%" },
     { label: "Current Streak", value: profileData?.stats?.current_streak ?? 0    },
     { label: "Max Streak",     value: profileData?.stats?.max_streak     ?? 0    },
   ];
@@ -249,7 +190,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
   const handleLogout = async () => {
     try { await logoutUser(); } catch { /* ignore */ }
     finally {
-      _profileCache = null;
+      _profileCache = null; // clear cache on logout
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
       toast.success("Logged out successfully.");
@@ -346,7 +287,6 @@ export default function ProfilePage({ dark, onToggleDark }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Level header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#2A2A2B]" : "bg-[#EAF4E6]"}`}>
@@ -372,7 +312,6 @@ export default function ProfilePage({ dark, onToggleDark }) {
               )}
             </div>
 
-            {/* Progress bar */}
             {!levelData.isMaxLevel && (
               <>
                 <div className={`w-full h-3 rounded-full overflow-hidden ${dark ? "bg-[#3A3A3C]" : "bg-[#E0E0E0]"}`}>
@@ -390,7 +329,6 @@ export default function ProfilePage({ dark, onToggleDark }) {
               </>
             )}
 
-            {/* Recent XP log */}
             {levelData.recentXpLog?.length > 0 && (
               <div className={`mt-4 pt-4 border-t ${dark ? "border-[#3A3A3C]" : "border-[#F0F0F0]"}`}>
                 <p className={`text-xs font-semibold uppercase tracking-wide mb-2 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
@@ -410,24 +348,6 @@ export default function ProfilePage({ dark, onToggleDark }) {
                 </div>
               </div>
             )}
-
-            {/* Nav buttons */}
-            <div className={`mt-4 flex flex-col gap-2 ${levelData.recentXpLog?.length > 0 ? "pt-4 border-t " + (dark ? "border-[#3A3A3C]" : "border-[#F0F0F0]") : ""}`}>
-              <NavButton
-                onClick={() => navigate("/levels")}
-                icon={FaStar}
-                iconColor="#C9B458"
-                label="View All Levels"
-                dark={dark}
-              />
-              <NavButton
-                onClick={() => navigate("/hall-of-fame")}
-                icon={FaTrophy}
-                iconColor="#C9B458"
-                label="Hall of Fame"
-                dark={dark}
-              />
-            </div>
           </motion.div>
         )}
 
@@ -487,19 +407,45 @@ export default function ProfilePage({ dark, onToggleDark }) {
             transition={{ duration: 0.45, delay: 0.46, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#2A2A2B]" : "bg-[#EAF4E6]"}`}>
-                  <FaGift className="text-[#6AAA64]" size={14} />
-                </div>
-                <h2 className={`text-lg font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>Rewards</h2>
-              </div>
+              <h2 className={`text-lg font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+                Rewards
+              </h2>
               <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
                 {rewards.length} unlocked
               </span>
             </div>
             <div className="flex flex-col gap-2">
-              {rewards.map((reward, i) => (
-                <RewardCard key={reward.id ?? i} reward={reward} dark={dark} index={i} />
+              {rewards.map((r, i) => (
+                <motion.div
+                  key={r.id ?? i}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl border ${
+                    dark ? "bg-[#1E2D1E] border-[#3A3A3C]" : "bg-[#EAF4E6] border-[#6AAA64]"
+                  }`}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 * i }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">
+                      {REWARD_TYPE_EMOJI[r.reward_type] ?? "🎁"}
+                    </span>
+                    <div>
+                      <p className={`text-sm font-semibold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+                        {r.reward_value}
+                      </p>
+                      <p className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                        {REWARD_TYPE_LABEL[r.reward_type] ?? r.reward_type}
+                      </p>
+                    </div>
+                  </div>
+                  {r.unlocked_at && (
+                    <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                      {new Date(r.unlocked_at).toLocaleDateString("en-US", {
+                        month: "short", day: "numeric", year: "numeric",
+                      })}
+                    </span>
+                  )}
+                </motion.div>
               ))}
             </div>
           </motion.div>
