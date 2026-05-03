@@ -71,6 +71,7 @@ export default function HomePage({ dark, onToggleDark }) {
   const [loading, setLoading]           = useState(true);
   const [submitting, setSubmitting]     = useState(false);
   const [revealedWord, setRevealedWord] = useState("");
+  const [shakeRow, setShakeRow]         = useState(false);
 
   const showMessage = (msg, type = "info", duration = 2500) => {
     setMessage(msg);
@@ -168,6 +169,8 @@ export default function HomePage({ dark, onToggleDark }) {
     if (gameOver || submitting) return;
     if (currentGuess.length < wordLength) {
       showMessage("Not enough letters", "info");
+      setShakeRow(true);
+      setTimeout(() => setShakeRow(false), 600);
       return;
     }
     try {
@@ -209,8 +212,8 @@ export default function HomePage({ dark, onToggleDark }) {
       }
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to submit guess.";
-      if (msg.includes("5 letters"))         showMessage("Word must be 5 letters", "info");
-      else if (msg.includes("only letters")) showMessage("Letters only!", "info");
+      if (msg.includes("5 letters"))         { showMessage("Word must be 5 letters", "info"); setShakeRow(true); setTimeout(() => setShakeRow(false), 600); }
+      else if (msg.includes("only letters")) { showMessage("Letters only!", "info"); setShakeRow(true); setTimeout(() => setShakeRow(false), 600); }
       else if (msg.includes("already won"))  showMessage("You already won today!", "win");
       else if (msg.includes("all your guesses")) showMessage("No guesses left!", "lose");
       else toast.error(msg);
@@ -332,6 +335,7 @@ export default function HomePage({ dark, onToggleDark }) {
             currentGuess={currentGuess}
             maxGuesses={maxGuesses}
             wordLength={wordLength}
+            shakeRow={shakeRow}
           />
         </motion.div>
 
