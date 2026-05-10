@@ -103,27 +103,36 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       return;
     }
 
+    const guessWord = currentGuess;
     try {
       setSubmitting(true);
+      setGuesses((prev) => [
+        ...prev,
+        { word: guessWord, result: Array(wordLength).fill("pending") },
+      ]);
+      setCurrentGuess("");
       const attempts = guesses.length + 1; // this guess is attempt #N
-      const res  = await submitSpeedGuess(sessionId, currentGuess.toLowerCase(), attempts);
+      const res  = await submitSpeedGuess(sessionId, guessWord.toLowerCase(), attempts);
       const data = res.data;
 
       // ── Time expired on the server side ──────────────────────────
       if (data.timeUp) {
         clearInterval(timerRef.current);
         if (data.secret) setRevealedWord(data.secret.toUpperCase());
+        setGuesses((prev) => prev.slice(0, -1));
         setGameState("timeup");
         showMessage("Time's up!", "lose", 0);
         return;
       }
 
       // ── Append guess to board ─────────────────────────────────────
-      const newGuess   = { word: currentGuess, result: data.result };
-      const newGuesses = [...guesses, newGuess];
-      setGuesses(newGuesses);
-      setCurrentGuess("");
-      setKeyStatuses((prev) => buildKeyStatuses(prev, currentGuess, data.result));
+      const newGuess = { word: guessWord, result: data.result };
+      setGuesses((prev) => {
+        const next = [...prev];
+        next[next.length - 1] = newGuess;
+        return next;
+      });
+      setKeyStatuses((prev) => buildKeyStatuses(prev, guessWord, data.result));
 
       // ── Won ───────────────────────────────────────────────────────
       if (data.won) {
@@ -150,6 +159,8 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       }
 
     } catch (err) {
+      setGuesses((prev) => prev.slice(0, -1));
+      if (guessWord) setCurrentGuess(guessWord);
       const msg = err?.response?.data?.message || "";
       if (msg.includes("5 letters"))         showMessage("Word must be 5 letters", "info");
       else if (msg.includes("only letters")) showMessage("Letters only!", "info");
