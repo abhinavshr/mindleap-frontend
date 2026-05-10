@@ -173,22 +173,34 @@ export default function HomePage({ dark, onToggleDark }) {
       setTimeout(() => setShakeRow(false), 600);
       return;
     }
+    const guessWord = currentGuess;
     try {
       setSubmitting(true);
-      const res  = await submitGuessApi(currentGuess.toLowerCase());
-      const data = res.data;
-
-      const newGuess   = { word: currentGuess, result: data.result };
-      const newGuesses = [...guesses, newGuess];
-      setGuesses(newGuesses);
+      setGuesses((prev) => [
+        ...prev,
+        { word: guessWord, result: Array(wordLength).fill("pending") },
+      ]);
       setCurrentGuess("");
 
-      if (!data.isAuth) saveGuestSession(newGuesses, false, "");
+      const res  = await submitGuessApi(guessWord.toLowerCase());
+      const data = res.data;
+
+      const newGuess = { word: guessWord, result: data.result };
+      setGuesses((prev) => {
+        const next = [...prev];
+        next[next.length - 1] = newGuess;
+        return next;
+      });
+
+      if (!data.isAuth) {
+        const newGuesses = [...guesses, newGuess];
+        saveGuestSession(newGuesses, false, "");
+      }
 
       const priority = { correct: 3, present: 2, absent: 1 };
       setKeyStatuses((prev) => {
         const updated = { ...prev };
-        currentGuess.split("").forEach((letter, i) => {
+        guessWord.split("").forEach((letter, i) => {
           const s = data.result[i];
           if (!updated[letter] || priority[s] > priority[updated[letter]]) updated[letter] = s;
         });
@@ -198,19 +210,25 @@ export default function HomePage({ dark, onToggleDark }) {
       if (data.won) {
         showMessage("You won!", "win", 4000);
         setGameOver(true);
-        if (!data.isAuth) saveGuestSession(newGuesses, true, "");
+        if (!data.isAuth) {
+          const newGuesses = [...guesses, newGuess];
+          saveGuestSession(newGuesses, true, "");
+        }
       } else if (data.gameOver) {
         if (data.word) {
           setRevealedWord(data.word.toUpperCase());
           showMessage(`The word was ${data.word.toUpperCase()}`, "lose", 6000);
         }
         setGameOver(true);
-      } else if (!data.isAuth && newGuesses.length >= maxGuesses) {
+      } else if (!data.isAuth && guesses.length + 1 >= maxGuesses) {
         showMessage("Game over! Login to track your stats.", "lose", 6000);
         setGameOver(true);
+        const newGuesses = [...guesses, newGuess];
         saveGuestSession(newGuesses, true, "");
       }
     } catch (err) {
+      setGuesses((prev) => prev.slice(0, -1));
+      if (guessWord) setCurrentGuess(guessWord);
       const msg = err?.response?.data?.message || "Failed to submit guess.";
       if (msg.includes("5 letters"))         { showMessage("Word must be 5 letters", "info"); setShakeRow(true); setTimeout(() => setShakeRow(false), 600); }
       else if (msg.includes("only letters")) { showMessage("Letters only!", "info"); setShakeRow(true); setTimeout(() => setShakeRow(false), 600); }
