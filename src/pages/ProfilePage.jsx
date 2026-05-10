@@ -6,7 +6,7 @@ import {
   AnimatePresence,
   useReducedMotion,
 } from "framer-motion";
-import { FaBolt, FaStar, FaGift, FaChevronRight, FaTrophy, FaFire } from "react-icons/fa";
+import { FaBolt, FaStar, FaGift, FaChevronRight, FaTrophy, FaFire, FaLock, FaCheckCircle } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { logoutUser, getMe } from "../api/auth";
 import { getMyLevel, getMyBadges, getMyRewards } from "../api/level";
@@ -172,6 +172,97 @@ const RewardCard = ({ reward, dark, index }) => {
         </span>
       )}
     </motion.div>
+  );
+};
+
+// ── Badge card with hover tooltip ─────────────────────────────────────────────
+const BadgeCard = ({ b, dark }) => {
+  const [hovered, setHovered] = useState(false);
+
+  const earnedDate = b.earned && b.earned_at
+    ? new Date(b.earned_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : null;
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
+    >
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-colors cursor-default ${
+          b.earned
+            ? dark ? "bg-[#1E2D1E] border-[#3A5C3A]" : "bg-[#EAF4E6] border-[#6AAA64]"
+            : dark ? "bg-[#1A1A1B] border-[#2A2A2B] opacity-40" : "bg-[#F9F9F9] border-[#E0E0E0] opacity-40"
+        }`}
+      >
+        <span className="text-2xl">{b.earned ? (BADGE_EMOJIS[b.key] ?? "🏅") : "🔒"}</span>
+        <span className={`text-xs font-semibold text-center leading-tight ${
+          b.earned
+            ? dark ? "text-white" : "text-[#1A1A1B]"
+            : dark ? "text-[#818384]" : "text-[#787C7E]"
+        }`}>
+          {b.name}
+        </span>
+        {earnedDate && (
+          <span className={`text-[10px] ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+            {earnedDate}
+          </span>
+        )}
+      </motion.div>
+
+      {/* Tooltip */}
+      <AnimatePresence>
+        {hovered && (
+          <motion.div
+            className={`absolute z-50 bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-48 rounded-xl px-3 py-2.5 shadow-xl pointer-events-none ${
+              dark
+                ? "bg-[#2A2A2B] border border-[#3A3A3C] text-white"
+                : "bg-white border border-[#E0E0E0] text-[#1A1A1B]"
+            }`}
+            initial={{ opacity: 0, y: 6, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {/* Arrow */}
+            <div
+              className={`absolute top-full left-1/2 -translate-x-1/2 w-0 h-0`}
+              style={{
+                borderLeft: "6px solid transparent",
+                borderRight: "6px solid transparent",
+                borderTop: `6px solid ${dark ? "#3A3A3C" : "#E0E0E0"}`,
+              }}
+            />
+
+            {/* Badge name + status */}
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-base leading-none">{BADGE_EMOJIS[b.key] ?? "🏅"}</span>
+              <p className="text-xs font-bold leading-tight truncate">{b.name}</p>
+              {b.earned
+                ? <FaCheckCircle size={10} className="text-[#6AAA64] shrink-0 ml-auto" />
+                : <FaLock size={9} className={`shrink-0 ml-auto ${dark ? "text-[#818384]" : "text-[#B0B0B0]"}`} />
+              }
+            </div>
+
+            {/* How to get */}
+            <p className={`text-[11px] leading-snug ${dark ? "text-[#A0A0A2]" : "text-[#787C7E]"}`}>
+              {b.earned ? "✅ " : "🎯 "}{b.description}
+            </p>
+
+            {/* Earned date */}
+            {earnedDate && (
+              <p className={`text-[10px] mt-1.5 ${dark ? "text-[#818384]" : "text-[#9E9E9E]"}`}>
+                Earned {earnedDate}
+              </p>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 
@@ -441,43 +532,25 @@ export default function ProfilePage({ dark, onToggleDark }) {
         {/* Badges */}
         {badges.length > 0 && (
           <motion.div
-            className={`rounded-2xl border px-4 sm:px-6 py-5 mb-5 ${
+            className={`rounded-2xl border px-4 sm:px-6 py-5 mb-5 overflow-visible ${
               dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
             }`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.40, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-1">
               <h2 className={`text-lg font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>Badges</h2>
               <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
                 {badges.filter(b => b.earned).length} / {badges.length} earned
               </span>
             </div>
+            <p className={`text-xs mb-4 ${dark ? "text-[#818384]" : "text-[#9E9E9E]"}`}>
+              Hover a badge to see how to earn it
+            </p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
               {badges.map((b) => (
-                <motion.div
-                  key={b.key}
-                  whileHover={{ scale: 1.05 }}
-                  title={b.description}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-colors ${
-                    b.earned
-                      ? dark ? "bg-[#1E2D1E] border-[#3A3A3C]" : "bg-[#EAF4E6] border-[#6AAA64]"
-                      : dark ? "bg-[#1A1A1B] border-[#2A2A2B] opacity-40" : "bg-[#F9F9F9] border-[#E0E0E0] opacity-40"
-                  }`}
-                >
-                  <span className="text-2xl">{b.earned ? (BADGE_EMOJIS[b.key] ?? "🏅") : "🔒"}</span>
-                  <span className={`text-xs font-semibold text-center leading-tight ${
-                    b.earned ? dark ? "text-white" : "text-[#1A1A1B]" : dark ? "text-[#818384]" : "text-[#787C7E]"
-                  }`}>
-                    {b.name}
-                  </span>
-                  {b.earned && b.earned_at && (
-                    <span className={`text-[10px] ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
-                      {new Date(b.earned_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </span>
-                  )}
-                </motion.div>
+                <BadgeCard key={b.key} b={b} dark={dark} />
               ))}
             </div>
           </motion.div>
