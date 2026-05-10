@@ -9,6 +9,7 @@ import ProfilePage from './pages/ProfilePage'
 import SpeedGamePage from './pages/SpeedGamePage'
 import AllLevelsPage from "./pages/LevelPage";
 import HallOfFamePage from "./pages/HallOfFrame";
+import MissionsPage from "./pages/MissionPage";
 
 function App() {
   const [dark, setDark] = useState(() => {
@@ -58,6 +59,7 @@ function App() {
         <Route path="/speed-game" element={<SpeedGamePage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route path="/levels" element={<AllLevelsPage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route path="/hall-of-fame" element={<HallOfFamePage dark={dark} onToggleDark={handleToggleDark} />} />
+        <Route path="/missions" element={<MissionsPage dark={dark} onToggleDark={handleToggleDark} />} />
       </Routes>
     </BrowserRouter>
   )
