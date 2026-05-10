@@ -6,7 +6,7 @@ import {
   AnimatePresence,
   useReducedMotion,
 } from "framer-motion";
-import { FaBolt, FaStar, FaGift, FaChevronRight, FaTrophy } from "react-icons/fa";
+import { FaBolt, FaStar, FaGift, FaChevronRight, FaTrophy, FaFire } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { logoutUser, getMe } from "../api/auth";
 import { getMyLevel, getMyBadges, getMyRewards } from "../api/level";
@@ -175,7 +175,7 @@ const RewardCard = ({ reward, dark, index }) => {
   );
 };
 
-// ── Reusable nav button used for both "View All Levels" and "Hall of Fame" ────
+// ── Reusable nav button ────────────────────────────────────────────────────────
 const NavButton = ({ onClick, icon: Icon, iconColor, label, dark }) => (
   <motion.button
     onClick={onClick}
@@ -237,7 +237,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
 
   const stats = [
     { label: "Total Games",    value: profileData?.stats?.total_games    ?? 0    },
-    { label: "Win Rate",       value: profileData?.stats ? `${Math.round(profileData.stats.win_rate * 100)}%` : "0%" },
+    { label: "Win Rate",       value: profileData?.stats ? `${Math.round(profileData.stats.win_rate)}%` : "0%" },
     { label: "Current Streak", value: profileData?.stats?.current_streak ?? 0    },
     { label: "Max Streak",     value: profileData?.stats?.max_streak     ?? 0    },
   ];
@@ -413,6 +413,13 @@ export default function ProfilePage({ dark, onToggleDark }) {
 
             {/* Nav buttons */}
             <div className={`mt-4 flex flex-col gap-2 ${levelData.recentXpLog?.length > 0 ? "pt-4 border-t " + (dark ? "border-[#3A3A3C]" : "border-[#F0F0F0]") : ""}`}>
+              <NavButton
+                onClick={() => navigate("/missions")}
+                icon={FaFire}
+                iconColor="#E07B54"
+                label="Missions"
+                dark={dark}
+              />
               <NavButton
                 onClick={() => navigate("/levels")}
                 icon={FaStar}

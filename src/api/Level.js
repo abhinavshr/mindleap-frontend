@@ -5,3 +5,5 @@ export const getMyBadges = () => api.get("/level/badges");
 export const getMyRewards = () => api.get("/level/rewards");
 export const getAllLevels = () => api.get("/level/all");
 export const getLeaderboard = () => api.get("/level/leaderboard");
+
+export const getMyMissions = () => api.get("/missions");
