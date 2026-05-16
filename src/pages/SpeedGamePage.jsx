@@ -4,7 +4,7 @@ import { MdClose } from "react-icons/md";
 import Navbar from "../components/Reuseable/Navbar";
 import Board from "../components/Board/Board";
 import Keyboard from "../components/Keyboard/Keyboard";
-import { startSpeedGame, submitSpeedGuess } from "../api/speedGame";
+import { startSpeedGame, submitSpeedGuess, expireSpeedSession } from "../api/speedGame";
 import toast from "react-hot-toast";
 
 export default function SpeedGamePage({ dark = false, onToggleDark }) {
@@ -24,6 +24,21 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   const [revealedWord, setRevealedWord] = useState("");
   const [submitting, setSubmitting]     = useState(false);
   const timerRef = useRef(null);
+  const timeUpHandledRef = useRef(false);
+
+  const handleTimeUp = useCallback(async () => {
+    if (timeUpHandledRef.current) return;
+    timeUpHandledRef.current = true;
+    try {
+      if (!sessionId) return;
+      const res  = await expireSpeedSession(sessionId);
+      const data = res.data;
+      if (data?.secret) setRevealedWord(data.secret.toUpperCase());
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to expire session.";
+      toast.error(msg);
+    }
+  }, [sessionId]);
 
   // ── Timer ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -35,6 +50,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timerRef.current);
+          handleTimeUp();
           setGameState("timeup");
           showMessage("Time's up!", "lose", 0);
           return 0;
@@ -43,7 +59,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [gameState]);
+  }, [gameState, handleTimeUp]);
 
   const showMessage = (msg, type = "info", duration = 2500) => {
     setMessage(msg);
@@ -83,6 +99,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       setXpEarned(0);
       setTimeTaken(0);
       setRevealedWord("");
+      timeUpHandledRef.current = false;
       setGameState("playing");
 
       if (data.resumed) {
@@ -118,6 +135,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       // ── Time expired on the server side ──────────────────────────
       if (data.timeUp) {
         clearInterval(timerRef.current);
+        timeUpHandledRef.current = true;
         if (data.secret) setRevealedWord(data.secret.toUpperCase());
         setGuesses((prev) => prev.slice(0, -1));
         setGameState("timeup");
