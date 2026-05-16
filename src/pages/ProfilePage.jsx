@@ -9,7 +9,7 @@ import {
 import { FaBolt, FaStar, FaGift, FaChevronRight, FaTrophy, FaFire, FaLock, FaCheckCircle } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { logoutUser, getMe } from "../api/auth";
-import { getMyLevel, getMyBadges, getMyRewards } from "../api/level";
+import { getMyLevel, getMyBadges, getMyRewards } from "../api/Level";
 
 // ── Simple in-memory cache ─────────────────────────────────────────────────────
 let _profileCache = null;
