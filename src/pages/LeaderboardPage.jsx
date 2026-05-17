@@ -96,7 +96,7 @@ const Spinner = () => (
     exit={{ opacity: 0 }}
   >
     <motion.div
-      className="w-7 h-7 border-4 border-[#6AAA64] border-t-transparent rounded-full"
+      className="w-7 h-7 border-4 border-[#2FAF74] border-t-transparent rounded-full"
       animate={{ rotate: 360 }}
       transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
     />
@@ -109,12 +109,12 @@ const Spinner = () => (
 const Tab = ({ active, onClick, children, dark }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-colors duration-150 ${
+    className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold border-2 transition-colors duration-150 ${
       active
-        ? "bg-[#6AAA64] text-white"
+        ? "bg-[#2B2017] border-[#2B2017] text-[#FDFBF5]"
         : dark
-        ? "text-[#818384] hover:text-white"
-        : "text-gray-400 hover:text-gray-700"
+        ? "text-[#CBBEAC] border-[#3A2A1C] hover:text-[#FFE9B0]"
+        : "text-[#5A4636] border-[#2B2017] hover:text-[#C64B2A]"
     }`}
   >
     {children}
@@ -127,7 +127,7 @@ const Tab = ({ active, onClick, children, dark }) => (
 const YouBadge = () => (
   <AnimatePresence>
     <motion.span
-      className="text-xs font-normal text-green-700 bg-green-100 px-2 py-0.5 rounded-full"
+      className="text-xs font-normal text-[#2B2017] bg-[#FFE9B0] px-2 py-0.5 rounded-full border border-[#2B2017]"
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0, opacity: 0 }}
@@ -225,14 +225,18 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
   }, [activeTab, speedStatsLoaded, currentUser]);
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-white"}`}>
+    <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
+      dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
+    }`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
-      <div className="flex flex-col items-center py-10 px-4">
+      <div className="flex flex-col items-center py-10 px-4 sm:px-6">
 
         {/* Title */}
         <motion.h1
-          className={`text-2xl font-bold tracking-widest uppercase mb-5 ${dark ? "text-white" : "text-gray-900"}`}
+          className={`text-2xl sm:text-3xl font-arcade tracking-wide uppercase mb-5 ${
+            dark ? "text-[#F7EEDB]" : "text-[#2B2017]"
+          }`}
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -242,7 +246,9 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
 
         {/* ── Tabs ── */}
         <motion.div
-          className={`flex gap-2 p-1 rounded-xl mb-6 ${dark ? "bg-[#1A1A1B]" : "bg-gray-100"}`}
+          className={`flex gap-2 p-1 rounded-xl mb-6 border-2 ${
+            dark ? "bg-[#1B120C] border-[#3A2A1C]" : "bg-[#FFF3DA] border-[#2B2017]"
+          }`}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
@@ -273,16 +279,16 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
               <AnimatePresence>
                 {currentUser && myStats && (
                   <motion.div
-                    className={`w-full rounded-xl border px-6 py-4 mb-4 ${
-                      dark ? "bg-[#1a2e1a] border-[#3A3A3C]" : "bg-green-50 border-green-200"
-                    }`}
+                    className="w-full arcade-panel px-6 py-4 mb-4"
                     variants={slideIn}
                     initial="hidden"
                     animate="visible"
                     exit={{ opacity: 0, y: -10 }}
                     layout
                   >
-                    <p className={`text-xs font-semibold uppercase tracking-wide mb-3 ${dark ? "text-[#818384]" : "text-gray-400"}`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide mb-3 ${
+                      dark ? "text-[#CBBEAC]" : "text-[#5A4636]"
+                    }`}>
                       Your stats
                     </p>
                     <div className="flex items-center justify-between flex-wrap gap-4">
@@ -292,14 +298,14 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.15, duration: 0.4 }}
                       >
-                        <div className={`text-2xl font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+                        <div className={`text-2xl font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                           #{myStats.rank ?? "—"}
                         </div>
                         <div>
-                          <p className={`font-semibold text-sm ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+                          <p className={`font-semibold text-sm ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                             {currentUser.username}
                           </p>
-                          <p className={`text-xs ${dark ? "text-[#818384]" : "text-gray-400"}`}>Global rank</p>
+                          <p className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Global rank</p>
                         </div>
                       </motion.div>
                       <motion.div
@@ -322,14 +328,14 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
 
               {/* Classic table */}
               <motion.div
-                className={`w-full border rounded-xl overflow-hidden ${dark ? "border-[#3A3A3C]" : "border-gray-200"}`}
+                className="w-full arcade-panel overflow-hidden"
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               >
-                <div className={`grid grid-cols-[56px_1fr_80px_100px_110px] px-5 py-3 border-b ${dark ? "border-[#3A3A3C]" : "border-gray-200"}`}>
+                <div className="grid grid-cols-[56px_1fr_80px_100px_110px] px-5 py-3 border-b border-[#2B2017]">
                   {["Rank", "Player", "Wins", "Streak", "Avg"].map((h, i) => (
-                    <span key={h} className={`text-sm ${i >= 2 ? "text-right" : ""} ${dark ? "text-[#818384]" : "text-gray-400"}`}>
+                    <span key={h} className={`text-sm ${i >= 2 ? "text-right" : ""} ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                       {h}
                     </span>
                   ))}
@@ -343,7 +349,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                   {!loadingClassic && leaderboard.length === 0 && (
                     <motion.div
                       key="empty"
-                      className={`text-center py-14 text-sm ${dark ? "text-[#818384]" : "text-gray-400"}`}
+                      className={`text-center py-14 text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}
                       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     >
                       No players yet. Be the first!
@@ -357,10 +363,10 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                     return (
                       <motion.div
                         key={p.rank}
-                        className={`grid grid-cols-[56px_1fr_80px_100px_110px] px-5 py-4 items-center border-b last:border-b-0 ${
-                          dark
-                            ? `border-[#3A3A3C] ${isYou ? "bg-[#1a2e1a]" : "bg-[#121213]"}`
-                            : `border-gray-100 ${isYou ? "bg-green-50" : "bg-white"}`
+                        className={`grid grid-cols-[56px_1fr_80px_100px_110px] px-5 py-4 items-center border-b last:border-b-0 border-[#2B2017] ${
+                          isYou
+                            ? (dark ? "bg-[#1B120C]" : "bg-[#FFE9B0]")
+                            : (dark ? "bg-[#0F0B08]" : "bg-[#FFF7E8]")
                         }`}
                         custom={index}
                         variants={shouldReduceMotion ? {} : fadeUp}
@@ -368,16 +374,16 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                         layout
                         whileHover={{ x: 4, transition: { duration: 0.15 } }}
                       >
-                        <span className={`flex items-center ${dark ? "text-white" : "text-gray-900"}`}>
+                        <span className={`flex items-center ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                           <RankDisplay rank={p.rank} />
                         </span>
-                        <span className={`font-semibold flex items-center gap-2 ${dark ? "text-white" : "text-gray-900"}`}>
+                        <span className={`font-semibold flex items-center gap-2 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                           {p.username}
                           {isYou && <YouBadge />}
                         </span>
-                        <span className={`text-right ${dark ? "text-white" : "text-gray-900"}`}>{p.total_wins}</span>
+                        <span className={`text-right ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>{p.total_wins}</span>
                         <motion.div
-                          className={`flex items-center justify-end gap-1.5 ${dark ? "text-white" : "text-gray-900"}`}
+                          className={`flex items-center justify-end gap-1.5 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
                           whileHover={{ scale: 1.1 }}
                         >
                           <motion.span
@@ -388,7 +394,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                           </motion.span>
                           {p.current_streak}
                         </motion.div>
-                        <span className={`text-right text-sm ${dark ? "text-[#818384]" : "text-gray-400"}`}>
+                        <span className={`text-right text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                           {p.avg_attempts} avg
                         </span>
                       </motion.div>
@@ -398,7 +404,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
               </motion.div>
 
               <motion.p
-                className={`text-xs mt-4 text-center ${dark ? "text-[#565758]" : "text-gray-300"}`}
+                className={`text-xs mt-4 text-center ${dark ? "text-[#8B7A67]" : "text-[#6B5645]"}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
@@ -424,16 +430,16 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
               <AnimatePresence>
                 {currentUser && mySpeedStats && mySpeedStats.stats && (
                   <motion.div
-                    className={`w-full rounded-xl border px-6 py-4 mb-4 ${
-                      dark ? "bg-[#1a2e1a] border-[#3A3A3C]" : "bg-green-50 border-green-200"
-                    }`}
+                    className="w-full arcade-panel px-6 py-4 mb-4"
                     variants={slideIn}
                     initial="hidden"
                     animate="visible"
                     exit={{ opacity: 0, y: -10 }}
                     layout
                   >
-                    <p className={`text-xs font-semibold uppercase tracking-wide mb-3 ${dark ? "text-[#818384]" : "text-gray-400"}`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide mb-3 ${
+                      dark ? "text-[#CBBEAC]" : "text-[#5A4636]"
+                    }`}>
                       Your Speed Stats
                     </p>
                     <div className="flex items-center justify-between flex-wrap gap-4">
@@ -443,14 +449,14 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.15, duration: 0.4 }}
                       >
-                        <div className={`text-2xl font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+                        <div className={`text-2xl font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                           #{mySpeedStats.rank ?? "—"}
                         </div>
                         <div>
-                          <p className={`font-semibold text-sm ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+                          <p className={`font-semibold text-sm ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                             {currentUser.username}
                           </p>
-                          <p className={`text-xs ${dark ? "text-[#818384]" : "text-gray-400"}`}>Speed rank</p>
+                          <p className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Speed rank</p>
                         </div>
                       </motion.div>
                       <motion.div
@@ -464,7 +470,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                           value={mySpeedStats.stats.best_time ? `${mySpeedStats.stats.best_time}s` : "—"}
                           dark={dark} 
                           delay={0}
-                          icon={<FaBolt className="text-[#C9B458]" size={14} />}
+                          icon={<FaBolt className="text-[#F2B84B]" size={14} />}
                         />
                         <StatPill 
                           label="Avg time" 
@@ -498,16 +504,16 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
               </AnimatePresence>
 
               <motion.div
-                className={`w-full border rounded-xl overflow-hidden ${dark ? "border-[#3A3A3C]" : "border-gray-200"}`}
+                className="w-full arcade-panel overflow-hidden"
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               >
                 {/* Headers */}
                 {/* Columns: Rank | Player | Best | Avg time | Wins | Win% | Streak | XP */}
-                <div className={`grid grid-cols-[48px_1fr_70px_80px_60px_65px_70px_70px] px-5 py-3 border-b ${dark ? "border-[#3A3A3C]" : "border-gray-200"}`}>
+                <div className="grid grid-cols-[48px_1fr_70px_80px_60px_65px_70px_70px] px-5 py-3 border-b border-[#2B2017]">
                   {["Rank", "Player", "Best", "Avg time", "Wins", "Win%", "Streak", "XP"].map((h, i) => (
-                    <span key={h} className={`text-xs ${i >= 2 ? "text-right" : ""} ${dark ? "text-[#818384]" : "text-gray-400"}`}>
+                    <span key={h} className={`text-xs ${i >= 2 ? "text-right" : ""} ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                       {h}
                     </span>
                   ))}
@@ -523,7 +529,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                   {!loadingSpeed && speedBoard.length === 0 && (
                     <motion.div
                       key="speed-empty"
-                      className={`text-center py-14 text-sm ${dark ? "text-[#818384]" : "text-gray-400"}`}
+                      className={`text-center py-14 text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}
                       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     >
                       No speed games yet. Be the first!
@@ -538,10 +544,10 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                     return (
                       <motion.div
                         key={p.rank}
-                        className={`grid grid-cols-[48px_1fr_70px_80px_60px_65px_70px_70px] px-5 py-4 items-center border-b last:border-b-0 ${
-                          dark
-                            ? `border-[#3A3A3C] ${isYou ? "bg-[#1a2e1a]" : "bg-[#121213]"}`
-                            : `border-gray-100 ${isYou ? "bg-green-50" : "bg-white"}`
+                        className={`grid grid-cols-[48px_1fr_70px_80px_60px_65px_70px_70px] px-5 py-4 items-center border-b last:border-b-0 border-[#2B2017] ${
+                          isYou
+                            ? (dark ? "bg-[#1B120C]" : "bg-[#FFE9B0]")
+                            : (dark ? "bg-[#0F0B08]" : "bg-[#FFF7E8]")
                         }`}
                         custom={index}
                         variants={shouldReduceMotion ? {} : fadeUp}
@@ -550,19 +556,19 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                         whileHover={{ x: 4, transition: { duration: 0.15 } }}
                       >
                         {/* Rank */}
-                        <span className={`flex items-center ${dark ? "text-white" : "text-gray-900"}`}>
+                        <span className={`flex items-center ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                           <RankDisplay rank={p.rank} />
                         </span>
 
                         {/* Username */}
-                        <span className={`font-semibold flex items-center gap-2 text-sm ${dark ? "text-white" : "text-gray-900"}`}>
+                        <span className={`font-semibold flex items-center gap-2 text-sm ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                           {p.username}
                           {isYou && <YouBadge />}
                         </span>
 
                         {/* Best time */}
                         <motion.div
-                          className={`flex items-center justify-end gap-0.5 font-semibold text-sm ${dark ? "text-[#C9B458]" : "text-[#B59A00]"}`}
+                          className={`flex items-center justify-end gap-0.5 font-semibold text-sm ${dark ? "text-[#F2B84B]" : "text-[#C58B1D]"}`}
                           whileHover={{ scale: 1.1 }}
                         >
                           <FaBolt size={10} />
@@ -570,23 +576,23 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                         </motion.div>
 
                         {/* Avg time */}
-                        <span className={`text-right text-sm ${dark ? "text-[#818384]" : "text-gray-400"}`}>
+                        <span className={`text-right text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                           {p.avg_time != null ? `${p.avg_time}s` : "—"}
                         </span>
 
                         {/* Wins */}
-                        <span className={`text-right text-sm ${dark ? "text-white" : "text-gray-900"}`}>
+                        <span className={`text-right text-sm ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                           {p.total_speed_wins}
                         </span>
 
                         {/* Win rate */}
-                        <span className={`text-right text-sm ${dark ? "text-[#818384]" : "text-gray-400"}`}>
+                        <span className={`text-right text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                           {p.win_rate}%
                         </span>
 
                         {/* Streak */}
                         <motion.div
-                          className={`flex items-center justify-end gap-1 ${dark ? "text-white" : "text-gray-900"}`}
+                          className={`flex items-center justify-end gap-1 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
                           whileHover={{ scale: 1.1 }}
                         >
                           <motion.span
@@ -599,7 +605,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                         </motion.div>
 
                         {/* XP */}
-                        <span className={`text-right text-sm font-semibold ${dark ? "text-[#6AAA64]" : "text-[#538d4e]"}`}>
+                        <span className={`text-right text-sm font-semibold ${dark ? "text-[#2FAF74]" : "text-[#1E7E52]"}`}>
                           {p.total_xp} XP
                         </span>
                       </motion.div>
@@ -609,7 +615,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
               </motion.div>
 
               <motion.p
-                className={`text-xs mt-4 text-center ${dark ? "text-[#565758]" : "text-gray-300"}`}
+                className={`text-xs mt-4 text-center ${dark ? "text-[#8B7A67]" : "text-[#6B5645]"}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
