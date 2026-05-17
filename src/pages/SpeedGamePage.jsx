@@ -26,6 +26,8 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   const timerRef = useRef(null);
   const timeUpHandledRef = useRef(false);
 
+  const extractReveal = (data) => data?.secret || data?.word || data?.answer || "";
+
   const handleTimeUp = useCallback(async () => {
     if (timeUpHandledRef.current) return;
     timeUpHandledRef.current = true;
@@ -33,7 +35,8 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       if (!sessionId) return;
       const res  = await expireSpeedSession(sessionId);
       const data = res.data;
-      if (data?.secret) setRevealedWord(data.secret.toUpperCase());
+      const reveal = extractReveal(data);
+      if (reveal) setRevealedWord(reveal.toUpperCase());
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to expire session.";
       toast.error(msg);
@@ -136,7 +139,8 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       if (data.timeUp) {
         clearInterval(timerRef.current);
         timeUpHandledRef.current = true;
-        if (data.secret) setRevealedWord(data.secret.toUpperCase());
+        const reveal = extractReveal(data);
+        if (reveal) setRevealedWord(reveal.toUpperCase());
         setGuesses((prev) => prev.slice(0, -1));
         setGameState("timeup");
         showMessage("Time's up!", "lose", 0);
@@ -165,9 +169,10 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       // ── Lost — used all guesses ───────────────────────────────────
       if (data.lost) {
         clearInterval(timerRef.current);
-        if (data.secret) setRevealedWord(data.secret.toUpperCase());
+        const reveal = extractReveal(data);
+        if (reveal) setRevealedWord(reveal.toUpperCase());
         setGameState("lost");
-        showMessage(`The word was ${data.secret?.toUpperCase()}`, "lose", 0);
+        showMessage(`The word was ${reveal ? reveal.toUpperCase() : ""}`, "lose", 0);
         return;
       }
 
@@ -213,17 +218,19 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   }, [handleKey]);
 
   // ── Timer color ───────────────────────────────────────────────────────────
-  const timerColor = timeLeft > 20 ? "text-[#6AAA64]" : timeLeft > 10 ? "text-[#C9B458]" : "text-red-500";
-  const timerBg    = timeLeft > 20 ? "bg-[#6AAA64]"   : timeLeft > 10 ? "bg-[#C9B458]"   : "bg-red-500";
+  const timerColor = timeLeft > 20 ? "text-[#2FAF74]" : timeLeft > 10 ? "text-[#F2B84B]" : "text-[#C64B2A]";
+  const timerBg    = timeLeft > 20 ? "bg-[#2FAF74]"   : timeLeft > 10 ? "bg-[#F2B84B]"   : "bg-[#C64B2A]";
 
   const toastStyles = {
-    win:  "bg-[#6AAA64] text-white",
-    lose: "bg-[#787C7E] text-white",
-    info: "bg-[#1A1A1B] text-white",
+    win:  "bg-[#2FAF74] text-[#0B1F16]",
+    lose: "bg-[#8A8A8A] text-[#FDFBF5]",
+    info: "bg-[#2B2017] text-[#FDFBF5]",
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-white"}`}>
+    <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
+      dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
+    }`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       {/* Toast */}
@@ -235,35 +242,40 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
         </div>
       )}
 
-      <main className="flex-1 flex flex-col items-center py-6 px-4 gap-5">
+      <main className="flex-1 flex flex-col items-center py-6 sm:py-8 px-4 sm:px-6 gap-5 sm:gap-6">
 
         {/* ── IDLE / LOADING ─────────────────────────────────────────── */}
         {(gameState === "idle" || gameState === "loading") && (
           <div className="flex flex-col items-center justify-center flex-1 gap-6 max-w-sm text-center">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${dark ? "bg-[#1A1A1B]" : "bg-[#EAF4E6]"}`}>
-              <FaBolt className="text-[#C9B458]" size={28} />
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center border-2 ${
+              dark ? "bg-[#1B120C] border-[#3A2A1C]" : "bg-[#FFE9B0] border-[#2B2017]"
+            }`}>
+              <FaBolt className="text-[#F2B84B]" size={28} />
             </div>
             <div>
               <h1
-                className={`text-3xl font-bold mb-2 ${dark ? "text-white" : "text-[#1A1A1B]"}`}
-                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+                className={`text-3xl sm:text-4xl font-arcade mb-2 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
               >
                 Speed Game
               </h1>
-              <p className={`text-sm ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+              <p className={`text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                 Guess the word in <strong>60 seconds</strong>. Faster wins = more XP.
                 You get <strong>6 guesses</strong>.
               </p>
             </div>
-            <div className={`w-full rounded-xl border px-5 py-4 flex flex-col gap-2 text-sm ${dark ? "bg-[#1A1A1B] border-[#3A3A3C] text-[#818384]" : "bg-[#F9F9F9] border-[#E0E0E0] text-[#787C7E]"}`}>
+            <div className="w-full arcade-panel px-5 py-4 flex flex-col gap-2 text-sm">
               <div className="flex justify-between"><span>Time limit</span><span className="font-semibold">60 seconds</span></div>
               <div className="flex justify-between"><span>Max guesses</span><span className="font-semibold">6</span></div>
-              <div className="flex justify-between"><span>XP reward</span><span className="font-semibold text-[#C9B458]">Up to 100 XP</span></div>
+              <div className="flex justify-between"><span>XP reward</span><span className="font-semibold text-[#C58B1D]">Up to 100 XP</span></div>
             </div>
             <button
               onClick={startGame}
               disabled={gameState === "loading"}
-              className="w-full py-3 rounded-xl bg-[#6AAA64] hover:bg-[#538d4e] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-base transition-colors duration-150 flex items-center justify-center gap-2"
+              className={`w-full py-3 rounded-xl border-2 font-bold text-base transition-colors duration-150 flex items-center justify-center gap-2 ${
+                dark
+                  ? "bg-[#F2B84B] border-[#F2B84B] text-[#2B2017] hover:bg-[#FFD271]"
+                  : "bg-[#2B2017] border-[#2B2017] text-[#FDFBF5] hover:bg-[#C64B2A]"
+              } disabled:opacity-60 disabled:cursor-not-allowed`}
             >
               {gameState === "loading" ? (
                 <>
@@ -281,12 +293,12 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
         {gameState === "playing" && (
           <>
             {/* Timer bar */}
-            <div className="w-full max-w-sm">
+            <div className="w-full max-w-sm arcade-panel px-4 py-3">
               <div className="flex items-center justify-between mb-1.5">
-                <span className={`text-xs font-medium ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>Time left</span>
+                <span className={`text-xs font-semibold ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Time left</span>
                 <span className={`text-2xl font-bold tabular-nums ${timerColor}`}>{timeLeft}s</span>
               </div>
-              <div className={`w-full h-2 rounded-full ${dark ? "bg-[#3A3A3C]" : "bg-[#E0E0E0]"}`}>
+              <div className={`w-full h-2 rounded-full ${dark ? "bg-[#3A2A1C]" : "bg-[#F3DFC2]"}`}>
                 <div
                   className={`h-2 rounded-full transition-all duration-1000 ${timerBg}`}
                   style={{ width: `${(timeLeft / timeLimit) * 100}%` }}
@@ -296,12 +308,14 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
 
             {/* Board */}
             <div className="flex-1 flex items-center justify-center">
-              <Board
-                guesses={guesses}
-                currentGuess={currentGuess}
-                maxGuesses={maxGuesses}
-                wordLength={wordLength}
-              />
+              <div className="arcade-panel px-4 sm:px-6 py-5 sm:py-6">
+                <Board
+                  guesses={guesses}
+                  currentGuess={currentGuess}
+                  maxGuesses={maxGuesses}
+                  wordLength={wordLength}
+                />
+              </div>
             </div>
 
             {/* Keyboard */}
@@ -315,29 +329,30 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
         {(gameState === "won" || gameState === "lost" || gameState === "timeup") && (
           <div className="flex flex-col items-center justify-center flex-1 gap-5 max-w-sm text-center w-full">
             {/* Icon */}
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${
-              gameState === "won" ? "bg-[#EAF4E6]" : dark ? "bg-[#2A2A2B]" : "bg-[#F3F3F3]"
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center border-2 ${
+              gameState === "won"
+                ? (dark ? "bg-[#1B120C] border-[#F2B84B]" : "bg-[#FFE9B0] border-[#2B2017]")
+                : (dark ? "bg-[#1B120C] border-[#3A2A1C]" : "bg-[#FFF3DA] border-[#2B2017]")
             }`}>
               {gameState === "won"
-                ? <FaTrophy className="text-[#C9B458]" size={28} />
-                : <MdClose  className="text-[#787C7E]"  size={32} />
+                ? <FaTrophy className="text-[#F2B84B]" size={28} />
+                : <MdClose  className="text-[#8A8A8A]"  size={32} />
               }
             </div>
 
             {/* Title + subtitle */}
             <div>
               <h2
-                className={`text-2xl font-bold mb-1 ${dark ? "text-white" : "text-[#1A1A1B]"}`}
-                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+                className={`text-2xl font-arcade mb-1 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
               >
                 {gameState === "won"    ? "You Won!"    :
                  gameState === "timeup" ? "Time's Up!"  : "Better luck!"}
               </h2>
-              <p className={`text-sm ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+              <p className={`text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                 {gameState === "won"
                   ? `Solved in ${timeTaken}s with ${guesses.length} guess${guesses.length !== 1 ? "es" : ""}`
                   : revealedWord
-                    ? <>The word was <span className={`font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>{revealedWord}</span></>
+                    ? <>The word was <span className={`font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>{revealedWord}</span></>
                     : "Better luck next time!"
                 }
               </p>
@@ -345,9 +360,9 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
 
             {/* XP badge — only on win */}
             {gameState === "won" && (
-              <div className="flex items-center gap-2 bg-[#EAF4E6] border border-[#6AAA64] rounded-xl px-5 py-3">
-                <FaBolt className="text-[#C9B458]" size={18} />
-                <span className="text-lg font-bold text-[#538d4e]">+{xpEarned} XP</span>
+              <div className="flex items-center gap-2 bg-[#FFE9B0] border-2 border-[#2B2017] rounded-xl px-5 py-3">
+                <FaBolt className="text-[#C58B1D]" size={18} />
+                <span className="text-lg font-bold text-[#2B2017]">+{xpEarned} XP</span>
               </div>
             )}
 
@@ -362,7 +377,11 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
             {/* Play again */}
             <button
               onClick={startGame}
-              className="w-full py-3 rounded-xl bg-[#6AAA64] hover:bg-[#538d4e] text-white font-bold text-base transition-colors duration-150 flex items-center justify-center gap-2"
+              className={`w-full py-3 rounded-xl border-2 font-bold text-base transition-colors duration-150 flex items-center justify-center gap-2 ${
+                dark
+                  ? "bg-[#F2B84B] border-[#F2B84B] text-[#2B2017] hover:bg-[#FFD271]"
+                  : "bg-[#2B2017] border-[#2B2017] text-[#FDFBF5] hover:bg-[#C64B2A]"
+              }`}
             >
               <FaBolt size={16} /> Play Again
             </button>
