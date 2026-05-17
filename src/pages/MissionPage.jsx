@@ -19,9 +19,9 @@ const cardVariant = {
 const MissionProgressBar = ({ progress, target, completed, dark }) => {
   const pct = Math.min((progress / target) * 100, 100);
   return (
-    <div className={`w-full h-2 rounded-full overflow-hidden ${dark ? "bg-[#3A3A3C]" : "bg-[#E0E0E0]"}`}>
+    <div className={`w-full h-2 rounded-full overflow-hidden ${dark ? "bg-[#3A2A1C]" : "bg-[#F3DFC2]"}`}>
       <motion.div
-        className={`h-2 rounded-full ${completed ? "bg-[#6AAA64]" : "bg-[#C9B458]"}`}
+        className={`h-2 rounded-full ${completed ? "bg-[#2FAF74]" : "bg-[#F2B84B]"}`}
         initial={{ width: "0%" }}
         animate={{ width: `${pct}%` }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
@@ -44,11 +44,11 @@ const MissionCard = ({ mission, index, dark }) => {
       className={`rounded-xl border px-4 py-4 flex flex-col gap-3 transition-colors ${
         completed
           ? dark
-            ? "bg-[#1E2D1E] border-[#3A5C3A]"
-            : "bg-[#EAF4E6] border-[#6AAA64]"
+            ? "bg-[#1B120C] border-[#F2B84B]"
+            : "bg-[#FFE9B0] border-[#2B2017]"
           : dark
-          ? "bg-[#1A1A1B] border-[#3A3A3C]"
-          : "bg-white border-[#E0E0E0]"
+          ? "bg-[#0F0B08] border-[#3A2A1C]"
+          : "bg-[#FFF7E8] border-[#2B2017]"
       }`}
     >
       {/* Top row */}
@@ -58,23 +58,23 @@ const MissionCard = ({ mission, index, dark }) => {
           <div
             className={`w-9 h-9 rounded-lg shrink-0 flex items-center justify-center text-base ${
               completed
-                ? dark ? "bg-[#2D4A2D]" : "bg-[#D4EDD4]"
-                : dark ? "bg-[#2A2A2B]" : "bg-[#F3F3F3]"
+                ? dark ? "bg-[#1B120C]" : "bg-[#FFE9B0]"
+                : dark ? "bg-[#1B120C]" : "bg-[#FFF3DA]"
             }`}
           >
             {completed ? (
-              <FaCheckCircle className="text-[#6AAA64]" size={15} />
+              <FaCheckCircle className="text-[#2FAF74]" size={15} />
             ) : (
-              <FaBolt className="text-[#C9B458]" size={13} />
+              <FaBolt className="text-[#F2B84B]" size={13} />
             )}
           </div>
 
           {/* Text */}
           <div className="flex-1 min-w-0">
-            <p className={`text-sm font-semibold leading-tight ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+            <p className={`text-sm font-semibold leading-tight ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
               {mission_name}
             </p>
-            <p className={`text-xs mt-0.5 leading-snug ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+            <p className={`text-xs mt-0.5 leading-snug ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
               {description}
             </p>
           </div>
@@ -82,12 +82,12 @@ const MissionCard = ({ mission, index, dark }) => {
 
         {/* XP badge */}
         <span
-          className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1 ${
+          className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1 border ${
             completed
-              ? "bg-[#6AAA64] text-white"
+              ? "bg-[#2FAF74] text-[#0B1F16] border-[#1E7E52]"
               : dark
-              ? "bg-[#2A2A2B] text-[#C9B458]"
-              : "bg-[#FFF8DC] text-[#B8940A]"
+              ? "bg-[#1B120C] text-[#F2B84B] border-[#3A2A1C]"
+              : "bg-[#FFF3DA] text-[#C58B1D] border-[#2B2017]"
           }`}
         >
           <FaBolt size={8} />
@@ -99,12 +99,12 @@ const MissionCard = ({ mission, index, dark }) => {
       <div className="flex flex-col gap-1.5">
         <MissionProgressBar progress={progress} target={target} completed={completed} dark={dark} />
         <div className="flex items-center justify-between">
-          <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+          <span className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
             {progress} / {target}
             {target > 1 && <span className="ml-1">({pct}%)</span>}
           </span>
           {completed && completed_at && (
-            <span className={`text-[10px] ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+            <span className={`text-[10px] ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
               Done {new Date(completed_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
             </span>
           )}
@@ -119,24 +119,24 @@ const SectionHeader = ({ icon: Icon, iconColor, title, completed, total, xpEarne
   <div className="flex items-center justify-between mb-3">
     <div className="flex items-center gap-2">
       <div
-        className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#2A2A2B]" : "bg-[#F3F3F3]"}`}
+        className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#1B120C]" : "bg-[#FFE9B0]"}`}
       >
         <Icon size={13} style={{ color: iconColor }} />
       </div>
       <div>
-        <p className={`text-sm font-bold leading-tight ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+        <p className={`text-sm font-bold leading-tight ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
           {title}
         </p>
         {sub && (
-          <p className={`text-[10px] ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>{sub}</p>
+          <p className={`text-[10px] ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>{sub}</p>
         )}
       </div>
     </div>
     <div className="text-right">
-      <p className={`text-xs font-semibold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+      <p className={`text-xs font-semibold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
         {completed}/{total} done
       </p>
-      <p className={`text-[10px] ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+      <p className={`text-[10px] ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
         {xpEarned}/{xpAvailable} XP
       </p>
     </div>
@@ -151,28 +151,26 @@ const XPSummaryBar = ({ data, dark }) => {
 
   return (
     <motion.div
-      className={`rounded-2xl border px-4 sm:px-6 py-4 mb-5 ${
-        dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
-      }`}
+      className="rounded-2xl border px-4 sm:px-6 py-4 mb-5 arcade-panel"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="flex items-center justify-between mb-3">
-        <p className={`text-sm font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>Today's XP Progress</p>
-        <span className="text-xs font-semibold text-[#C9B458] flex items-center gap-1">
+        <p className={`text-sm font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>Today's XP Progress</p>
+        <span className="text-xs font-semibold text-[#F2B84B] flex items-center gap-1">
           <FaBolt size={9} />{totalEarned} / {totalAvailable} XP
         </span>
       </div>
-      <div className={`w-full h-3 rounded-full overflow-hidden ${dark ? "bg-[#3A3A3C]" : "bg-[#E0E0E0]"}`}>
+      <div className={`w-full h-3 rounded-full overflow-hidden ${dark ? "bg-[#3A2A1C]" : "bg-[#F3DFC2]"}`}>
         <motion.div
-          className="h-3 rounded-full bg-[#C9B458]"
+          className="h-3 rounded-full bg-[#F2B84B]"
           initial={{ width: "0%" }}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
         />
       </div>
-      <p className={`text-xs mt-1.5 text-right ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+      <p className={`text-xs mt-1.5 text-right ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
         {pct}% of available XP earned
       </p>
     </motion.div>
@@ -200,9 +198,9 @@ export default function MissionsPage({ dark, onToggleDark }) {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
+      <div className={`min-h-screen flex items-center justify-center ${dark ? "bg-[#0F0B08]" : "arcade-bg"}`}>
         <motion.div
-          className="w-8 h-8 border-4 border-[#6AAA64] border-t-transparent rounded-full"
+          className="w-8 h-8 border-4 border-[#2FAF74] border-t-transparent rounded-full"
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
         />
@@ -218,15 +216,16 @@ export default function MissionsPage({ dark, onToggleDark }) {
     : null;
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
+    <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
+      dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
+    }`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 sm:py-10">
 
         {/* Title */}
         <motion.h1
-          className={`text-2xl sm:text-3xl font-bold text-center mb-8 ${dark ? "text-white" : "text-[#1A1A1B]"}`}
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+          className={`text-2xl sm:text-3xl font-arcade text-center mb-8 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
           initial={{ opacity: 0, y: -18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -240,16 +239,14 @@ export default function MissionsPage({ dark, onToggleDark }) {
         {/* Daily missions */}
         {daily && (
           <motion.div
-            className={`rounded-2xl border px-4 sm:px-6 py-5 mb-5 ${
-              dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
-            }`}
+            className="rounded-2xl border px-4 sm:px-6 py-5 mb-5 arcade-panel"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
           >
             <SectionHeader
               icon={FaClock}
-              iconColor="#6AAA64"
+              iconColor="#2FAF74"
               title="Daily Missions"
               sub={`Resets at midnight · ${new Date(data.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
               completed={daily.completed}
@@ -271,9 +268,7 @@ export default function MissionsPage({ dark, onToggleDark }) {
         {/* Weekly missions */}
         {weekly && (
           <motion.div
-            className={`rounded-2xl border px-4 sm:px-6 py-5 ${
-              dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
-            }`}
+            className="rounded-2xl border px-4 sm:px-6 py-5 arcade-panel"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.28, ease: [0.22, 1, 0.36, 1] }}
@@ -301,7 +296,7 @@ export default function MissionsPage({ dark, onToggleDark }) {
 
         {/* Empty state */}
         {!daily && !weekly && (
-          <div className={`text-center py-16 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+          <div className={`text-center py-16 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
             <p className="text-4xl mb-3">🎯</p>
             <p className="text-sm font-medium">No missions available right now.</p>
             <p className="text-xs mt-1">Check back soon!</p>
