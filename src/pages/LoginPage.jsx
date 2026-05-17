@@ -80,7 +80,7 @@ export default function LoginPage({ dark, onToggleDark }) {
             }`}
           />
           <div
-            className={`absolute -bottom-10 right-[-8rem] h-[28rem] w-[28rem] rounded-full blur-3xl opacity-40 ${
+            className={`absolute -bottom-10 -right-32 h-112 w-md rounded-full blur-3xl opacity-40 ${
               dark ? "bg-[#182633]" : "bg-[#D8E1F0]"
             }`}
           />

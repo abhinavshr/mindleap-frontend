@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;600;700&display=swap");
 
 html, body, #root {
   overflow-x: hidden;
@@ -8,4 +9,35 @@ html, body, #root {
 
 *, *::before, *::after {
   box-sizing: border-box;
+}
+
+.font-arcade {
+  font-family: "Bungee", "Space Grotesk", system-ui, sans-serif;
+}
+
+.font-copy {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+
+.arcade-bg {
+  background-color: #f7f1e6;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(255, 214, 135, 0.35), transparent 45%),
+    radial-gradient(circle at 88% 12%, rgba(255, 123, 86, 0.22), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0));
+}
+
+.arcade-panel {
+  background: #fff6e3;
+  border: 3px solid #2b2017;
+  box-shadow: 0 10px 0 #2b2017;
+  border-radius: 18px;
+}
+
+.arcade-key {
+  box-shadow: 0 3px 0 #2b2017;
+}
+
+.arcade-tile {
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.12);
 }
