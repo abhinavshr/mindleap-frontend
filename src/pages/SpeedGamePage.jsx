@@ -8,7 +8,7 @@ import { startSpeedGame, submitSpeedGuess, expireSpeedSession } from "../api/spe
 import toast from "react-hot-toast";
 
 export default function SpeedGamePage({ dark = false, onToggleDark }) {
-  const [gameState, setGameState]       = useState("idle");   // idle | loading | playing | won | lost | timeup
+  const [gameState, setGameState]       = useState("idle");   
   const [sessionId, setSessionId]       = useState(null);
   const [timeLeft, setTimeLeft]         = useState(60);
   const [timeLimit, setTimeLimit]       = useState(60);
