@@ -63,14 +63,12 @@ const StatCard = ({ label, value, index, dark }) => {
       initial="hidden"
       animate="visible"
       whileHover={{ y: -3, transition: { duration: 0.2 } }}
-      className={`rounded-2xl border px-4 py-5 flex flex-col items-center gap-1 ${
-        dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
-      }`}
+      className="rounded-2xl border px-4 py-5 flex flex-col items-center gap-1 arcade-panel"
     >
-      <span className={`text-2xl sm:text-3xl font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+      <span className={`text-2xl sm:text-3xl font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
         {isNumeric ? <AnimatedNumber value={value} /> : value}
       </span>
-      <span className={`text-xs text-center ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+      <span className={`text-xs text-center ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
         {label}
       </span>
     </motion.div>
@@ -85,18 +83,18 @@ const DistBar = ({ guess, count, pct, dark, index }) => (
     initial="hidden"
     animate="visible"
   >
-    <span className={`text-sm font-medium w-4 text-right ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+    <span className={`text-sm font-medium w-4 text-right ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
       {guess}
     </span>
     <div className="flex-1">
       <motion.div
-        className="bg-[#6AAA64] rounded flex items-center justify-end pr-3 h-9"
+        className="bg-[#2FAF74] rounded flex items-center justify-end pr-3 h-9"
         initial={{ width: "8%" }}
         animate={{ width: `${pct}%` }}
         transition={{ duration: 0.7, delay: 0.1 + index * 0.06, ease: [0.22, 1, 0.36, 1] }}
       >
         <motion.span
-          className="text-white text-sm font-bold"
+          className="text-[#0B1F16] text-sm font-bold"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 + index * 0.06 }}
@@ -148,9 +146,7 @@ const RewardCard = ({ reward, dark, index }) => {
       initial="hidden"
       animate="visible"
       whileHover={{ y: -2, transition: { duration: 0.2 } }}
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
-        dark ? "bg-[#1E1E1F] border-[#3A3A3C]" : "bg-[#F9F9F9] border-[#E0E0E0]"
-      }`}
+      className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors arcade-panel"
     >
       <div
         className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-xl"
@@ -159,15 +155,15 @@ const RewardCard = ({ reward, dark, index }) => {
         {config.emoji}
       </div>
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold truncate ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+        <p className={`text-sm font-semibold truncate ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
           {reward.name ?? reward.reward_key ?? "Reward"}
         </p>
-        <p className={`text-xs truncate ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+        <p className={`text-xs truncate ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
           {reward.description ?? config.label}
         </p>
       </div>
       {unlockedDate && (
-        <span className={`text-xs shrink-0 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+        <span className={`text-xs shrink-0 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
           {unlockedDate}
         </span>
       )}
@@ -195,20 +191,20 @@ const BadgeCard = ({ b, dark }) => {
         whileHover={{ scale: 1.05 }}
         className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-colors cursor-default ${
           b.earned
-            ? dark ? "bg-[#1E2D1E] border-[#3A5C3A]" : "bg-[#EAF4E6] border-[#6AAA64]"
-            : dark ? "bg-[#1A1A1B] border-[#2A2A2B] opacity-40" : "bg-[#F9F9F9] border-[#E0E0E0] opacity-40"
+            ? dark ? "bg-[#1B120C] border-[#F2B84B]" : "bg-[#FFE9B0] border-[#2B2017]"
+            : dark ? "bg-[#1B120C] border-[#3A2A1C] opacity-40" : "bg-[#FFF3DA] border-[#2B2017] opacity-40"
         }`}
       >
         <span className="text-2xl">{b.earned ? (BADGE_EMOJIS[b.key] ?? "🏅") : "🔒"}</span>
         <span className={`text-xs font-semibold text-center leading-tight ${
           b.earned
-            ? dark ? "text-white" : "text-[#1A1A1B]"
-            : dark ? "text-[#818384]" : "text-[#787C7E]"
+            ? dark ? "text-[#F7EEDB]" : "text-[#2B2017]"
+            : dark ? "text-[#CBBEAC]" : "text-[#5A4636]"
         }`}>
           {b.name}
         </span>
         {earnedDate && (
-          <span className={`text-[10px] ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+          <span className={`text-[10px] ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
             {earnedDate}
           </span>
         )}
@@ -220,8 +216,8 @@ const BadgeCard = ({ b, dark }) => {
           <motion.div
             className={`absolute z-50 bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-48 rounded-xl px-3 py-2.5 shadow-xl pointer-events-none ${
               dark
-                ? "bg-[#2A2A2B] border border-[#3A3A3C] text-white"
-                : "bg-white border border-[#E0E0E0] text-[#1A1A1B]"
+                ? "bg-[#1B120C] border border-[#3A2A1C] text-[#F7EEDB]"
+                : "bg-[#FFF3DA] border border-[#2B2017] text-[#2B2017]"
             }`}
             initial={{ opacity: 0, y: 6, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -234,7 +230,7 @@ const BadgeCard = ({ b, dark }) => {
               style={{
                 borderLeft: "6px solid transparent",
                 borderRight: "6px solid transparent",
-                borderTop: `6px solid ${dark ? "#3A3A3C" : "#E0E0E0"}`,
+                borderTop: `6px solid ${dark ? "#3A2A1C" : "#2B2017"}`,
               }}
             />
 
@@ -243,19 +239,19 @@ const BadgeCard = ({ b, dark }) => {
               <span className="text-base leading-none">{BADGE_EMOJIS[b.key] ?? "🏅"}</span>
               <p className="text-xs font-bold leading-tight truncate">{b.name}</p>
               {b.earned
-                ? <FaCheckCircle size={10} className="text-[#6AAA64] shrink-0 ml-auto" />
-                : <FaLock size={9} className={`shrink-0 ml-auto ${dark ? "text-[#818384]" : "text-[#B0B0B0]"}`} />
+                ? <FaCheckCircle size={10} className="text-[#2FAF74] shrink-0 ml-auto" />
+                : <FaLock size={9} className={`shrink-0 ml-auto ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`} />
               }
             </div>
 
             {/* How to get */}
-            <p className={`text-[11px] leading-snug ${dark ? "text-[#A0A0A2]" : "text-[#787C7E]"}`}>
+            <p className={`text-[11px] leading-snug ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
               {b.earned ? "✅ " : "🎯 "}{b.description}
             </p>
 
             {/* Earned date */}
             {earnedDate && (
-              <p className={`text-[10px] mt-1.5 ${dark ? "text-[#818384]" : "text-[#9E9E9E]"}`}>
+              <p className={`text-[10px] mt-1.5 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                 Earned {earnedDate}
               </p>
             )}
@@ -272,8 +268,8 @@ const NavButton = ({ onClick, icon: Icon, iconColor, label, dark }) => (
     onClick={onClick}
     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-colors duration-150 ${
       dark
-        ? "border-[#3A3A3C] text-[#D7D7D7] hover:bg-[#2A2A2B]"
-        : "border-[#E0E0E0] text-[#1A1A1B] hover:bg-[#F5F5F5]"
+        ? "border-[#3A2A1C] text-[#F7EEDB] hover:bg-[#1B120C]"
+        : "border-[#2B2017] text-[#2B2017] hover:bg-[#FFE9B0]"
     }`}
     whileHover={{ scale: 1.01 }}
     whileTap={{ scale: 0.99 }}
@@ -282,7 +278,7 @@ const NavButton = ({ onClick, icon: Icon, iconColor, label, dark }) => (
       <Icon size={12} style={{ color: iconColor }} />
       {label}
     </span>
-    <FaChevronRight size={11} className={dark ? "text-[#818384]" : "text-[#B0B0B0]"} />
+    <FaChevronRight size={11} className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"} />
   </motion.button>
 );
 
@@ -350,9 +346,9 @@ export default function ProfilePage({ dark, onToggleDark }) {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
+      <div className={`min-h-screen flex items-center justify-center ${dark ? "bg-[#0F0B08]" : "arcade-bg"}`}>
         <motion.div
-          className="w-8 h-8 border-4 border-[#6AAA64] border-t-transparent rounded-full"
+          className="w-8 h-8 border-4 border-[#2FAF74] border-t-transparent rounded-full"
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
         />
@@ -361,15 +357,16 @@ export default function ProfilePage({ dark, onToggleDark }) {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
+    <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
+      dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
+    }`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 sm:py-10">
 
         {/* Title */}
         <motion.h1
-          className={`text-2xl sm:text-3xl font-bold text-center mb-8 ${dark ? "text-white" : "text-[#1A1A1B]"}`}
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+          className={`text-2xl sm:text-3xl font-arcade text-center mb-8 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
           initial={{ opacity: 0, y: -18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -379,9 +376,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
 
         {/* User card */}
         <motion.div
-          className={`rounded-2xl border px-4 sm:px-6 py-4 sm:py-5 mb-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 ${
-            dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
-          }`}
+          className="rounded-2xl border px-4 sm:px-6 py-4 sm:py-5 mb-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 arcade-panel"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
@@ -392,23 +387,23 @@ export default function ProfilePage({ dark, onToggleDark }) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <p className={`text-xl font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+            <p className={`text-xl font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
               {profileData?.profile?.username ?? "Guest"}
             </p>
-            <p className={`text-sm ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+            <p className={`text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
               {profileData?.profile?.email ?? "—"}
             </p>
-            <p className={`text-sm ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+            <p className={`text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
               Joined {joinDate}
             </p>
           </motion.div>
 
           <motion.button
             onClick={handleLogout}
-            className={`text-sm font-medium px-5 py-2 rounded-lg border transition-colors duration-150 w-full sm:w-auto ${
+            className={`text-sm font-semibold px-5 py-2 rounded-lg border-2 transition-colors duration-150 w-full sm:w-auto ${
               dark
-                ? "border-[#3A3A3C] text-[#D7D7D7] hover:bg-[#2A2A2B]"
-                : "border-[#D3D6DA] text-[#1A1A1B] hover:bg-[#F0F0F0]"
+                ? "border-[#F7EEDB] text-[#F7EEDB] hover:bg-[#1B120C]"
+                : "border-[#2B2017] text-[#2B2017] hover:bg-[#FFE9B0]"
             }`}
             initial={{ opacity: 0, x: 12 }}
             animate={{ opacity: 1, x: 0 }}
@@ -430,9 +425,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
         {/* Level card */}
         {levelData && (
           <motion.div
-            className={`rounded-2xl border px-4 sm:px-6 py-5 mb-5 ${
-              dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
-            }`}
+            className="rounded-2xl border px-4 sm:px-6 py-5 mb-5 arcade-panel"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.32, ease: [0.22, 1, 0.36, 1] }}
@@ -440,24 +433,24 @@ export default function ProfilePage({ dark, onToggleDark }) {
             {/* Level header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#2A2A2B]" : "bg-[#EAF4E6]"}`}>
-                  <FaStar className="text-[#C9B458]" size={14} />
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#1B120C]" : "bg-[#FFE9B0]"}`}>
+                  <FaStar className="text-[#F2B84B]" size={14} />
                 </div>
                 <div>
-                  <p className={`text-sm font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
+                  <p className={`text-sm font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                     Level {levelData.currentLevel} — {levelData.currentTitle}
                   </p>
-                  <p className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                  <p className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                     {levelData.totalXp} total XP
                   </p>
                 </div>
               </div>
               {levelData.isMaxLevel ? (
-                <span className="text-xs font-semibold text-[#C9B458] bg-yellow-50 border border-yellow-200 px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold text-[#2B2017] bg-[#FFE9B0] border border-[#2B2017] px-3 py-1 rounded-full">
                   Max Level
                 </span>
               ) : (
-                <span className={`text-xs font-semibold ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                <span className={`text-xs font-semibold ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                   {levelData.xpToNextLevel} XP to go
                 </span>
               )}
@@ -466,34 +459,34 @@ export default function ProfilePage({ dark, onToggleDark }) {
             {/* Progress bar */}
             {!levelData.isMaxLevel && (
               <>
-                <div className={`w-full h-3 rounded-full overflow-hidden ${dark ? "bg-[#3A3A3C]" : "bg-[#E0E0E0]"}`}>
+                <div className={`w-full h-3 rounded-full overflow-hidden ${dark ? "bg-[#3A2A1C]" : "bg-[#F3DFC2]"}`}>
                   <motion.div
-                    className="h-3 rounded-full bg-[#C9B458]"
+                    className="h-3 rounded-full bg-[#F2B84B]"
                     initial={{ width: "0%" }}
                     animate={{ width: `${levelData.progressPercent}%` }}
                     transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
                   />
                 </div>
                 <div className="flex justify-between mt-1.5">
-                  <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>{levelData.currentLevelXp} XP</span>
-                  <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>{levelData.nextLevelXp} XP</span>
+                  <span className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>{levelData.currentLevelXp} XP</span>
+                  <span className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>{levelData.nextLevelXp} XP</span>
                 </div>
               </>
             )}
 
             {/* Recent XP log */}
             {levelData.recentXpLog?.length > 0 && (
-              <div className={`mt-4 pt-4 border-t ${dark ? "border-[#3A3A3C]" : "border-[#F0F0F0]"}`}>
-                <p className={`text-xs font-semibold uppercase tracking-wide mb-2 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+              <div className={`mt-4 pt-4 border-t ${dark ? "border-[#3A2A1C]" : "border-[#2B2017]"}`}>
+                <p className={`text-xs font-semibold uppercase tracking-wide mb-2 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                   Recent XP
                 </p>
                 <div className="flex flex-col gap-1.5">
                   {levelData.recentXpLog.slice(0, 5).map((log, i) => (
                     <div key={i} className="flex items-center justify-between">
-                      <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                      <span className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                         {log.description ?? log.reason ?? "Game"}
                       </span>
-                      <span className="text-xs font-semibold text-[#C9B458] flex items-center gap-1">
+                      <span className="text-xs font-semibold text-[#F2B84B] flex items-center gap-1">
                         <FaBolt size={9} />+{log.xp_amount ?? log.xp_earned ?? log.amount ?? 0}
                       </span>
                     </div>
@@ -503,7 +496,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
             )}
 
             {/* Nav buttons */}
-            <div className={`mt-4 flex flex-col gap-2 ${levelData.recentXpLog?.length > 0 ? "pt-4 border-t " + (dark ? "border-[#3A3A3C]" : "border-[#F0F0F0]") : ""}`}>
+            <div className={`mt-4 flex flex-col gap-2 ${levelData.recentXpLog?.length > 0 ? "pt-4 border-t " + (dark ? "border-[#3A2A1C]" : "border-[#2B2017]") : ""}`}>
               <NavButton
                 onClick={() => navigate("/missions")}
                 icon={FaFire}
@@ -514,14 +507,14 @@ export default function ProfilePage({ dark, onToggleDark }) {
               <NavButton
                 onClick={() => navigate("/levels")}
                 icon={FaStar}
-                iconColor="#C9B458"
+                iconColor="#F2B84B"
                 label="View All Levels"
                 dark={dark}
               />
               <NavButton
                 onClick={() => navigate("/hall-of-fame")}
                 icon={FaTrophy}
-                iconColor="#C9B458"
+                iconColor="#F2B84B"
                 label="Hall of Fame"
                 dark={dark}
               />
@@ -532,20 +525,18 @@ export default function ProfilePage({ dark, onToggleDark }) {
         {/* Badges */}
         {badges.length > 0 && (
           <motion.div
-            className={`rounded-2xl border px-4 sm:px-6 py-5 mb-5 overflow-visible ${
-              dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
-            }`}
+            className="rounded-2xl border px-4 sm:px-6 py-5 mb-5 overflow-visible arcade-panel"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.40, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="flex items-center justify-between mb-1">
-              <h2 className={`text-lg font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>Badges</h2>
-              <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+              <h2 className={`text-lg font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>Badges</h2>
+              <span className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                 {badges.filter(b => b.earned).length} / {badges.length} earned
               </span>
             </div>
-            <p className={`text-xs mb-4 ${dark ? "text-[#818384]" : "text-[#9E9E9E]"}`}>
+            <p className={`text-xs mb-4 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
               Hover a badge to see how to earn it
             </p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
@@ -559,21 +550,19 @@ export default function ProfilePage({ dark, onToggleDark }) {
         {/* Rewards */}
         {rewards.length > 0 && (
           <motion.div
-            className={`rounded-2xl border px-4 sm:px-6 py-5 mb-5 ${
-              dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
-            }`}
+            className="rounded-2xl border px-4 sm:px-6 py-5 mb-5 arcade-panel"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.46, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#2A2A2B]" : "bg-[#EAF4E6]"}`}>
-                  <FaGift className="text-[#6AAA64]" size={14} />
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#1B120C]" : "bg-[#FFE9B0]"}`}>
+                  <FaGift className="text-[#2FAF74]" size={14} />
                 </div>
-                <h2 className={`text-lg font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}>Rewards</h2>
+                <h2 className={`text-lg font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>Rewards</h2>
               </div>
-              <span className={`text-xs ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+              <span className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                 {rewards.length} unlocked
               </span>
             </div>
@@ -587,15 +576,13 @@ export default function ProfilePage({ dark, onToggleDark }) {
 
         {/* Guess distribution */}
         <motion.div
-          className={`rounded-2xl border px-4 sm:px-6 py-5 sm:py-6 ${
-            dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"
-          }`}
+          className="rounded-2xl border px-4 sm:px-6 py-5 sm:py-6 arcade-panel"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.38, ease: [0.22, 1, 0.36, 1] }}
         >
           <motion.h2
-            className={`text-lg font-bold mb-5 ${dark ? "text-white" : "text-[#1A1A1B]"}`}
+            className={`text-lg font-bold mb-5 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.45 }}
@@ -603,7 +590,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
             Guess Distribution
           </motion.h2>
           {distribution.length === 0 ? (
-            <p className={`text-sm text-center py-4 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+            <p className={`text-sm text-center py-4 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
               No games played yet.
             </p>
           ) : (
