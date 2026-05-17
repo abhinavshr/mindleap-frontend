@@ -261,9 +261,9 @@ export default function HomePage({ dark, onToggleDark }) {
   }, [handleKey]);
 
   const toastBg = {
-    win:  "bg-[#6AAA64] text-white",
-    lose: "bg-[#787C7E] text-white",
-    info: "bg-[#1A1A1B] text-white",
+    win:  "bg-[#2FAF74] text-[#0B1F16]",
+    lose: "bg-[#8A8A8A] text-[#FDFBF5]",
+    info: "bg-[#2B2017] text-[#FDFBF5]",
   };
 
   // ── Loading screen ─────────────────────────────────────────────────────────
@@ -283,7 +283,7 @@ export default function HomePage({ dark, onToggleDark }) {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-white"}`}>
+    <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"}`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       {/* ── Guest banner ───────────────────────────────────────────── */}
@@ -295,11 +295,14 @@ export default function HomePage({ dark, onToggleDark }) {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="w-full bg-[#EAF4E6] border-b border-[#6AAA64] overflow-hidden"
+            className={`w-full overflow-hidden border-b ${dark ? "bg-[#1B120C] border-[#F7EEDB]" : "bg-[#FFE9B0] border-[#2B2017]"}`}
           >
-            <div className="px-4 py-2 text-center text-sm text-[#3B6D11]">
+            <div className={`px-4 py-2 text-center text-sm font-medium ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
               You have <strong>5 guesses</strong> as a guest.{" "}
-              <a href="/register" className="font-bold underline hover:text-[#6AAA64]">
+              <a
+                href="/register"
+                className={`font-bold underline ${dark ? "hover:text-[#FFE9B0]" : "hover:text-[#C64B2A]"}`}
+              >
                 Register
               </a>{" "}
               to get 6 guesses, see the answer + leaderboard access.
@@ -338,23 +341,50 @@ export default function HomePage({ dark, onToggleDark }) {
         )}
       </AnimatePresence>
 
-      <main className="flex-1 flex flex-col items-center justify-between py-8 gap-6">
+      <main className="flex-1 flex flex-col items-center justify-between py-8 sm:py-10 gap-6 sm:gap-8 px-4 sm:px-6">
+
+        {/* ── Hero ───────────────────────────────────────────────────── */}
+        <motion.div
+          variants={fadeSlideUp}
+          initial="hidden"
+          animate="visible"
+          custom={0}
+          className="w-full max-w-4xl"
+        >
+          <div className="flex flex-col items-center text-center gap-2">
+            <div
+              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border-2 text-xs font-semibold tracking-wide uppercase ${
+                dark
+                  ? "bg-[#1B120C] border-[#F7EEDB] text-[#F7EEDB]"
+                  : "bg-[#FFE9B0] border-[#2B2017] text-[#2B2017]"
+              }`}
+            >
+              Daily Arcade
+            </div>
+            <h1 className="font-arcade text-3xl sm:text-4xl md:text-5xl">MindLeap</h1>
+            <p className={`text-sm sm:text-base max-w-xl ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+              Crack the word, chase the streak, and finish with a clean board.
+            </p>
+          </div>
+        </motion.div>
 
         {/* ── Board ──────────────────────────────────────────────────── */}
         <motion.div
           variants={fadeSlideUp}
           initial="hidden"
           animate="visible"
-          custom={0}
-          className="flex-1 flex items-center justify-center"
+          custom={1}
+          className="flex-1 flex items-center justify-center w-full"
         >
-          <Board
-            guesses={guesses}
-            currentGuess={currentGuess}
-            maxGuesses={maxGuesses}
-            wordLength={wordLength}
-            shakeRow={shakeRow}
-          />
+          <div className="arcade-panel px-4 sm:px-6 py-5 sm:py-6">
+            <Board
+              guesses={guesses}
+              currentGuess={currentGuess}
+              maxGuesses={maxGuesses}
+              wordLength={wordLength}
+              shakeRow={shakeRow}
+            />
+          </div>
         </motion.div>
 
         {/* ── Revealed word ──────────────────────────────────────────── */}
@@ -372,7 +402,7 @@ export default function HomePage({ dark, onToggleDark }) {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1, duration: 0.35 }}
-                className={`text-sm font-medium ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}
+                className={`text-sm font-medium ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}
               >
                 The word was
               </motion.span>
@@ -381,7 +411,7 @@ export default function HomePage({ dark, onToggleDark }) {
                   <motion.div
                     key={i}
                     variants={revealLetterVariant}
-                    className="w-10 h-10 bg-[#787C7E] text-white flex items-center justify-center text-base font-bold rounded"
+                    className="w-10 h-10 bg-[#2B2017] text-[#FDFBF5] flex items-center justify-center text-base font-bold rounded"
                   >
                     {letter}
                   </motion.div>
@@ -396,7 +426,7 @@ export default function HomePage({ dark, onToggleDark }) {
           variants={fadeSlideUp}
           initial="hidden"
           animate="visible"
-          custom={1}
+          custom={2}
           className="w-full flex justify-center px-2"
         >
           <Keyboard
