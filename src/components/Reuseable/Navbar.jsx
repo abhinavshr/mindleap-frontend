@@ -53,20 +53,25 @@ export default function Navbar({ dark = false, onToggleDark }) {
     }
   };
 
-  const navLink = `text-sm font-medium transition-colors duration-150 hover:text-[#6AAA64] ${
-    dark ? "text-[#818384]" : "text-[#787C7E]"
+  const navLink = `text-sm font-semibold transition-colors duration-150 ${
+    dark
+      ? "text-[#CBBEAC] hover:text-[#FFE9B0]"
+      : "text-[#5A4636] hover:text-[#C64B2A]"
   }`;
 
   return (
     <nav className={`w-full border-b transition-colors duration-300 relative z-50 ${
-      dark ? "bg-[#121213] border-[#3A3A3C]" : "bg-[#F9F9F9] border-[#D3D6DA]"
+      dark
+        ? "bg-[#0F0B08] border-[#3A2A1C] shadow-[0_6px_0_#2B2017]"
+        : "bg-[#FFF3DA] border-[#2B2017] shadow-[0_6px_0_#2B2017]"
     }`}>
-      <div className="px-6 py-3 flex items-center justify-between">
+      <div className="px-4 sm:px-6 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link
           to="/"
-          className={`text-lg font-bold tracking-tight select-none ${dark ? "text-white" : "text-[#1A1A1B]"}`}
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+          className={`text-lg sm:text-xl font-arcade tracking-wide select-none ${
+            dark ? "text-[#F7EEDB]" : "text-[#2B2017]"
+          }`}
         >
           MindLeap
         </Link>
@@ -82,7 +87,11 @@ export default function Navbar({ dark = false, onToggleDark }) {
               <Link to="/profile"    className={navLink}>Profile</Link>
               <button
                 onClick={handleLogout}
-                className="text-sm font-medium text-white bg-[#787C7E] hover:bg-[#5f6368] px-4 py-1.5 rounded-md transition-colors duration-150"
+                className={`text-sm font-semibold px-4 py-1.5 rounded-md border-2 transition-colors duration-150 ${
+                  dark
+                    ? "text-[#F7EEDB] border-[#F7EEDB] hover:bg-[#1B120C]"
+                    : "text-[#2B2017] border-[#2B2017] hover:bg-[#FFE9B0]"
+                }`}
               >
                 Logout
               </button>
@@ -90,7 +99,14 @@ export default function Navbar({ dark = false, onToggleDark }) {
           ) : (
             <>
               <Link to="/login"    className={navLink}>Login</Link>
-              <Link to="/register" className="text-sm font-medium text-white bg-[#6AAA64] hover:bg-[#538d4e] px-4 py-1.5 rounded-md transition-colors duration-150">
+              <Link
+                to="/register"
+                className={`text-sm font-semibold px-4 py-1.5 rounded-md border-2 transition-colors duration-150 ${
+                  dark
+                    ? "bg-[#F2B84B] border-[#F2B84B] text-[#2B2017] hover:bg-[#FFD271]"
+                    : "bg-[#2B2017] border-[#2B2017] text-[#FDFBF5] hover:bg-[#C64B2A]"
+                }`}
+              >
                 Register
               </Link>
             </>
@@ -98,7 +114,11 @@ export default function Navbar({ dark = false, onToggleDark }) {
 
           <button
             onClick={onToggleDark}
-            className={`p-1.5 rounded-md transition-colors duration-150 ${dark ? "text-[#C9B458] hover:bg-[#2A2A2B]" : "text-[#C9B458] hover:bg-[#EFEFEF]"}`}
+            className={`p-1.5 rounded-md border-2 transition-colors duration-150 ${
+              dark
+                ? "text-[#F2B84B] border-[#3A2A1C] hover:bg-[#1B120C]"
+                : "text-[#C64B2A] border-[#2B2017] hover:bg-[#FFE9B0]"
+            }`}
             aria-label="Toggle dark mode"
           >
             {dark ? <SunIcon /> : <MoonIcon />}
@@ -109,14 +129,22 @@ export default function Navbar({ dark = false, onToggleDark }) {
         <div className="flex md:hidden items-center gap-3">
           <button
             onClick={onToggleDark}
-            className={`p-1.5 rounded-md transition-colors duration-150 ${dark ? "text-[#C9B458] hover:bg-[#2A2A2B]" : "text-[#C9B458] hover:bg-[#EFEFEF]"}`}
+            className={`p-1.5 rounded-md border-2 transition-colors duration-150 ${
+              dark
+                ? "text-[#F2B84B] border-[#3A2A1C] hover:bg-[#1B120C]"
+                : "text-[#C64B2A] border-[#2B2017] hover:bg-[#FFE9B0]"
+            }`}
             aria-label="Toggle dark mode"
           >
             {dark ? <SunIcon /> : <MoonIcon />}
           </button>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className={`p-1.5 rounded-md transition-colors duration-150 ${dark ? "text-white hover:bg-[#2A2A2B]" : "text-[#1A1A1B] hover:bg-[#EFEFEF]"}`}
+            className={`p-1.5 rounded-md border-2 transition-colors duration-150 ${
+              dark
+                ? "text-[#F7EEDB] border-[#3A2A1C] hover:bg-[#1B120C]"
+                : "text-[#2B2017] border-[#2B2017] hover:bg-[#FFE9B0]"
+            }`}
             aria-label="Toggle menu"
           >
             {menuOpen ? <CloseIcon /> : <MenuIcon />}
@@ -127,7 +155,7 @@ export default function Navbar({ dark = false, onToggleDark }) {
       {/* Mobile dropdown */}
       {menuOpen && (
         <div className={`md:hidden border-t px-6 py-4 flex flex-col gap-4 ${
-          dark ? "bg-[#121213] border-[#3A3A3C]" : "bg-[#F9F9F9] border-[#D3D6DA]"
+          dark ? "bg-[#0F0B08] border-[#3A2A1C]" : "bg-[#FFF3DA] border-[#2B2017]"
         }`}>
           <Link to="/"            className={navLink} onClick={() => setMenuOpen(false)}>Home</Link>
           <Link to="/leaderboard" className={navLink} onClick={() => setMenuOpen(false)}>Leaderboard</Link>
@@ -138,7 +166,11 @@ export default function Navbar({ dark = false, onToggleDark }) {
               <Link to="/profile"    className={navLink} onClick={() => setMenuOpen(false)}>Profile</Link>
               <button
                 onClick={handleLogout}
-                className="text-sm font-medium text-white bg-[#787C7E] hover:bg-[#5f6368] px-4 py-2 rounded-md transition-colors duration-150 text-left"
+                className={`text-sm font-semibold px-4 py-2 rounded-md border-2 transition-colors duration-150 text-left ${
+                  dark
+                    ? "text-[#F7EEDB] border-[#F7EEDB] hover:bg-[#1B120C]"
+                    : "text-[#2B2017] border-[#2B2017] hover:bg-[#FFE9B0]"
+                }`}
               >
                 Logout
               </button>
@@ -146,7 +178,15 @@ export default function Navbar({ dark = false, onToggleDark }) {
           ) : (
             <>
               <Link to="/login"    className={navLink} onClick={() => setMenuOpen(false)}>Login</Link>
-              <Link to="/register" className="text-sm font-medium text-white bg-[#6AAA64] hover:bg-[#538d4e] px-4 py-2 rounded-md transition-colors duration-150 text-center" onClick={() => setMenuOpen(false)}>
+              <Link
+                to="/register"
+                className={`text-sm font-semibold px-4 py-2 rounded-md border-2 transition-colors duration-150 text-center ${
+                  dark
+                    ? "bg-[#F2B84B] border-[#F2B84B] text-[#2B2017] hover:bg-[#FFD271]"
+                    : "bg-[#2B2017] border-[#2B2017] text-[#FDFBF5] hover:bg-[#C64B2A]"
+                }`}
+                onClick={() => setMenuOpen(false)}
+              >
                 Register
               </Link>
             </>
