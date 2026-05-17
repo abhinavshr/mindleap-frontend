@@ -6,12 +6,12 @@ import Navbar from "../components/Reuseable/Navbar";
 import { getLeaderboard } from "../api/Level.js";
 
 const RANK_CONFIG = {
-  1: { color: "#C9B458", bg: "#C9B45818", label: "🥇", size: "text-2xl" },
-  2: { color: "#A0A0A0", bg: "#A0A0A018", label: "🥈", size: "text-xl"  },
-  3: { color: "#CD7F32", bg: "#CD7F3218", label: "🥉", size: "text-xl"  },
+  1: { color: "#F2B84B", bg: "#F2B84B1A", label: "🥇", size: "text-2xl" },
+  2: { color: "#B5B5B5", bg: "#B5B5B51A", label: "🥈", size: "text-xl"  },
+  3: { color: "#C58B1D", bg: "#C58B1D1A", label: "🥉", size: "text-xl"  },
 };
 
-const defaultRank = { color: "#818384", bg: "transparent", label: null, size: "text-base" };
+const defaultRank = { color: "#5A4636", bg: "transparent", label: null, size: "text-base" };
 
 function getRank(rank) {
   return RANK_CONFIG[rank] ?? defaultRank;
@@ -46,9 +46,9 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
+      <div className={`min-h-screen flex items-center justify-center ${dark ? "bg-[#0F0B08]" : "arcade-bg"}`}>
         <motion.div
-          className="w-8 h-8 border-4 border-[#C9B458] border-t-transparent rounded-full"
+          className="w-8 h-8 border-4 border-[#F2B84B] border-t-transparent rounded-full"
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
         />
@@ -60,7 +60,9 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
   const rest    = entries.slice(3);
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${dark ? "bg-[#121213]" : "bg-[#F9F9F9]"}`}>
+    <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
+      dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
+    }`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 sm:py-10">
@@ -71,8 +73,8 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
             onClick={() => navigate("/profile")}
             className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-colors shrink-0 ${
               dark
-                ? "bg-[#1A1A1B] border-[#3A3A3C] text-[#818384] hover:text-white hover:bg-[#2A2A2B]"
-                : "bg-white border-[#E0E0E0] text-[#787C7E] hover:text-[#1A1A1B] hover:bg-[#F0F0F0]"
+                ? "bg-[#1B120C] border-[#3A2A1C] text-[#CBBEAC] hover:text-[#F7EEDB] hover:bg-[#2A1B12]"
+                : "bg-[#FFF3DA] border-[#2B2017] text-[#5A4636] hover:text-[#2B2017] hover:bg-[#FFE9B0]"
             }`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -89,12 +91,11 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
             transition={{ duration: 0.4, delay: 0.05 }}
           >
             <h1
-              className={`text-2xl sm:text-3xl font-bold ${dark ? "text-white" : "text-[#1A1A1B]"}`}
-              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+              className={`text-2xl sm:text-3xl font-arcade ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
             >
               Hall of Fame
             </h1>
-            <p className={`text-xs mt-0.5 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+            <p className={`text-xs mt-0.5 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
               {total} player{total !== 1 ? "s" : ""} ranked
             </p>
           </motion.div>
@@ -102,12 +103,12 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
 
         {entries.length === 0 ? (
           <motion.div
-            className={`rounded-2xl border px-6 py-16 text-center ${dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"}`}
+            className="rounded-2xl border px-6 py-16 text-center arcade-panel"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <FaTrophy className="mx-auto mb-3 text-[#C9B458] opacity-40" size={36} />
-            <p className={`text-sm ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+            <FaTrophy className="mx-auto mb-3 text-[#F2B84B] opacity-60" size={36} />
+            <p className={`text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
               No players ranked yet. Be the first!
             </p>
           </motion.div>
@@ -133,8 +134,8 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
                       key={entry.rank}
                       className={`relative flex flex-col items-center gap-2 rounded-2xl border px-3 py-4 ${
                         isFirst
-                          ? dark ? "border-[#C9B458] bg-[#1E1C10]" : "border-[#C9B458] bg-[#FDFBEC]"
-                          : dark ? "border-[#3A3A3C] bg-[#1A1A1B]" : "border-[#E0E0E0] bg-white"
+                          ? dark ? "border-[#F2B84B] bg-[#1B120C]" : "border-[#2B2017] bg-[#FFE9B0]"
+                          : dark ? "border-[#3A2A1C] bg-[#0F0B08]" : "border-[#2B2017] bg-[#FFF7E8]"
                       } ${isFirst ? "col-span-1 mt-0 sm:-mt-3" : ""}`}
                       initial={{ opacity: 0, y: isFirst ? 30 : 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -157,14 +158,14 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
                         <p
                           className={`text-xs font-bold truncate max-w-20 ${
                             isMe
-                              ? "text-[#6AAA64]"
-                              : dark ? "text-white" : "text-[#1A1A1B]"
+                              ? "text-[#2FAF74]"
+                              : dark ? "text-[#F7EEDB]" : "text-[#2B2017]"
                           }`}
                         >
                           {entry.username}
                           {isMe && <span className="ml-1 text-[9px]">(you)</span>}
                         </p>
-                        <p className={`text-[10px] mt-0.5 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                        <p className={`text-[10px] mt-0.5 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                           #{entry.rank}
                         </p>
                       </div>
@@ -182,7 +183,7 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
                       {/* Glow ring for #1 */}
                       {isFirst && (
                         <motion.div
-                          className="absolute inset-0 rounded-2xl border-2 border-[#C9B458]"
+                          className="absolute inset-0 rounded-2xl border-2 border-[#F2B84B]"
                           animate={{ opacity: [0.5, 0, 0.5] }}
                           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                         />
@@ -196,7 +197,7 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
             {/* ── Rest of the list ── */}
             {rest.length > 0 && (
               <motion.div
-                className={`rounded-2xl border overflow-hidden ${dark ? "bg-[#1A1A1B] border-[#3A3A3C]" : "bg-white border-[#E0E0E0]"}`}
+                className="rounded-2xl border overflow-hidden arcade-panel"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, delay: 0.25 }}
@@ -213,14 +214,14 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
                       transition={{ duration: 0.35, delay: 0.3 + i * 0.04 }}
                       className={`flex items-center gap-4 px-4 py-3 transition-colors ${
                         isMe
-                          ? dark ? "bg-[#1A2B1A]" : "bg-[#EAF4E6]"
-                          : dark ? "hover:bg-[#1E1E1F]" : "hover:bg-[#FAFAFA]"
-                      } ${!isLast ? (dark ? "border-b border-[#232324]" : "border-b border-[#F0F0F0]") : ""}`}
+                          ? dark ? "bg-[#1B120C]" : "bg-[#FFE9B0]"
+                          : dark ? "hover:bg-[#1B120C]" : "hover:bg-[#FFF3DA]"
+                      } ${!isLast ? "border-b border-[#2B2017]" : ""}`}
                     >
                       {/* Rank number */}
                       <span
                         className={`text-sm font-bold w-7 text-right shrink-0 ${
-                          dark ? "text-[#818384]" : "text-[#B0B0B0]"
+                          dark ? "text-[#CBBEAC]" : "text-[#5A4636]"
                         }`}
                       >
                         {entry.rank}
@@ -229,7 +230,7 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
                       {/* Avatar */}
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                          dark ? "bg-[#2A2A2B] text-[#818384]" : "bg-[#F0F0F0] text-[#787C7E]"
+                          dark ? "bg-[#1B120C] text-[#CBBEAC]" : "bg-[#FFF3DA] text-[#5A4636]"
                         }`}
                       >
                         {entry.username.charAt(0).toUpperCase()}
@@ -238,12 +239,12 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
                       {/* Username */}
                       <p className={`flex-1 text-sm font-semibold truncate ${
                         isMe
-                          ? "text-[#6AAA64]"
-                          : dark ? "text-white" : "text-[#1A1A1B]"
+                          ? "text-[#2FAF74]"
+                          : dark ? "text-[#F7EEDB]" : "text-[#2B2017]"
                       }`}>
                         {entry.username}
                         {isMe && (
-                          <span className={`ml-2 text-[10px] font-semibold ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                          <span className={`ml-2 text-[10px] font-semibold ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                             (you)
                           </span>
                         )}
@@ -251,7 +252,7 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
 
                       {/* Badge count */}
                       {entry.badge_count > 0 && (
-                        <span className={`text-xs shrink-0 ${dark ? "text-[#818384]" : "text-[#787C7E]"}`}>
+                        <span className={`text-xs shrink-0 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                           {entry.badge_count} 🏅
                         </span>
                       )}
