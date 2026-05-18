@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { FaTrophy } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
+import { Link } from "react-router-dom";
 import Navbar from "../components/Reuseable/Navbar";
 import Board from "../components/Board/Board";
 import Keyboard from "../components/Keyboard/Keyboard";
@@ -299,12 +300,12 @@ export default function HomePage({ dark, onToggleDark }) {
           >
             <div className={`px-4 py-2 text-center text-sm font-medium ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
               You have <strong>5 guesses</strong> as a guest.{" "}
-              <a
-                href="/register"
+              <Link
+                to="/register"
                 className={`font-bold underline ${dark ? "hover:text-[#FFE9B0]" : "hover:text-[#C64B2A]"}`}
               >
                 Register
-              </a>{" "}
+              </Link>{" "}
               to get 6 guesses, see the answer + leaderboard access.
             </div>
           </motion.div>
