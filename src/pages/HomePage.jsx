@@ -353,15 +353,6 @@ export default function HomePage({ dark, onToggleDark }) {
           className="w-full max-w-4xl"
         >
           <div className="flex flex-col items-center text-center gap-2">
-            <div
-              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border-2 text-xs font-semibold tracking-wide uppercase ${
-                dark
-                  ? "bg-[#1B120C] border-[#F7EEDB] text-[#F7EEDB]"
-                  : "bg-[#FFE9B0] border-[#2B2017] text-[#2B2017]"
-              }`}
-            >
-              Daily Arcade
-            </div>
             <h1 className="font-arcade text-3xl sm:text-4xl md:text-5xl">MindLeap</h1>
             <p className={`text-sm sm:text-base max-w-xl ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
               Crack the word, chase the streak, and finish with a clean board.
