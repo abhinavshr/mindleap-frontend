@@ -8,7 +8,7 @@ import { startSpeedGame, submitSpeedGuess, expireSpeedSession } from "../api/spe
 import toast from "react-hot-toast";
 
 export default function SpeedGamePage({ dark = false, onToggleDark }) {
-  const [gameState, setGameState]       = useState("idle");   
+  const [gameState, setGameState]       = useState("idle");
   const [sessionId, setSessionId]       = useState(null);
   const [timeLeft, setTimeLeft]         = useState(60);
   const [timeLimit, setTimeLimit]       = useState(60);
@@ -43,7 +43,6 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
     }
   }, [sessionId]);
 
-  // ── Timer ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (gameState !== "playing") {
       clearInterval(timerRef.current);
@@ -82,14 +81,11 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
     return updated;
   };
 
-  // ── Start game ────────────────────────────────────────────────────────────
   const startGame = async () => {
     try {
       setGameState("loading");
       const res  = await startSpeedGame();
       const data = res.data;
-      // data shape: { sessionId, timeLeft, wordLength, maxGuesses, resumed }
-
       setSessionId(data.sessionId);
       setTimeLeft(data.timeLeft);
       setTimeLimit(data.timeLeft);
@@ -104,10 +100,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       setRevealedWord("");
       timeUpHandledRef.current = false;
       setGameState("playing");
-
-      if (data.resumed) {
-        showMessage("Session resumed!", "info", 2000);
-      }
+      if (data.resumed) showMessage("Session resumed!", "info", 2000);
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to start the game.";
       toast.error(msg);
@@ -115,14 +108,12 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
     }
   };
 
-  // ── Submit guess ──────────────────────────────────────────────────────────
   const submitGuess = useCallback(async () => {
     if (gameState !== "playing" || submitting) return;
     if (currentGuess.length < wordLength) {
       showMessage("Not enough letters", "info");
       return;
     }
-
     const guessWord = currentGuess;
     try {
       setSubmitting(true);
@@ -131,11 +122,10 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
         { word: guessWord, result: Array(wordLength).fill("pending") },
       ]);
       setCurrentGuess("");
-      const attempts = guesses.length + 1; // this guess is attempt #N
+      const attempts = guesses.length + 1;
       const res  = await submitSpeedGuess(sessionId, guessWord.toLowerCase(), attempts);
       const data = res.data;
 
-      // ── Time expired on the server side ──────────────────────────
       if (data.timeUp) {
         clearInterval(timerRef.current);
         timeUpHandledRef.current = true;
@@ -147,7 +137,6 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
         return;
       }
 
-      // ── Append guess to board ─────────────────────────────────────
       const newGuess = { word: guessWord, result: data.result };
       setGuesses((prev) => {
         const next = [...prev];
@@ -156,7 +145,6 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       });
       setKeyStatuses((prev) => buildKeyStatuses(prev, guessWord, data.result));
 
-      // ── Won ───────────────────────────────────────────────────────
       if (data.won) {
         clearInterval(timerRef.current);
         setTimeTaken(data.timeTaken);
@@ -166,7 +154,6 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
         return;
       }
 
-      // ── Lost — used all guesses ───────────────────────────────────
       if (data.lost) {
         clearInterval(timerRef.current);
         const reveal = extractReveal(data);
@@ -176,11 +163,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
         return;
       }
 
-      // ── Still playing — sync server timeLeft ──────────────────────
-      if (data.timeLeft !== undefined) {
-        setTimeLeft(data.timeLeft);
-      }
-
+      if (data.timeLeft !== undefined) setTimeLeft(data.timeLeft);
     } catch (err) {
       setGuesses((prev) => prev.slice(0, -1));
       if (guessWord) setCurrentGuess(guessWord);
@@ -190,14 +173,12 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       else if (msg.includes("Session already ended")) {
         showMessage("Session expired.", "lose", 0);
         setGameState("timeup");
-      }
-      else toast.error(msg || "Failed to submit guess.");
+      } else toast.error(msg || "Failed to submit guess.");
     } finally {
       setSubmitting(false);
     }
   }, [currentGuess, guesses, gameState, submitting, wordLength, sessionId]);
 
-  // ── Keyboard handler ──────────────────────────────────────────────────────
   const handleKey = useCallback((key) => {
     if (gameState !== "playing" || submitting) return;
     if (key === "ENTER") { submitGuess(); return; }
@@ -217,7 +198,6 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
     return () => window.removeEventListener("keydown", handler);
   }, [handleKey]);
 
-  // ── Timer color ───────────────────────────────────────────────────────────
   const timerColor = timeLeft > 20 ? "text-[#2FAF74]" : timeLeft > 10 ? "text-[#F2B84B]" : "text-[#C64B2A]";
   const timerBg    = timeLeft > 20 ? "bg-[#2FAF74]"   : timeLeft > 10 ? "bg-[#F2B84B]"   : "bg-[#C64B2A]";
 
@@ -227,13 +207,27 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
     info: "bg-[#2B2017] text-[#FDFBF5]",
   };
 
+  const infoPanelStyle = {
+    background:   dark ? "#1B120C" : "#FFF8EC",
+    border:       dark ? "2px solid #3A2A1C" : "2px solid #D4B896",
+    borderRadius: "12px",
+    padding:      "16px 20px",
+    display:      "flex",
+    flexDirection:"column",
+    gap:          "10px",
+    width:        "100%",
+  };
+
+  const infoLabelStyle  = { color: dark ? "#CBBEAC" : "#7A5C3E", fontSize: "14px" };
+  const infoValueStyle  = { color: dark ? "#F7EEDB" : "#2B2017", fontSize: "14px", fontWeight: "600" };
+  const infoXpStyle     = { color: dark ? "#F2B84B" : "#C58B1D", fontSize: "14px", fontWeight: "600" };
+
   return (
     <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
       dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
     }`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
-      {/* Toast */}
       {message && gameState !== "won" && gameState !== "lost" && gameState !== "timeup" && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50">
           <div className={`flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-lg shadow-lg ${toastStyles[messageType]}`}>
@@ -244,7 +238,6 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
 
       <main className="flex-1 flex flex-col items-center py-6 sm:py-8 px-4 sm:px-6 gap-5 sm:gap-6">
 
-        {/* ── IDLE / LOADING ─────────────────────────────────────────── */}
         {(gameState === "idle" || gameState === "loading") && (
           <div className="flex flex-col items-center justify-center flex-1 gap-6 max-w-sm text-center">
             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center border-2 ${
@@ -253,9 +246,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
               <FaBolt className="text-[#F2B84B]" size={28} />
             </div>
             <div>
-              <h1
-                className={`text-3xl sm:text-4xl font-arcade mb-2 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
-              >
+              <h1 className={`text-3xl sm:text-4xl font-arcade mb-2 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                 Speed Game
               </h1>
               <p className={`text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
@@ -263,11 +254,22 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
                 You get <strong>6 guesses</strong>.
               </p>
             </div>
-            <div className="w-full arcade-panel px-5 py-4 flex flex-col gap-2 text-sm">
-              <div className="flex justify-between"><span>Time limit</span><span className="font-semibold">60 seconds</span></div>
-              <div className="flex justify-between"><span>Max guesses</span><span className="font-semibold">6</span></div>
-              <div className="flex justify-between"><span>XP reward</span><span className="font-semibold text-[#C58B1D]">Up to 100 XP</span></div>
+
+            <div style={infoPanelStyle}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={infoLabelStyle}>Time limit</span>
+                <span style={infoValueStyle}>60 seconds</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={infoLabelStyle}>Max guesses</span>
+                <span style={infoValueStyle}>6</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={infoLabelStyle}>XP reward</span>
+                <span style={infoXpStyle}>Up to 100 XP</span>
+              </div>
             </div>
+
             <button
               onClick={startGame}
               disabled={gameState === "loading"}
@@ -289,10 +291,8 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
           </div>
         )}
 
-        {/* ── PLAYING ───────────────────────────────────────────────── */}
         {gameState === "playing" && (
           <>
-            {/* Timer bar */}
             <div className="w-full max-w-sm arcade-panel px-4 py-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className={`text-xs font-semibold ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Time left</span>
@@ -306,7 +306,6 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
               </div>
             </div>
 
-            {/* Board */}
             <div className="flex-1 flex items-center justify-center">
               <div className="arcade-panel px-4 sm:px-6 py-5 sm:py-6">
                 <Board
@@ -318,17 +317,14 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
               </div>
             </div>
 
-            {/* Keyboard */}
             <div className="w-full flex justify-center">
               <Keyboard onKey={handleKey} keyStatuses={keyStatuses} disabled={submitting} />
             </div>
           </>
         )}
 
-        {/* ── END SCREEN (won / lost / timeup) ──────────────────────── */}
         {(gameState === "won" || gameState === "lost" || gameState === "timeup") && (
           <div className="flex flex-col items-center justify-center flex-1 gap-5 max-w-sm text-center w-full">
-            {/* Icon */}
             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center border-2 ${
               gameState === "won"
                 ? (dark ? "bg-[#1B120C] border-[#F2B84B]" : "bg-[#FFE9B0] border-[#2B2017]")
@@ -340,11 +336,8 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
               }
             </div>
 
-            {/* Title + subtitle */}
             <div>
-              <h2
-                className={`text-2xl font-arcade mb-1 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
-              >
+              <h2 className={`text-2xl font-arcade mb-1 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                 {gameState === "won"    ? "You Won!"    :
                  gameState === "timeup" ? "Time's Up!"  : "Better luck!"}
               </h2>
@@ -358,7 +351,6 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
               </p>
             </div>
 
-            {/* XP badge — only on win */}
             {gameState === "won" && (
               <div className="flex items-center gap-2 bg-[#FFE9B0] border-2 border-[#2B2017] rounded-xl px-5 py-3">
                 <FaBolt className="text-[#C58B1D]" size={18} />
@@ -366,7 +358,6 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
               </div>
             )}
 
-            {/* Board (frozen) */}
             <Board
               guesses={guesses}
               currentGuess=""
@@ -374,7 +365,6 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
               wordLength={wordLength}
             />
 
-            {/* Play again */}
             <button
               onClick={startGame}
               className={`w-full py-3 rounded-xl border-2 font-bold text-base transition-colors duration-150 flex items-center justify-center gap-2 ${
@@ -390,4 +380,4 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       </main>
     </div>
   );
-}   
+}
