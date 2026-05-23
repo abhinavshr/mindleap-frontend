@@ -8,10 +8,9 @@ import {
 } from "framer-motion";
 import { FaBolt, FaStar, FaGift, FaChevronRight, FaTrophy, FaFire, FaLock, FaCheckCircle } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
-import { logoutUser, getMe } from "../api/auth";
+import { getMe } from "../api/auth";
 import { getMyLevel, getMyBadges, getMyRewards } from "../api/Level";
 
-// ── Simple in-memory cache ─────────────────────────────────────────────────────
 let _profileCache = null;
 
 const fadeUp = {
@@ -36,7 +35,6 @@ const cardVariant = {
 function AnimatedNumber({ value }) {
   const [display, setDisplay] = useState(0);
   const shouldReduce = useReducedMotion();
-
   useEffect(() => {
     if (shouldReduce || typeof value !== "number") return;
     let startTime = null;
@@ -49,10 +47,19 @@ function AnimatedNumber({ value }) {
     };
     requestAnimationFrame(animate);
   }, [value, shouldReduce]);
-
   if (shouldReduce || typeof value !== "number") return <>{value}</>;
   return <>{display}</>;
 }
+
+const txt  = (dark) => ({ color: dark ? "#F7EEDB" : "#2B2017" });
+const sub  = (dark) => ({ color: dark ? "#CBBEAC" : "#7A5C3E" });
+const gold = ()     => ({ color: "#F2B84B" });
+
+const panelStyle = (dark) => ({
+  background:   dark ? "#1B120C" : "#FFF8EC",
+  border:       `2px solid ${dark ? "#3A2A1C" : "#D4B896"}`,
+  borderRadius: "16px",
+});
 
 const StatCard = ({ label, value, index, dark }) => {
   const isNumeric = typeof value === "number";
@@ -63,14 +70,13 @@ const StatCard = ({ label, value, index, dark }) => {
       initial="hidden"
       animate="visible"
       whileHover={{ y: -3, transition: { duration: 0.2 } }}
-      className="rounded-2xl border px-4 py-5 flex flex-col items-center gap-1 arcade-panel"
+      className="px-4 py-5 flex flex-col items-center gap-1"
+      style={panelStyle(dark)}
     >
-      <span className={`text-2xl sm:text-3xl font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
+      <span style={txt(dark)} className="text-2xl sm:text-3xl font-bold">
         {isNumeric ? <AnimatedNumber value={value} /> : value}
       </span>
-      <span className={`text-xs text-center ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-        {label}
-      </span>
+      <span style={sub(dark)} className="text-xs text-center">{label}</span>
     </motion.div>
   );
 };
@@ -83,9 +89,7 @@ const DistBar = ({ guess, count, pct, dark, index }) => (
     initial="hidden"
     animate="visible"
   >
-    <span className={`text-sm font-medium w-4 text-right ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-      {guess}
-    </span>
+    <span style={sub(dark)} className="text-sm font-medium w-4 text-right">{guess}</span>
     <div className="flex-1">
       <motion.div
         className="bg-[#2FAF74] rounded flex items-center justify-end pr-3 h-9"
@@ -134,11 +138,8 @@ const RewardCard = ({ reward, dark, index }) => {
     emoji: "🎁", label: reward.reward_type ?? "Reward", color: "#6AAA64",
   };
   const unlockedDate = reward.unlocked_at
-    ? new Date(reward.unlocked_at).toLocaleDateString("en-US", {
-        month: "short", day: "numeric", year: "numeric",
-      })
+    ? new Date(reward.unlocked_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : null;
-
   return (
     <motion.div
       custom={index}
@@ -146,39 +147,33 @@ const RewardCard = ({ reward, dark, index }) => {
       initial="hidden"
       animate="visible"
       whileHover={{ y: -2, transition: { duration: 0.2 } }}
-      className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors arcade-panel"
+      className="flex items-center gap-3 px-4 py-3 rounded-xl"
+      style={panelStyle(dark)}
     >
-      <div
-        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-xl"
-        style={{ backgroundColor: `${config.color}22` }}
-      >
+      <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-xl"
+        style={{ backgroundColor: `${config.color}22` }}>
         {config.emoji}
       </div>
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold truncate ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
+        <p style={txt(dark)} className="text-sm font-semibold truncate">
           {reward.name ?? reward.reward_key ?? "Reward"}
         </p>
-        <p className={`text-xs truncate ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+        <p style={sub(dark)} className="text-xs truncate">
           {reward.description ?? config.label}
         </p>
       </div>
       {unlockedDate && (
-        <span className={`text-xs shrink-0 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-          {unlockedDate}
-        </span>
+        <span style={sub(dark)} className="text-xs shrink-0">{unlockedDate}</span>
       )}
     </motion.div>
   );
 };
 
-// ── Badge card with hover tooltip ─────────────────────────────────────────────
 const BadgeCard = ({ b, dark }) => {
   const [hovered, setHovered] = useState(false);
-
   const earnedDate = b.earned && b.earned_at
     ? new Date(b.earned_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : null;
-
   return (
     <div
       className="relative"
@@ -189,71 +184,56 @@ const BadgeCard = ({ b, dark }) => {
     >
       <motion.div
         whileHover={{ scale: 1.05 }}
-        className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-colors cursor-default ${
-          b.earned
-            ? dark ? "bg-[#1B120C] border-[#F2B84B]" : "bg-[#FFE9B0] border-[#2B2017]"
-            : dark ? "bg-[#1B120C] border-[#3A2A1C] opacity-40" : "bg-[#FFF3DA] border-[#2B2017] opacity-40"
-        }`}
+        className="flex flex-col items-center gap-1.5 p-3 rounded-xl cursor-default"
+        style={{
+          background:   b.earned ? (dark ? "#1B120C" : "#FFE9B0") : (dark ? "#1B120C" : "#FFF3DA"),
+          border:       `2px solid ${b.earned ? (dark ? "#F2B84B" : "#2B2017") : (dark ? "#3A2A1C" : "#2B2017")}`,
+          opacity:      b.earned ? 1 : 0.45,
+        }}
       >
         <span className="text-2xl">{b.earned ? (BADGE_EMOJIS[b.key] ?? "🏅") : "🔒"}</span>
-        <span className={`text-xs font-semibold text-center leading-tight ${
-          b.earned
-            ? dark ? "text-[#F7EEDB]" : "text-[#2B2017]"
-            : dark ? "text-[#CBBEAC]" : "text-[#5A4636]"
-        }`}>
+        <span style={{ color: b.earned ? (dark ? "#F7EEDB" : "#2B2017") : (dark ? "#CBBEAC" : "#5A4636") }}
+          className="text-xs font-semibold text-center leading-tight">
           {b.name}
         </span>
         {earnedDate && (
-          <span className={`text-[10px] ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-            {earnedDate}
-          </span>
+          <span style={sub(dark)} className="text-[10px]">{earnedDate}</span>
         )}
       </motion.div>
 
-      {/* Tooltip */}
       <AnimatePresence>
         {hovered && (
           <motion.div
-            className={`absolute z-50 bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-48 rounded-xl px-3 py-2.5 shadow-xl pointer-events-none ${
-              dark
-                ? "bg-[#1B120C] border border-[#3A2A1C] text-[#F7EEDB]"
-                : "bg-[#FFF3DA] border border-[#2B2017] text-[#2B2017]"
-            }`}
+            className="absolute z-50 bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-48 rounded-xl px-3 py-2.5 shadow-xl pointer-events-none"
+            style={{
+              background:   dark ? "#1B120C" : "#FFF3DA",
+              border:       `1px solid ${dark ? "#3A2A1C" : "#2B2017"}`,
+            }}
             initial={{ opacity: 0, y: 6, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.95 }}
             transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Arrow */}
-            <div
-              className={`absolute top-full left-1/2 -translate-x-1/2 w-0 h-0`}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
               style={{
                 borderLeft: "6px solid transparent",
                 borderRight: "6px solid transparent",
                 borderTop: `6px solid ${dark ? "#3A2A1C" : "#2B2017"}`,
               }}
             />
-
-            {/* Badge name + status */}
             <div className="flex items-center gap-1.5 mb-1">
               <span className="text-base leading-none">{BADGE_EMOJIS[b.key] ?? "🏅"}</span>
-              <p className="text-xs font-bold leading-tight truncate">{b.name}</p>
+              <p style={txt(dark)} className="text-xs font-bold leading-tight truncate">{b.name}</p>
               {b.earned
                 ? <FaCheckCircle size={10} className="text-[#2FAF74] shrink-0 ml-auto" />
-                : <FaLock size={9} className={`shrink-0 ml-auto ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`} />
+                : <FaLock size={9} style={sub(dark)} className="shrink-0 ml-auto" />
               }
             </div>
-
-            {/* How to get */}
-            <p className={`text-[11px] leading-snug ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+            <p style={sub(dark)} className="text-[11px] leading-snug">
               {b.earned ? "✅ " : "🎯 "}{b.description}
             </p>
-
-            {/* Earned date */}
             {earnedDate && (
-              <p className={`text-[10px] mt-1.5 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-                Earned {earnedDate}
-              </p>
+              <p style={sub(dark)} className="text-[10px] mt-1.5">Earned {earnedDate}</p>
             )}
           </motion.div>
         )}
@@ -262,15 +242,15 @@ const BadgeCard = ({ b, dark }) => {
   );
 };
 
-// ── Reusable nav button ────────────────────────────────────────────────────────
 const NavButton = ({ onClick, icon: Icon, iconColor, label, dark }) => (
   <motion.button
     onClick={onClick}
-    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-colors duration-150 ${
-      dark
-        ? "border-[#3A2A1C] text-[#F7EEDB] hover:bg-[#1B120C]"
-        : "border-[#2B2017] text-[#2B2017] hover:bg-[#FFE9B0]"
-    }`}
+    className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-colors duration-150"
+    style={{
+      border:     `2px solid ${dark ? "#3A2A1C" : "#D4B896"}`,
+      color:      dark ? "#F7EEDB" : "#2B2017",
+      background: dark ? "#1B120C" : "#FFF8EC",
+    }}
     whileHover={{ scale: 1.01 }}
     whileTap={{ scale: 0.99 }}
   >
@@ -278,7 +258,7 @@ const NavButton = ({ onClick, icon: Icon, iconColor, label, dark }) => (
       <Icon size={12} style={{ color: iconColor }} />
       {label}
     </span>
-    <FaChevronRight size={11} className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"} />
+    <FaChevronRight size={11} style={sub(dark)} />
   </motion.button>
 );
 
@@ -296,14 +276,9 @@ export default function ProfilePage({ dark, onToggleDark }) {
         const profilePromise = _profileCache
           ? Promise.resolve({ data: _profileCache })
           : getMe().then((res) => { _profileCache = res.data; return res; });
-
         const [profileRes, levelRes, badgesRes, rewardsRes] = await Promise.allSettled([
-          profilePromise,
-          getMyLevel(),
-          getMyBadges(),
-          getMyRewards(),
+          profilePromise, getMyLevel(), getMyBadges(), getMyRewards(),
         ]);
-
         if (profileRes.status === "fulfilled") setProfileData(profileRes.value.data);
         if (levelRes.status   === "fulfilled") setLevelData(levelRes.value.data);
         if (badgesRes.status  === "fulfilled") setBadges(badgesRes.value.data.badges || []);
@@ -317,32 +292,19 @@ export default function ProfilePage({ dark, onToggleDark }) {
   }, []);
 
   const joinDate = profileData?.profile?.joined_at
-    ? new Date(profileData.profile.joined_at).toLocaleDateString("en-US", {
-        year: "numeric", month: "long", day: "numeric",
-      })
+    ? new Date(profileData.profile.joined_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
     : "—";
 
   const stats = [
-    { label: "Total Games",    value: profileData?.stats?.total_games    ?? 0    },
+    { label: "Total Games",    value: profileData?.stats?.total_games    ?? 0 },
     { label: "Win Rate",       value: profileData?.stats ? `${Math.round(profileData.stats.win_rate)}%` : "0%" },
-    { label: "Current Streak", value: profileData?.stats?.current_streak ?? 0    },
-    { label: "Max Streak",     value: profileData?.stats?.max_streak     ?? 0    },
+    { label: "Current Streak", value: profileData?.stats?.current_streak ?? 0 },
+    { label: "Max Streak",     value: profileData?.stats?.max_streak     ?? 0 },
   ];
 
   const distribution = Object.entries(profileData?.guess_distribution ?? {})
     .map(([guess, count]) => ({ guess: parseInt(guess), count }));
   const maxCount = Math.max(...distribution.map((d) => d.count), 1);
-
-  const handleLogout = async () => {
-    try { await logoutUser(); } catch { /* ignore */ }
-    finally {
-      _profileCache = null;
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
-      toast.success("Logged out successfully.");
-      navigate("/login");
-    }
-  };
 
   if (loading) {
     return (
@@ -356,17 +318,19 @@ export default function ProfilePage({ dark, onToggleDark }) {
     );
   }
 
+  const divider = { borderTop: `1px solid ${dark ? "#3A2A1C" : "#D4B896"}` };
+
   return (
     <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
-      dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
+      dark ? "bg-[#0F0B08]" : "arcade-bg"
     }`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 sm:py-10">
 
-        {/* Title */}
         <motion.h1
-          className={`text-2xl sm:text-3xl font-arcade text-center mb-8 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
+          style={txt(dark)}
+          className="text-2xl sm:text-3xl font-arcade text-center mb-8"
           initial={{ opacity: 0, y: -18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -376,43 +340,24 @@ export default function ProfilePage({ dark, onToggleDark }) {
 
         {/* User card */}
         <motion.div
-          className="rounded-2xl border px-4 sm:px-6 py-4 sm:py-5 mb-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 arcade-panel"
+          className="px-4 sm:px-6 py-4 sm:py-5 mb-5 flex flex-col gap-1"
+          style={panelStyle(dark)}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         >
-          <motion.div
-            className="flex flex-col gap-1"
-            initial={{ opacity: 0, x: -12 }}
-            animate={{ opacity: 1, x: 0 }}
+          <motion.div className="flex flex-col gap-1"
+            initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <p className={`text-xl font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
+            <p style={txt(dark)} className="text-xl font-bold">
               {profileData?.profile?.username ?? "Guest"}
             </p>
-            <p className={`text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-              {profileData?.profile?.email ?? "—"}
-            </p>
-            <p className={`text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-              Joined {joinDate}
-            </p>
+            <p style={sub(dark)} className="text-sm">{profileData?.profile?.email ?? "—"}</p>
+            <p style={sub(dark)} className="text-sm">Joined {joinDate}</p>
           </motion.div>
 
-          <motion.button
-            onClick={handleLogout}
-            className={`text-sm font-semibold px-5 py-2 rounded-lg border-2 transition-colors duration-150 w-full sm:w-auto ${
-              dark
-                ? "border-[#F7EEDB] text-[#F7EEDB] hover:bg-[#1B120C]"
-                : "border-[#2B2017] text-[#2B2017] hover:bg-[#FFE9B0]"
-            }`}
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.25 }}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            Logout
-          </motion.button>
+
         </motion.div>
 
         {/* Stats grid */}
@@ -425,68 +370,65 @@ export default function ProfilePage({ dark, onToggleDark }) {
         {/* Level card */}
         {levelData && (
           <motion.div
-            className="rounded-2xl border px-4 sm:px-6 py-5 mb-5 arcade-panel"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="px-4 sm:px-6 py-5 mb-5"
+            style={panelStyle(dark)}
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Level header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#1B120C]" : "bg-[#FFE9B0]"}`}>
-                  <FaStar className="text-[#F2B84B]" size={14} />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: dark ? "#2B1A0E" : "#FFE9B0" }}>
+                  <FaStar style={gold()} size={14} />
                 </div>
                 <div>
-                  <p className={`text-sm font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
+                  <p style={txt(dark)} className="text-sm font-bold">
                     Level {levelData.currentLevel} — {levelData.currentTitle}
                   </p>
-                  <p className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-                    {levelData.totalXp} total XP
-                  </p>
+                  <p style={sub(dark)} className="text-xs">{levelData.totalXp} total XP</p>
                 </div>
               </div>
               {levelData.isMaxLevel ? (
-                <span className="text-xs font-semibold text-[#2B2017] bg-[#FFE9B0] border border-[#2B2017] px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold px-3 py-1 rounded-full"
+                  style={{ color: "#2B2017", background: "#FFE9B0", border: "1px solid #2B2017" }}>
                   Max Level
                 </span>
               ) : (
-                <span className={`text-xs font-semibold ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+                <span style={sub(dark)} className="text-xs font-semibold">
                   {levelData.xpToNextLevel} XP to go
                 </span>
               )}
             </div>
 
-            {/* Progress bar */}
             {!levelData.isMaxLevel && (
               <>
-                <div className={`w-full h-3 rounded-full overflow-hidden ${dark ? "bg-[#3A2A1C]" : "bg-[#F3DFC2]"}`}>
+                <div className="w-full h-3 rounded-full overflow-hidden"
+                  style={{ background: dark ? "#3A2A1C" : "#F3DFC2" }}>
                   <motion.div
-                    className="h-3 rounded-full bg-[#F2B84B]"
+                    className="h-3 rounded-full"
+                    style={{ background: "#F2B84B" }}
                     initial={{ width: "0%" }}
                     animate={{ width: `${levelData.progressPercent}%` }}
                     transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
                   />
                 </div>
                 <div className="flex justify-between mt-1.5">
-                  <span className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>{levelData.currentLevelXp} XP</span>
-                  <span className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>{levelData.nextLevelXp} XP</span>
+                  <span style={sub(dark)} className="text-xs">{levelData.currentLevelXp} XP</span>
+                  <span style={sub(dark)} className="text-xs">{levelData.nextLevelXp} XP</span>
                 </div>
               </>
             )}
 
-            {/* Recent XP log */}
             {levelData.recentXpLog?.length > 0 && (
-              <div className={`mt-4 pt-4 border-t ${dark ? "border-[#3A2A1C]" : "border-[#2B2017]"}`}>
-                <p className={`text-xs font-semibold uppercase tracking-wide mb-2 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-                  Recent XP
-                </p>
+              <div className="mt-4 pt-4" style={divider}>
+                <p style={sub(dark)} className="text-xs font-semibold uppercase tracking-wide mb-2">Recent XP</p>
                 <div className="flex flex-col gap-1.5">
                   {levelData.recentXpLog.slice(0, 5).map((log, i) => (
                     <div key={i} className="flex items-center justify-between">
-                      <span className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+                      <span style={sub(dark)} className="text-xs">
                         {log.description ?? log.reason ?? "Game"}
                       </span>
-                      <span className="text-xs font-semibold text-[#F2B84B] flex items-center gap-1">
+                      <span style={gold()} className="text-xs font-semibold flex items-center gap-1">
                         <FaBolt size={9} />+{log.xp_amount ?? log.xp_earned ?? log.amount ?? 0}
                       </span>
                     </div>
@@ -495,29 +437,13 @@ export default function ProfilePage({ dark, onToggleDark }) {
               </div>
             )}
 
-            {/* Nav buttons */}
-            <div className={`mt-4 flex flex-col gap-2 ${levelData.recentXpLog?.length > 0 ? "pt-4 border-t " + (dark ? "border-[#3A2A1C]" : "border-[#2B2017]") : ""}`}>
-              <NavButton
-                onClick={() => navigate("/missions")}
-                icon={FaFire}
-                iconColor="#E07B54"
-                label="Missions"
-                dark={dark}
-              />
-              <NavButton
-                onClick={() => navigate("/levels")}
-                icon={FaStar}
-                iconColor="#F2B84B"
-                label="View All Levels"
-                dark={dark}
-              />
-              <NavButton
-                onClick={() => navigate("/hall-of-fame")}
-                icon={FaTrophy}
-                iconColor="#F2B84B"
-                label="Hall of Fame"
-                dark={dark}
-              />
+            <div
+              className={`mt-4 flex flex-col gap-2 ${levelData.recentXpLog?.length > 0 ? "pt-4" : ""}`}
+              style={levelData.recentXpLog?.length > 0 ? divider : {}}
+            >
+              <NavButton onClick={() => navigate("/missions")}     icon={FaFire}   iconColor="#E07B54" label="Missions"        dark={dark} />
+              <NavButton onClick={() => navigate("/levels")}       icon={FaStar}   iconColor="#F2B84B" label="View All Levels" dark={dark} />
+              <NavButton onClick={() => navigate("/hall-of-fame")} icon={FaTrophy} iconColor="#F2B84B" label="Hall of Fame"    dark={dark} />
             </div>
           </motion.div>
         )}
@@ -525,24 +451,20 @@ export default function ProfilePage({ dark, onToggleDark }) {
         {/* Badges */}
         {badges.length > 0 && (
           <motion.div
-            className="rounded-2xl border px-4 sm:px-6 py-5 mb-5 overflow-visible arcade-panel"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="px-4 sm:px-6 py-5 mb-5 overflow-visible"
+            style={panelStyle(dark)}
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.40, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="flex items-center justify-between mb-1">
-              <h2 className={`text-lg font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>Badges</h2>
-              <span className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+              <h2 style={txt(dark)} className="text-lg font-bold">Badges</h2>
+              <span style={sub(dark)} className="text-xs">
                 {badges.filter(b => b.earned).length} / {badges.length} earned
               </span>
             </div>
-            <p className={`text-xs mb-4 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-              Hover a badge to see how to earn it
-            </p>
+            <p style={sub(dark)} className="text-xs mb-4">Hover a badge to see how to earn it</p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-              {badges.map((b) => (
-                <BadgeCard key={b.key} b={b} dark={dark} />
-              ))}
+              {badges.map((b) => <BadgeCard key={b.key} b={b} dark={dark} />)}
             </div>
           </motion.div>
         )}
@@ -550,21 +472,20 @@ export default function ProfilePage({ dark, onToggleDark }) {
         {/* Rewards */}
         {rewards.length > 0 && (
           <motion.div
-            className="rounded-2xl border px-4 sm:px-6 py-5 mb-5 arcade-panel"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="px-4 sm:px-6 py-5 mb-5"
+            style={panelStyle(dark)}
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.46, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${dark ? "bg-[#1B120C]" : "bg-[#FFE9B0]"}`}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: dark ? "#2B1A0E" : "#FFE9B0" }}>
                   <FaGift className="text-[#2FAF74]" size={14} />
                 </div>
-                <h2 className={`text-lg font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>Rewards</h2>
+                <h2 style={txt(dark)} className="text-lg font-bold">Rewards</h2>
               </div>
-              <span className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-                {rewards.length} unlocked
-              </span>
+              <span style={sub(dark)} className="text-xs">{rewards.length} unlocked</span>
             </div>
             <div className="flex flex-col gap-2">
               {rewards.map((reward, i) => (
@@ -576,23 +497,21 @@ export default function ProfilePage({ dark, onToggleDark }) {
 
         {/* Guess distribution */}
         <motion.div
-          className="rounded-2xl border px-4 sm:px-6 py-5 sm:py-6 arcade-panel"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          className="px-4 sm:px-6 py-5 sm:py-6"
+          style={panelStyle(dark)}
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.38, ease: [0.22, 1, 0.36, 1] }}
         >
           <motion.h2
-            className={`text-lg font-bold mb-5 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            style={txt(dark)}
+            className="text-lg font-bold mb-5"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ delay: 0.45 }}
           >
             Guess Distribution
           </motion.h2>
           {distribution.length === 0 ? (
-            <p className={`text-sm text-center py-4 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-              No games played yet.
-            </p>
+            <p style={sub(dark)} className="text-sm text-center py-4">No games played yet.</p>
           ) : (
             <div className="flex flex-col gap-3">
               <AnimatePresence>
