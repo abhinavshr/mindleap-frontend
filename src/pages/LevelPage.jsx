@@ -5,7 +5,6 @@ import { FaArrowLeft, FaCheckCircle, FaStar, FaLock } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { getAllLevels, getMyLevel } from "../api/Level.js";
 
-// Tier color config keyed by title prefix / landmark levels
 const TIER_CONFIG = [
   { match: "MindLeap Master", color: "#FF6B35", glow: "#FF6B3540", icon: "👑" },
   { match: "Mythic",          color: "#E040FB", glow: "#E040FB30", icon: "🔮" },
@@ -28,29 +27,37 @@ function getTier(title) {
   return found ?? TIER_CONFIG[TIER_CONFIG.length - 1];
 }
 
-// Group levels into tiers for section headers
 const TIER_BREAKS = [
-  { from: 1,  label: "Beginner",     range: "1–9"   },
-  { from: 10, label: "Veteran",      range: "10–19" },
-  { from: 20, label: "Elite",        range: "20"    },
-  { from: 21, label: "Master",       range: "21–29" },
-  { from: 30, label: "Legend",       range: "30"    },
-  { from: 31, label: "Grandmaster",  range: "31–39" },
-  { from: 40, label: "Champion",     range: "40"    },
-  { from: 41, label: "Mythic",       range: "41–49" },
-  { from: 50, label: "MindLeap Master", range: "50" },
+  { from: 1,  label: "Beginner",        range: "1–9"   },
+  { from: 10, label: "Veteran",         range: "10–19" },
+  { from: 20, label: "Elite",           range: "20"    },
+  { from: 21, label: "Master",          range: "21–29" },
+  { from: 30, label: "Legend",          range: "30"    },
+  { from: 31, label: "Grandmaster",     range: "31–39" },
+  { from: 40, label: "Champion",        range: "40"    },
+  { from: 41, label: "Mythic",          range: "41–49" },
+  { from: 50, label: "MindLeap Master", range: "50"    },
 ];
 
 function getTierBreak(level) {
   return TIER_BREAKS.find((t) => t.from === level) ?? null;
 }
 
+const txt  = (dark) => ({ color: dark ? "#F7EEDB" : "#2B2017" });
+const sub  = (dark) => ({ color: dark ? "#CBBEAC" : "#7A5C3E" });
+
+const panelStyle = (dark) => ({
+  background:   dark ? "#1B120C" : "#FFF8EC",
+  border:       `2px solid ${dark ? "#3A2A1C" : "#D4B896"}`,
+  borderRadius: "16px",
+});
+
 export default function AllLevelsPage({ dark, onToggleDark }) {
-  const [levels, setLevels]       = useState([]);
-  const [myLevel, setMyLevel]     = useState(null);
-  const [loading, setLoading]     = useState(true);
-  const navigate                  = useNavigate();
-  const currentRef                = useRef(null);
+  const [levels, setLevels]   = useState([]);
+  const [myLevel, setMyLevel] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate              = useNavigate();
+  const currentRef            = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,7 +66,7 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
           getAllLevels(),
           getMyLevel(),
         ]);
-        if (levelsRes.status === "fulfilled")  setLevels(levelsRes.value.data.levels ?? []);
+        if (levelsRes.status  === "fulfilled") setLevels(levelsRes.value.data.levels ?? []);
         if (myLevelRes.status === "fulfilled") setMyLevel(myLevelRes.value.data);
       } finally {
         setLoading(false);
@@ -68,7 +75,6 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
     fetchData();
   }, []);
 
-  // Scroll to current level after render
   useEffect(() => {
     if (!loading && currentRef.current) {
       setTimeout(() => {
@@ -94,7 +100,7 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
 
   return (
     <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
-      dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
+      dark ? "bg-[#0F0B08]" : "arcade-bg"
     }`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
@@ -104,11 +110,12 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
         <div className="flex items-center gap-3 mb-8">
           <motion.button
             onClick={() => navigate("/profile")}
-            className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-colors ${
-              dark
-                ? "bg-[#1B120C] border-[#3A2A1C] text-[#CBBEAC] hover:text-[#F7EEDB] hover:bg-[#2A1B12]"
-                : "bg-[#FFF3DA] border-[#2B2017] text-[#5A4636] hover:text-[#2B2017] hover:bg-[#FFE9B0]"
-            }`}
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{
+              background:  dark ? "#1B120C" : "#FFF3DA",
+              border:      `2px solid ${dark ? "#3A2A1C" : "#D4B896"}`,
+              color:       dark ? "#CBBEAC" : "#5A4636",
+            }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             initial={{ opacity: 0, x: -12 }}
@@ -123,12 +130,10 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.05 }}
           >
-            <h1
-              className={`text-2xl sm:text-3xl font-arcade ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
-            >
+            <h1 style={txt(dark)} className="text-2xl sm:text-3xl font-arcade">
               All Levels
             </h1>
-            <p className={`text-xs mt-0.5 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+            <p style={sub(dark)} className="text-xs mt-0.5">
               {levels.length} levels · You are on Level {currentLevel}
             </p>
           </motion.div>
@@ -137,7 +142,8 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
         {/* Your progress summary */}
         {myLevel && (
           <motion.div
-            className="rounded-2xl border px-4 sm:px-5 py-4 mb-6 flex items-center gap-4 arcade-panel"
+            className="px-4 sm:px-5 py-4 mb-6 flex items-center gap-4"
+            style={panelStyle(dark)}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
@@ -149,14 +155,15 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
               {getTier(myLevel.currentTitle ?? "").icon}
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`text-sm font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
+              <p style={txt(dark)} className="text-sm font-bold">
                 Level {currentLevel} — {myLevel.currentTitle}
               </p>
-              <p className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+              <p style={sub(dark)} className="text-xs">
                 {totalXp.toLocaleString()} XP earned
               </p>
               {!myLevel.isMaxLevel && (
-                <div className={`mt-2 w-full h-1.5 rounded-full overflow-hidden ${dark ? "bg-[#3A2A1C]" : "bg-[#F3DFC2]"}`}>
+                <div className="mt-2 w-full h-1.5 rounded-full overflow-hidden"
+                  style={{ background: dark ? "#3A2A1C" : "#F3DFC2" }}>
                   <motion.div
                     className="h-1.5 rounded-full"
                     style={{ backgroundColor: getTier(myLevel.currentTitle ?? "").color }}
@@ -168,15 +175,16 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
               )}
             </div>
             {myLevel.isMaxLevel ? (
-              <span className="text-xs font-semibold text-[#2B2017] bg-[#FFE9B0] border border-[#2B2017] px-3 py-1 rounded-full shrink-0">
+              <span className="text-xs font-semibold px-3 py-1 rounded-full shrink-0"
+                style={{ color: "#2B2017", background: "#FFE9B0", border: "1px solid #2B2017" }}>
                 Max
               </span>
             ) : (
               <div className="text-right shrink-0">
-                <p className={`text-xs font-semibold ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+                <p style={sub(dark)} className="text-xs font-semibold">
                   {myLevel.xpToNextLevel?.toLocaleString()} XP
                 </p>
-                <p className={`text-[10px] ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>to next</p>
+                <p style={sub(dark)} className="text-[10px]">to next</p>
               </div>
             )}
           </motion.div>
@@ -206,14 +214,13 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.35, delay: Math.min(i * 0.015, 0.5) }}
                   >
-                    <span
-                      className="text-xs font-bold uppercase tracking-widest"
-                      style={{ color: tier.color }}
-                    >
+                    <span className="text-xs font-bold uppercase tracking-widest"
+                      style={{ color: tier.color }}>
                       {tierBreak.label}
                     </span>
-                    <div className={`flex-1 h-px ${dark ? "bg-[#3A2A1C]" : "bg-[#2B2017]"}`} />
-                    <span className={`text-[10px] ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+                    <div className="flex-1 h-px"
+                      style={{ background: dark ? "#3A2A1C" : "#D4B896" }} />
+                    <span style={sub(dark)} className="text-[10px]">
                       Lv {tierBreak.range}
                     </span>
                   </motion.div>
@@ -224,19 +231,20 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, delay: Math.min(i * 0.015, 0.6) }}
-                  className={`relative flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
-                    isCurrent
-                      ? dark
-                        ? "border-[#F2B84B] bg-[#1B120C]"
-                        : "border-[#2B2017] bg-[#FFE9B0]"
+                  className="relative flex items-center gap-3 px-4 py-3 rounded-xl"
+                  style={{
+                    border: `2px solid ${
+                      isCurrent  ? "#F2B84B" :
+                      isComplete ? (dark ? "#3A2A1C" : "#D4B896") :
+                                   (dark ? "#3A2A1C" : "#D4B896")
+                    }`,
+                    background: isCurrent
+                      ? (dark ? "#1B120C" : "#FFE9B0")
                       : isComplete
-                      ? dark
-                        ? "border-[#3A2A1C] bg-[#120D0A]"
-                        : "border-[#2B2017] bg-[#FFF7E8]"
-                      : dark
-                      ? "border-[#3A2A1C] bg-[#0F0B08] opacity-50"
-                      : "border-[#2B2017] bg-[#FFF3DA] opacity-50"
-                  }`}
+                      ? (dark ? "#120D0A" : "#FFF7E8")
+                      : (dark ? "#0F0B08" : "#FFF3DA"),
+                    opacity: isLocked ? 0.5 : 1,
+                  }}
                 >
                   {/* Current level pulse ring */}
                   {isCurrent && (
@@ -251,8 +259,8 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
                   <div
                     className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-sm font-bold"
                     style={{
-                      backgroundColor: isCurrent || isComplete ? `${tier.color}22` : dark ? "#1B120C" : "#FFF3DA",
-                      color: isCurrent || isComplete ? tier.color : dark ? "#3A2A1C" : "#5A4636",
+                      backgroundColor: isCurrent || isComplete ? `${tier.color}22` : (dark ? "#1B120C" : "#FFF3DA"),
+                      color: isCurrent || isComplete ? tier.color : (dark ? "#3A2A1C" : "#5A4636"),
                     }}
                   >
                     {lvl.level}
@@ -260,25 +268,26 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
 
                   {/* Title & XP */}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-semibold ${
-                      isCurrent
-                        ? "text-[#2B2017]"
+                    <p className="text-sm font-semibold" style={{
+                      color: isCurrent
+                        ? (dark ? "#F7EEDB" : "#2B2017")
                         : isComplete
-                        ? dark ? "text-[#F7EEDB]" : "text-[#2B2017]"
-                        : dark ? "text-[#3A2A1C]" : "text-[#5A4636]"
-                    }`}>
+                        ? (dark ? "#F7EEDB" : "#2B2017")
+                        : (dark ? "#3A2A1C" : "#5A4636"),
+                    }}>
                       {lvl.title}
                       {isCurrent && (
-                        <span className="ml-2 text-[10px] font-semibold bg-[#2B2017] text-[#FDFBF5] px-2 py-0.5 rounded-full">
+                        <span className="ml-2 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                          style={{ background: "#2B2017", color: "#FDFBF5" }}>
                           YOU
                         </span>
                       )}
                     </p>
-                    <p className={`text-xs mt-0.5 ${
-                      isComplete || isCurrent
-                        ? dark ? "text-[#CBBEAC]" : "text-[#5A4636]"
-                        : dark ? "text-[#3A2A1C]" : "text-[#5A4636]"
-                    }`}>
+                    <p className="text-xs mt-0.5" style={{
+                      color: isComplete || isCurrent
+                        ? (dark ? "#CBBEAC" : "#7A5C3E")
+                        : (dark ? "#3A2A1C" : "#5A4636"),
+                    }}>
                       {xpDisplay}
                     </p>
                   </div>
@@ -295,7 +304,6 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
           })}
         </div>
 
-        {/* Bottom padding */}
         <div className="h-10" />
       </main>
     </div>
