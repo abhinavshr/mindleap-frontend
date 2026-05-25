@@ -223,7 +223,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   const infoXpStyle     = { color: dark ? "#F2B84B" : "#C58B1D", fontSize: "14px", fontWeight: "600" };
 
   return (
-    <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
+    <div className={`min-h-screen md:h-screen md:overflow-hidden flex flex-col font-copy transition-colors duration-300 ${
       dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
     }`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
@@ -236,7 +236,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
         </div>
       )}
 
-      <main className="flex-1 flex flex-col items-center py-6 sm:py-8 px-4 sm:px-6 gap-5 sm:gap-6">
+      <main className="flex-1 flex flex-col items-center md:justify-center py-6 sm:py-7 md:py-4 px-4 sm:px-6 gap-5 sm:gap-6 md:gap-4 md:min-h-0">
 
         {(gameState === "idle" || gameState === "loading") && (
           <div className="flex flex-col items-center justify-center flex-1 gap-6 max-w-sm text-center">
@@ -307,7 +307,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
             </div>
 
             <div className="flex-1 flex items-center justify-center">
-              <div className="arcade-panel px-4 sm:px-6 py-5 sm:py-6">
+              <div className="arcade-panel px-4 sm:px-6 py-5 sm:py-6 md:scale-[0.92] md:origin-top">
                 <Board
                   guesses={guesses}
                   currentGuess={currentGuess}
@@ -317,7 +317,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
               </div>
             </div>
 
-            <div className="w-full flex justify-center">
+            <div className="w-full flex justify-center md:scale-[0.92] md:origin-top">
               <Keyboard onKey={handleKey} keyStatuses={keyStatuses} disabled={submitting} />
             </div>
           </>
