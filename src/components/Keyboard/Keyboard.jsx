@@ -22,7 +22,7 @@ export default function Keyboard({ onKey, keyStatuses = {} }) {
           {row.map((key) => (
             <button
               key={key}
-              onClick={() => onKey?.(key)}
+              onClick={() => onKey?.(key === "⌫" ? "BACKSPACE" : key)}
               className={`
                 ${isWide(key) ? "px-3 sm:px-4 min-w-12 sm:min-w-16" : "w-8.5 sm:w-10.75"}
                 h-12 sm:h-14.5 rounded-lg border text-xs sm:text-sm font-bold uppercase arcade-key

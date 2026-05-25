@@ -236,7 +236,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
         </div>
       )}
 
-      <main className="flex-1 flex flex-col items-center md:justify-center py-6 sm:py-7 md:py-4 px-4 sm:px-6 gap-5 sm:gap-6 md:gap-4 md:min-h-0">
+      <main className="flex-1 flex flex-col items-center md:justify-center py-6 sm:py-7 md:py-4 px-4 sm:px-6 gap-4 sm:gap-5 md:gap-3 md:min-h-0 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top">
 
         {(gameState === "idle" || gameState === "loading") && (
           <div className="flex flex-col items-center justify-center flex-1 gap-6 max-w-sm text-center">
@@ -314,6 +314,21 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
                   maxGuesses={maxGuesses}
                   wordLength={wordLength}
                 />
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm">
+              <div className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 rounded-sm bg-[#2FAF74] border border-[#1E7E52]" />
+                <span className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}>Correct spot</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 rounded-sm bg-[#F2B84B] border border-[#C58B1D]" />
+                <span className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}>In word, wrong spot</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 rounded-sm bg-[#8A8A8A] border border-[#5E5E5E]" />
+                <span className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}>Not in word</span>
               </div>
             </div>
 

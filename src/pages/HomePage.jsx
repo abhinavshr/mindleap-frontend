@@ -342,7 +342,7 @@ export default function HomePage({ dark, onToggleDark }) {
         )}
       </AnimatePresence>
 
-      <main className="flex-1 flex flex-col items-center justify-between md:justify-center py-7 sm:py-8 md:py-4 gap-5 sm:gap-6 md:gap-4 px-4 sm:px-6 md:min-h-0">
+      <main className="flex-1 flex flex-col items-center justify-between md:justify-center py-6 sm:py-7 md:py-4 gap-4 sm:gap-5 md:gap-3 px-4 sm:px-6 md:min-h-0 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top">
 
         {/* ── Hero ───────────────────────────────────────────────────── */}
         <motion.div
@@ -350,7 +350,7 @@ export default function HomePage({ dark, onToggleDark }) {
           initial="hidden"
           animate="visible"
           custom={0}
-          className="w-full max-w-4xl"
+          className="w-full max-w-4xl pt-1 sm:pt-2 md:pt-4"
         >
           <div className="flex flex-col items-center text-center gap-2">
             <h1 className="font-arcade text-3xl sm:text-4xl md:text-5xl">MindLeap</h1>
@@ -412,6 +412,22 @@ export default function HomePage({ dark, onToggleDark }) {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* ── Legend ─────────────────────────────────────────────────── */}
+        <div className="-mt-1 flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm">
+          <div className="flex items-center gap-2">
+            <span className="w-3.5 h-3.5 rounded-sm bg-[#2FAF74] border border-[#1E7E52]" />
+            <span className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}>Correct spot</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3.5 h-3.5 rounded-sm bg-[#F2B84B] border border-[#C58B1D]" />
+            <span className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}>In word, wrong spot</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3.5 h-3.5 rounded-sm bg-[#8A8A8A] border border-[#5E5E5E]" />
+            <span className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}>Not in word</span>
+          </div>
+        </div>
 
         {/* ── Keyboard ───────────────────────────────────────────────── */}
         <motion.div

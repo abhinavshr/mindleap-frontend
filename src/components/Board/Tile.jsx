@@ -11,10 +11,10 @@ export default function Tile({ letter = "", status = "empty" }) {
   return (
     <div
       className={`
-        w-13 h-13 sm:w-15.5 sm:h-15.5
+        w-11.5 h-11.5 sm:w-14 sm:h-14
         border-2 rounded-lg arcade-tile
         flex items-center justify-center
-        text-xl sm:text-2xl font-bold uppercase select-none
+        text-lg sm:text-xl font-bold uppercase select-none
         transition-colors duration-300
         ${statusStyles[status]}
       `}

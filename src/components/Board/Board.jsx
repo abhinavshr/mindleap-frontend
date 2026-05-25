@@ -41,11 +41,11 @@ export default function Board({
   });
 
   return (
-    <div className="flex flex-col items-center gap-1 sm:gap-1.25">
+    <div className="flex flex-col items-center gap-0.5 sm:gap-1">
       {rows.map(({ isCurrentRow, tiles }, rowIndex) => (
         <motion.div
           key={rowIndex}
-          className="flex gap-1 sm:gap-1.25"
+          className="flex gap-0.5 sm:gap-1"
           variants={shakeVariant}
           animate={isCurrentRow && shakeRow ? "shake" : "idle"}
         >
