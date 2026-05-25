@@ -328,16 +328,6 @@ export default function ProfilePage({ dark, onToggleDark }) {
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 sm:py-10">
 
-        <motion.h1
-          style={txt(dark)}
-          className="text-2xl sm:text-3xl font-arcade text-center mb-8"
-          initial={{ opacity: 0, y: -18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        >
-          Profile
-        </motion.h1>
-
         {/* User card */}
         <motion.div
           className="px-4 sm:px-6 py-4 sm:py-5 mb-5 flex flex-col gap-1"
