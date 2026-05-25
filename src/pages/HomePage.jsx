@@ -284,7 +284,7 @@ export default function HomePage({ dark, onToggleDark }) {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"}`}>
+    <div className={`min-h-screen md:h-screen md:overflow-hidden flex flex-col font-copy transition-colors duration-300 ${dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"}`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       {/* ── Guest banner ───────────────────────────────────────────── */}
@@ -342,7 +342,7 @@ export default function HomePage({ dark, onToggleDark }) {
         )}
       </AnimatePresence>
 
-      <main className="flex-1 flex flex-col items-center justify-between py-8 sm:py-10 gap-6 sm:gap-8 px-4 sm:px-6">
+      <main className="flex-1 flex flex-col items-center justify-between md:justify-center py-7 sm:py-8 md:py-4 gap-5 sm:gap-6 md:gap-4 px-4 sm:px-6 md:min-h-0">
 
         {/* ── Hero ───────────────────────────────────────────────────── */}
         <motion.div
@@ -368,7 +368,7 @@ export default function HomePage({ dark, onToggleDark }) {
           custom={1}
           className="flex-1 flex items-center justify-center w-full"
         >
-          <div className="arcade-panel px-4 sm:px-6 py-5 sm:py-6">
+          <div className="arcade-panel px-4 sm:px-6 py-5 sm:py-6 md:scale-[0.92] md:origin-top">
             <Board
               guesses={guesses}
               currentGuess={currentGuess}
@@ -419,7 +419,7 @@ export default function HomePage({ dark, onToggleDark }) {
           initial="hidden"
           animate="visible"
           custom={2}
-          className="w-full flex justify-center px-2"
+          className="w-full flex justify-center px-2 md:scale-[0.92] md:origin-top"
         >
           <Keyboard
             onKey={handleKey}
