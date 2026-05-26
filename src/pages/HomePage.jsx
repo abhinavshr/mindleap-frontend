@@ -284,7 +284,7 @@ export default function HomePage({ dark, onToggleDark }) {
   }
 
   return (
-    <div className={`min-h-screen md:h-screen md:overflow-hidden flex flex-col font-copy transition-colors duration-300 ${dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"}`}>
+    <div className={`min-h-screen md:h-screen md:overflow-hidden [@media(max-height:760px)]:h-auto [@media(max-height:760px)]:overflow-y-auto flex flex-col font-copy transition-colors duration-300 ${dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"}`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       {/* ── Guest banner ───────────────────────────────────────────── */}
@@ -342,23 +342,7 @@ export default function HomePage({ dark, onToggleDark }) {
         )}
       </AnimatePresence>
 
-      <main className="flex-1 flex flex-col items-center justify-between md:justify-center py-6 sm:py-7 md:py-4 gap-4 sm:gap-5 md:gap-3 px-4 sm:px-6 md:min-h-0 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top">
-
-        {/* ── Hero ───────────────────────────────────────────────────── */}
-        <motion.div
-          variants={fadeSlideUp}
-          initial="hidden"
-          animate="visible"
-          custom={0}
-          className="w-full max-w-4xl pt-1 sm:pt-2 md:pt-4"
-        >
-          <div className="flex flex-col items-center text-center gap-2">
-            <h1 className="font-arcade text-3xl sm:text-4xl md:text-5xl">MindLeap</h1>
-            <p className={`text-sm sm:text-base max-w-xl ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-              Crack the word, chase the streak, and finish with a clean board.
-            </p>
-          </div>
-        </motion.div>
+      <main className="flex-1 flex flex-col items-center justify-between md:justify-center py-6 sm:py-7 md:py-4 gap-4 sm:gap-5 md:gap-3 px-4 sm:px-6 md:min-h-0 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top [@media(max-height:760px)]:justify-start [@media(max-height:760px)]:py-5 [@media(max-height:760px)]:gap-3 [@media(max-height:760px)]:scale-100">        
 
         {/* ── Board ──────────────────────────────────────────────────── */}
         <motion.div
