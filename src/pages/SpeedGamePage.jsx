@@ -223,7 +223,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   const infoXpStyle     = { color: dark ? "#F2B84B" : "#C58B1D", fontSize: "14px", fontWeight: "600" };
 
   return (
-    <div className={`min-h-screen md:h-screen md:overflow-hidden flex flex-col font-copy transition-colors duration-300 ${
+    <div className={`min-h-screen md:h-screen md:overflow-hidden [@media(max-height:760px)]:h-auto [@media(max-height:760px)]:overflow-y-auto flex flex-col font-copy transition-colors duration-300 ${
       dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
     }`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
@@ -236,7 +236,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
         </div>
       )}
 
-      <main className="flex-1 flex flex-col items-center md:justify-center py-6 sm:py-7 md:py-4 px-4 sm:px-6 gap-4 sm:gap-5 md:gap-3 md:min-h-0 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top">
+      <main className="flex-1 flex flex-col items-center md:justify-center py-6 sm:py-7 md:py-4 px-4 sm:px-6 gap-4 sm:gap-5 md:gap-3 md:min-h-0 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top [@media(max-height:760px)]:justify-start [@media(max-height:760px)]:py-5 [@media(max-height:760px)]:gap-3 [@media(max-height:760px)]:scale-100">
 
         {(gameState === "idle" || gameState === "loading") && (
           <div className="flex flex-col items-center justify-center flex-1 gap-6 max-w-sm text-center">
@@ -298,9 +298,9 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
                 <span className={`text-xs font-semibold ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Time left</span>
                 <span className={`text-2xl font-bold tabular-nums ${timerColor}`}>{timeLeft}s</span>
               </div>
-              <div className={`w-full h-2 rounded-full ${dark ? "bg-[#3A2A1C]" : "bg-[#F3DFC2]"}`}>
+              <div className={`w-full h-1.5 rounded-full ${dark ? "bg-[#3A2A1C]" : "bg-[#F3DFC2]"}`}>
                 <div
-                  className={`h-2 rounded-full transition-all duration-1000 ${timerBg}`}
+                  className={`h-1.5 rounded-full transition-all duration-1000 ${timerBg}`}
                   style={{ width: `${(timeLeft / timeLimit) * 100}%` }}
                 />
               </div>
@@ -357,12 +357,22 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
                  gameState === "timeup" ? "Time's Up!"  : "Better luck!"}
               </h2>
               <p className={`text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-                {gameState === "won"
-                  ? `Solved in ${timeTaken}s with ${guesses.length} guess${guesses.length !== 1 ? "es" : ""}`
-                  : revealedWord
-                    ? <>The word was <span className={`font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>{revealedWord}</span></>
-                    : "Better luck next time!"
-                }
+                {gameState === "won" ? (
+                  `Solved in ${timeTaken}s with ${guesses.length} guess${guesses.length !== 1 ? "es" : ""}`
+                ) : (
+                  <>
+                    {revealedWord && (
+                      <>
+                        The word was{" "}
+                        <span className={`font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
+                          {revealedWord}
+                        </span>
+                        .{" "}
+                      </>
+                    )}
+                    Better luck next time!
+                  </>
+                )}
               </p>
             </div>
 
