@@ -279,7 +279,9 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
               <AnimatePresence>
                 {currentUser && myStats && (
                   <motion.div
-                    className="w-full arcade-panel px-6 py-4 mb-4"
+                    className={`w-full arcade-panel px-6 py-4 mb-4 ${
+                      dark ? "arcade-panel-dark text-[#F7EEDB]" : ""
+                    }`}
                     variants={slideIn}
                     initial="hidden"
                     animate="visible"
@@ -328,7 +330,9 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
 
               {/* Classic table */}
               <motion.div
-                className="w-full arcade-panel overflow-hidden"
+                className={`w-full arcade-panel overflow-hidden ${
+                  dark ? "arcade-panel-dark text-[#F7EEDB]" : ""
+                }`}
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
@@ -430,7 +434,9 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
               <AnimatePresence>
                 {currentUser && mySpeedStats && mySpeedStats.stats && (
                   <motion.div
-                    className="w-full arcade-panel px-6 py-4 mb-4"
+                    className={`w-full arcade-panel px-6 py-4 mb-4 ${
+                      dark ? "arcade-panel-dark text-[#F7EEDB]" : ""
+                    }`}
                     variants={slideIn}
                     initial="hidden"
                     animate="visible"
@@ -504,7 +510,9 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
               </AnimatePresence>
 
               <motion.div
-                className="w-full arcade-panel overflow-hidden"
+                className={`w-full arcade-panel overflow-hidden ${
+                  dark ? "arcade-panel-dark text-[#F7EEDB]" : ""
+                }`}
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}

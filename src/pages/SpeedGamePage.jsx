@@ -208,14 +208,15 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   };
 
   const infoPanelStyle = {
-    background:   dark ? "#1B120C" : "#FFF8EC",
-    border:       dark ? "2px solid #3A2A1C" : "2px solid #D4B896",
-    borderRadius: "12px",
-    padding:      "16px 20px",
-    display:      "flex",
-    flexDirection:"column",
-    gap:          "10px",
-    width:        "100%",
+    backgroundColor: dark ? "#1B120C" : "#FFF8EC",
+    border:          dark ? "2px solid #3A2A1C" : "2px solid #D4B896",
+    color:           dark ? "#F7EEDB" : "#2B2017",
+    borderRadius:    "12px",
+    padding:         "16px 20px",
+    display:         "flex",
+    flexDirection:   "column",
+    gap:             "10px",
+    width:           "100%",
   };
 
   const infoLabelStyle  = { color: dark ? "#CBBEAC" : "#7A5C3E", fontSize: "14px" };
