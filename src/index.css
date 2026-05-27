@@ -34,6 +34,12 @@ html, body, #root {
   border-radius: 18px;
 }
 
+.arcade-panel-dark {
+  background: #1b120c;
+  border-color: #3a2a1c;
+  box-shadow: 0 10px 0 #3a2a1c;
+}
+
 .arcade-key {
   box-shadow: 0 3px 0 #2b2017;
 }
