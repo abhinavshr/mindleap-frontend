@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { FaTrophy } from "react-icons/fa";
@@ -8,6 +8,7 @@ import Navbar from "../components/Reuseable/Navbar";
 import Board from "../components/Board/Board";
 import Keyboard from "../components/Keyboard/Keyboard";
 import { fetchDailyInfo, submitGuessApi, checkAlreadyPlayed } from "../api/game";
+import { Howl } from "howler";
 
 // ── Animation variants ─────────────────────────────────────────────────────────
 const fadeSlideUp = {
@@ -73,6 +74,46 @@ export default function HomePage({ dark, onToggleDark }) {
   const [submitting, setSubmitting]     = useState(false);
   const [revealedWord, setRevealedWord] = useState("");
   const [shakeRow, setShakeRow]         = useState(false);
+  const audioUnlockedRef = useRef(false);
+  const winSoundRef = useRef(null);
+
+  useEffect(() => {
+    winSoundRef.current = new Howl({
+      src: ["/sounds/success.mp3"],
+      volume: 0.7,
+      preload: true,
+    });
+    return () => {
+      if (winSoundRef.current) {
+        winSoundRef.current.unload();
+        winSoundRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const unlockAudio = () => {
+      if (audioUnlockedRef.current || !winSoundRef.current) return;
+      audioUnlockedRef.current = true;
+      const sound = winSoundRef.current;
+      const previousVolume = sound.volume();
+      sound.volume(0);
+      const id = sound.play();
+      setTimeout(() => {
+        sound.stop(id);
+        sound.volume(previousVolume);
+      }, 50);
+    };
+
+    window.addEventListener("pointerdown", unlockAudio, { once: true });
+    window.addEventListener("keydown", unlockAudio, { once: true });
+
+    return () => {
+      window.removeEventListener("pointerdown", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+    };
+  }, []);
+
 
   const showMessage = (msg, type = "info", duration = 2500) => {
     setMessage(msg);
@@ -185,6 +226,7 @@ export default function HomePage({ dark, onToggleDark }) {
 
       const res  = await submitGuessApi(guessWord.toLowerCase());
       const data = res.data;
+      const isLocalWin = Array.isArray(data.result) && data.result.every((s) => s === "correct");
 
       const newGuess = { word: guessWord, result: data.result };
       setGuesses((prev) => {
@@ -208,7 +250,8 @@ export default function HomePage({ dark, onToggleDark }) {
         return updated;
       });
 
-      if (data.won) {
+      if (data.won || isLocalWin) {
+        if (winSoundRef.current) winSoundRef.current.play();
         showMessage("You won!", "win", 4000);
         setGameOver(true);
         if (!data.isAuth) {

@@ -6,6 +6,7 @@ import Board from "../components/Board/Board";
 import Keyboard from "../components/Keyboard/Keyboard";
 import { startSpeedGame, submitSpeedGuess, expireSpeedSession } from "../api/speedGame";
 import toast from "react-hot-toast";
+import { Howl } from "howler";
 
 export default function SpeedGamePage({ dark = false, onToggleDark }) {
   const [gameState, setGameState]       = useState("idle");
@@ -25,6 +26,45 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   const [submitting, setSubmitting]     = useState(false);
   const timerRef = useRef(null);
   const timeUpHandledRef = useRef(false);
+  const audioUnlockedRef = useRef(false);
+  const winSoundRef = useRef(null);
+
+  useEffect(() => {
+    winSoundRef.current = new Howl({
+      src: ["/sounds/success.mp3"],
+      volume: 0.7,
+      preload: true,
+    });
+    return () => {
+      if (winSoundRef.current) {
+        winSoundRef.current.unload();
+        winSoundRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const unlockAudio = () => {
+      if (audioUnlockedRef.current || !winSoundRef.current) return;
+      audioUnlockedRef.current = true;
+      const sound = winSoundRef.current;
+      const previousVolume = sound.volume();
+      sound.volume(0);
+      const id = sound.play();
+      setTimeout(() => {
+        sound.stop(id);
+        sound.volume(previousVolume);
+      }, 50);
+    };
+
+    window.addEventListener("pointerdown", unlockAudio, { once: true });
+    window.addEventListener("keydown", unlockAudio, { once: true });
+
+    return () => {
+      window.removeEventListener("pointerdown", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+    };
+  }, []);
 
   const extractReveal = (data) => data?.secret || data?.word || data?.answer || "";
 
@@ -150,6 +190,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
         setTimeTaken(data.timeTaken);
         setXpEarned(data.xpEarned);
         setGameState("won");
+        if (winSoundRef.current) winSoundRef.current.play();
         showMessage("You won!", "win", 0);
         return;
       }
