@@ -8,7 +8,7 @@ import Navbar from "../components/Reuseable/Navbar";
 import Board from "../components/Board/Board";
 import Keyboard from "../components/Keyboard/Keyboard";
 import { fetchDailyInfo, submitGuessApi, checkAlreadyPlayed } from "../api/game";
-import { Howl } from "howler";
+import { Howl, Howler } from "howler";
 
 // ── Animation variants ─────────────────────────────────────────────────────────
 const fadeSlideUp = {
@@ -77,12 +77,16 @@ export default function HomePage({ dark, onToggleDark }) {
   const audioUnlockedRef = useRef(false);
   const winSoundRef = useRef(null);
 
-  useEffect(() => {
+  const initWinSound = () => {
+    if (winSoundRef.current) return;
     winSoundRef.current = new Howl({
       src: ["/sounds/success.mp3"],
       volume: 0.7,
       preload: true,
     });
+  };
+
+  useEffect(() => {
     return () => {
       if (winSoundRef.current) {
         winSoundRef.current.unload();
@@ -92,10 +96,15 @@ export default function HomePage({ dark, onToggleDark }) {
   }, []);
 
   useEffect(() => {
-    const unlockAudio = () => {
-      if (audioUnlockedRef.current || !winSoundRef.current) return;
+    const unlockAudio = async () => {
+      if (audioUnlockedRef.current) return;
       audioUnlockedRef.current = true;
+      initWinSound();
+      if (Howler.ctx && Howler.ctx.state !== "running") {
+        await Howler.ctx.resume();
+      }
       const sound = winSoundRef.current;
+      if (!sound) return;
       const previousVolume = sound.volume();
       sound.volume(0);
       const id = sound.play();
@@ -251,6 +260,10 @@ export default function HomePage({ dark, onToggleDark }) {
       });
 
       if (data.won || isLocalWin) {
+        initWinSound();
+        if (Howler.ctx && Howler.ctx.state !== "running") {
+          await Howler.ctx.resume();
+        }
         if (winSoundRef.current) winSoundRef.current.play();
         showMessage("You won!", "win", 4000);
         setGameOver(true);

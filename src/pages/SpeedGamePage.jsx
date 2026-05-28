@@ -6,7 +6,7 @@ import Board from "../components/Board/Board";
 import Keyboard from "../components/Keyboard/Keyboard";
 import { startSpeedGame, submitSpeedGuess, expireSpeedSession } from "../api/speedGame";
 import toast from "react-hot-toast";
-import { Howl } from "howler";
+import { Howl, Howler } from "howler";
 
 export default function SpeedGamePage({ dark = false, onToggleDark }) {
   const [gameState, setGameState]       = useState("idle");
@@ -29,12 +29,16 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   const audioUnlockedRef = useRef(false);
   const winSoundRef = useRef(null);
 
-  useEffect(() => {
+  const initWinSound = () => {
+    if (winSoundRef.current) return;
     winSoundRef.current = new Howl({
       src: ["/sounds/success.mp3"],
       volume: 0.7,
       preload: true,
     });
+  };
+
+  useEffect(() => {
     return () => {
       if (winSoundRef.current) {
         winSoundRef.current.unload();
@@ -44,10 +48,15 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   }, []);
 
   useEffect(() => {
-    const unlockAudio = () => {
-      if (audioUnlockedRef.current || !winSoundRef.current) return;
+    const unlockAudio = async () => {
+      if (audioUnlockedRef.current) return;
       audioUnlockedRef.current = true;
+      initWinSound();
+      if (Howler.ctx && Howler.ctx.state !== "running") {
+        await Howler.ctx.resume();
+      }
       const sound = winSoundRef.current;
+      if (!sound) return;
       const previousVolume = sound.volume();
       sound.volume(0);
       const id = sound.play();
@@ -190,6 +199,10 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
         setTimeTaken(data.timeTaken);
         setXpEarned(data.xpEarned);
         setGameState("won");
+        initWinSound();
+        if (Howler.ctx && Howler.ctx.state !== "running") {
+          await Howler.ctx.resume();
+        }
         if (winSoundRef.current) winSoundRef.current.play();
         showMessage("You won!", "win", 0);
         return;
