@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { FaTrophy } from "react-icons/fa";
@@ -10,7 +10,6 @@ import Keyboard from "../components/Keyboard/Keyboard";
 import { fetchDailyInfo, submitGuessApi, checkAlreadyPlayed } from "../api/game";
 import { Howl, Howler } from "howler";
 
-// ── Animation variants ─────────────────────────────────────────────────────────
 const fadeSlideUp = {
   hidden: { opacity: 0, y: 24 },
   visible: (i = 0) => ({
@@ -60,6 +59,42 @@ const revealLetterVariant = {
   },
 };
 
+const winPulseVariant = {
+  idle: { scale: 1, boxShadow: "0 0 0 rgba(0,0,0,0)" },
+  active: {
+    scale: [1, 1.02, 1],
+    boxShadow: [
+      "0 0 0 rgba(0,0,0,0)",
+      "0 0 35px rgba(242,184,75,0.35)",
+      "0 0 0 rgba(0,0,0,0)",
+    ],
+    transition: { duration: 1.2, ease: "easeOut" },
+  },
+};
+
+const burstVariant = {
+  hidden: { opacity: 0, scale: 0.6 },
+  visible: {
+    opacity: 1,
+    scale: [0.7, 1.08, 1],
+    transition: { duration: 1.1, ease: [0.22, 1, 0.36, 1] },
+  },
+  exit: { opacity: 0, scale: 0.8, transition: { duration: 0.3 } },
+};
+
+const createConfettiPieces = () => {
+  const colors = ["#2FAF74", "#F2B84B", "#C64B2A", "#6AAA64", "#FFE9B0"];
+  return Array.from({ length: 46 }, (_, i) => ({
+    id: i,
+    x: (Math.random() * 2 - 1) * 140,
+    delay: Math.random() * 0.25,
+    rotate: Math.random() * 720,
+    size: 6 + Math.random() * 6,
+    drift: (Math.random() * 2 - 1) * 30,
+    color: colors[i % colors.length],
+  }));
+};
+
 export default function HomePage({ dark, onToggleDark }) {
   const [currentGuess, setCurrentGuess] = useState("");
   const [guesses, setGuesses]           = useState([]);
@@ -74,8 +109,11 @@ export default function HomePage({ dark, onToggleDark }) {
   const [submitting, setSubmitting]     = useState(false);
   const [revealedWord, setRevealedWord] = useState("");
   const [shakeRow, setShakeRow]         = useState(false);
+  const [showWinFx, setShowWinFx]       = useState(false);
   const audioUnlockedRef = useRef(false);
   const winSoundRef = useRef(null);
+  const winFxTimeoutRef = useRef(null);
+  const confettiPieces = useMemo(() => createConfettiPieces(), []);
 
   const initWinSound = () => {
     if (winSoundRef.current) return;
@@ -87,31 +125,14 @@ export default function HomePage({ dark, onToggleDark }) {
   };
 
   useEffect(() => {
-    return () => {
-      if (winSoundRef.current) {
-        winSoundRef.current.unload();
-        winSoundRef.current = null;
-      }
-    };
-  }, []);
+    initWinSound();
 
-  useEffect(() => {
     const unlockAudio = async () => {
       if (audioUnlockedRef.current) return;
       audioUnlockedRef.current = true;
-      initWinSound();
-      if (Howler.ctx && Howler.ctx.state !== "running") {
+      if (Howler.ctx?.state !== "running") {
         await Howler.ctx.resume();
       }
-      const sound = winSoundRef.current;
-      if (!sound) return;
-      const previousVolume = sound.volume();
-      sound.volume(0);
-      const id = sound.play();
-      setTimeout(() => {
-        sound.stop(id);
-        sound.volume(previousVolume);
-      }, 50);
     };
 
     window.addEventListener("pointerdown", unlockAudio, { once: true });
@@ -120,15 +141,28 @@ export default function HomePage({ dark, onToggleDark }) {
     return () => {
       window.removeEventListener("pointerdown", unlockAudio);
       window.removeEventListener("keydown", unlockAudio);
+      if (winSoundRef.current) {
+        winSoundRef.current.unload();
+        winSoundRef.current = null;
+      }
+      if (winFxTimeoutRef.current) {
+        clearTimeout(winFxTimeoutRef.current);
+        winFxTimeoutRef.current = null;
+      }
     };
   }, []);
-
 
   const showMessage = (msg, type = "info", duration = 2500) => {
     setMessage(msg);
     setMessageType(type);
     if (duration > 0) setTimeout(() => setMessage(""), duration);
   };
+
+  const triggerWinFx = useCallback(() => {
+    setShowWinFx(true);
+    if (winFxTimeoutRef.current) clearTimeout(winFxTimeoutRef.current);
+    winFxTimeoutRef.current = setTimeout(() => setShowWinFx(false), 3000);
+  }, []);
 
   const GUEST_KEY = `guest_game_${new Date().toISOString().slice(0, 10)}`;
 
@@ -202,7 +236,7 @@ export default function HomePage({ dark, onToggleDark }) {
               const playedRes  = await checkAlreadyPlayed();
               const playedData = playedRes.data;
               if (playedData.word) setRevealedWord(playedData.word.toUpperCase());
-            } catch { /* ignore */ }
+            } catch { }
             showMessage("You've used all your guesses today.", "lose", 5000);
           }
         }
@@ -260,11 +294,11 @@ export default function HomePage({ dark, onToggleDark }) {
       });
 
       if (data.won || isLocalWin) {
-        initWinSound();
-        if (Howler.ctx && Howler.ctx.state !== "running") {
+        triggerWinFx();
+        if (Howler.ctx?.state !== "running") {
           await Howler.ctx.resume();
         }
-        if (winSoundRef.current) winSoundRef.current.play();
+        winSoundRef.current?.play();
         showMessage("You won!", "win", 4000);
         setGameOver(true);
         if (!data.isAuth) {
@@ -323,7 +357,6 @@ export default function HomePage({ dark, onToggleDark }) {
     info: "bg-[#2B2017] text-[#FDFBF5]",
   };
 
-  // ── Loading screen ─────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className={`min-h-screen flex flex-col ${dark ? "bg-[#121213]" : "bg-white"}`}>
@@ -343,7 +376,6 @@ export default function HomePage({ dark, onToggleDark }) {
     <div className={`min-h-screen md:h-screen md:overflow-hidden [@media(max-height:760px)]:h-auto [@media(max-height:760px)]:overflow-y-auto flex flex-col font-copy transition-colors duration-300 ${dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"}`}>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
-      {/* ── Guest banner ───────────────────────────────────────────── */}
       <AnimatePresence>
         {!isAuth && (
           <motion.div
@@ -368,7 +400,6 @@ export default function HomePage({ dark, onToggleDark }) {
         )}
       </AnimatePresence>
 
-      {/* ── Toast notification ─────────────────────────────────────── */}
       <AnimatePresence mode="wait">
         {message && (
           <motion.div
@@ -398,9 +429,8 @@ export default function HomePage({ dark, onToggleDark }) {
         )}
       </AnimatePresence>
 
-      <main className="flex-1 flex flex-col items-center justify-between md:justify-center py-6 sm:py-7 md:py-4 gap-4 sm:gap-5 md:gap-3 px-4 sm:px-6 md:min-h-0 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top [@media(max-height:760px)]:justify-start [@media(max-height:760px)]:py-5 [@media(max-height:760px)]:gap-3 [@media(max-height:760px)]:scale-100">        
+      <main className="flex-1 flex flex-col items-center justify-between md:justify-center py-6 sm:py-7 md:py-4 gap-4 sm:gap-5 md:gap-3 px-4 sm:px-6 md:min-h-0 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top [@media(max-height:760px)]:justify-start [@media(max-height:760px)]:py-5 [@media(max-height:760px)]:gap-3 [@media(max-height:760px)]:scale-100">
 
-        {/* ── Board ──────────────────────────────────────────────────── */}
         <motion.div
           variants={fadeSlideUp}
           initial="hidden"
@@ -408,18 +438,105 @@ export default function HomePage({ dark, onToggleDark }) {
           custom={1}
           className="flex-1 flex items-center justify-center w-full"
         >
-          <div className="arcade-panel px-4 sm:px-6 py-5 sm:py-6 md:scale-[0.92] md:origin-top">
-            <Board
-              guesses={guesses}
-              currentGuess={currentGuess}
-              maxGuesses={maxGuesses}
-              wordLength={wordLength}
-              shakeRow={shakeRow}
-            />
+          <div className="relative">
+            <motion.div
+              variants={winPulseVariant}
+              initial="idle"
+              animate={showWinFx ? "active" : "idle"}
+              className="arcade-panel px-4 sm:px-6 py-5 sm:py-6 md:scale-[0.92] md:origin-top"
+            >
+              <Board
+                guesses={guesses}
+                currentGuess={currentGuess}
+                maxGuesses={maxGuesses}
+                wordLength={wordLength}
+                shakeRow={shakeRow}
+              />
+            </motion.div>
+            <AnimatePresence>
+              {showWinFx && (
+                <motion.div
+                  key="win-confetti"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="pointer-events-none absolute inset-0 overflow-hidden"
+                >
+                  <motion.div
+                    variants={burstVariant}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="absolute left-1/2 top-1/2 w-[140%] h-[140%] -translate-x-1/2 -translate-y-1/2"
+                    style={{
+                      background:
+                        "radial-gradient(circle at center, rgba(255,233,176,0.45) 0%, rgba(242,184,75,0.2) 32%, rgba(198,75,42,0.08) 55%, rgba(0,0,0,0) 70%)",
+                      filter: "blur(2px)",
+                    }}
+                  />
+                  <motion.div
+                    variants={burstVariant}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="absolute left-1/2 top-1/2 w-[70%] h-[70%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#FFE9B0]/70"
+                  />
+                  {confettiPieces.map((piece) => (
+                    <motion.span
+                      key={piece.id}
+                      initial={{ opacity: 0, y: -20, x: 0, rotate: 0, scale: 0.8 }}
+                      animate={{
+                        opacity: 1,
+                        y: 175,
+                        x: piece.x,
+                        rotate: piece.rotate,
+                        scale: 1,
+                        transition: {
+                          duration: 2.8,
+                          delay: piece.delay,
+                          ease: [0.22, 1, 0.36, 1],
+                        },
+                      }}
+                      exit={{ opacity: 0 }}
+                      style={{
+                        backgroundColor: piece.color,
+                        width: piece.size,
+                        height: piece.size * 1.4,
+                      }}
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-sm shadow-sm"
+                    />
+                  ))}
+                  {confettiPieces.map((piece) => (
+                    <motion.span
+                      key={`spark-${piece.id}`}
+                      initial={{ opacity: 0, y: -10, x: 0, rotate: 0, scale: 0.6 }}
+                      animate={{
+                        opacity: 1,
+                        y: 120,
+                        x: piece.x + piece.drift,
+                        rotate: piece.rotate,
+                        scale: [0.6, 1, 0.9],
+                        transition: {
+                          duration: 2.2,
+                          delay: piece.delay + 0.05,
+                          ease: [0.22, 1, 0.36, 1],
+                        },
+                      }}
+                      exit={{ opacity: 0 }}
+                      style={{
+                        backgroundColor: "#FDFBF5",
+                        width: 4,
+                        height: 4,
+                      }}
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    />
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
 
-        {/* ── Revealed word ──────────────────────────────────────────── */}
         <AnimatePresence>
           {gameOver && revealedWord && (
             <motion.div
@@ -453,7 +570,6 @@ export default function HomePage({ dark, onToggleDark }) {
           )}
         </AnimatePresence>
 
-        {/* ── Legend ─────────────────────────────────────────────────── */}
         <div className="-mt-1 flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm">
           <div className="flex items-center gap-2">
             <span className="w-3.5 h-3.5 rounded-sm bg-[#2FAF74] border border-[#1E7E52]" />
@@ -469,7 +585,6 @@ export default function HomePage({ dark, onToggleDark }) {
           </div>
         </div>
 
-        {/* ── Keyboard ───────────────────────────────────────────────── */}
         <motion.div
           variants={fadeSlideUp}
           initial="hidden"
