@@ -41,7 +41,9 @@ export default function LoginPage({ dark, onToggleDark }) {
       localStorage.setItem("user", JSON.stringify(user));
 
       toast.success("Login successful!");
-      navigate("/");
+      const redirect = searchParams.get("redirect");
+      const nextPath = redirect && redirect.startsWith("/") ? redirect : "/";
+      navigate(nextPath);
     } catch (err) {
       const msg = err?.response?.data?.message || "Invalid email or password.";
       toast.error(msg);

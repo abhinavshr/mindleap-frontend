@@ -18,15 +18,17 @@ export default function Keyboard({ onKey, keyStatuses = {} }) {
   return (
     <div className="flex flex-col items-center gap-2 arcade-panel px-2 sm:px-4 py-4 sm:py-5 w-full max-w-full sm:max-w-125">
       {ROWS.map((row, i) => (
-        <div key={i} className="flex gap-1 sm:gap-1.5 justify-center w-full">
+        <div key={i} className="flex gap-0.5 sm:gap-1.5 justify-center w-full">
           {row.map((key) => (
             <button
               key={key}
               onClick={() => onKey?.(key === "⌫" ? "BACKSPACE" : key)}
               className={`
-                ${isWide(key) ? "px-3 sm:px-4 min-w-12 sm:min-w-16" : "w-8.5 sm:w-10.75"}
-                h-12 sm:h-14.5 rounded-lg border text-xs sm:text-sm font-bold uppercase arcade-key
-                flex items-center justify-center
+                ${isWide(key)
+                  ? "px-2 sm:px-4 min-w-[60px] sm:min-w-[88px]"
+                  : i === 2 ? "w-[46px] sm:w-[48px]" : "w-[40px] sm:w-[46px]"}
+                h-[58px] sm:h-[60px] rounded-lg border text-sm sm:text-base font-bold uppercase arcade-key
+                flex items-center justify-center select-none touch-manipulation
                 transition-colors duration-100 active:scale-95
                 ${getKeyStyle(key)}
               `}
