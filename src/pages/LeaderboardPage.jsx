@@ -337,12 +337,12 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               >
-                <div className="grid grid-cols-[56px_1fr_80px_100px_110px] px-5 py-3 border-b border-[#2B2017]">
-                  {["Rank", "Player", "Wins", "Streak", "Avg"].map((h, i) => (
-                    <span key={h} className={`text-sm ${i >= 2 ? "text-right" : ""} ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-                      {h}
-                    </span>
-                  ))}
+                <div className="grid grid-cols-[52px_1fr_70px] sm:grid-cols-[56px_1fr_80px_100px_110px] px-5 py-3 border-b border-[#2B2017]">
+                  <span className={`text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Rank</span>
+                  <span className={`text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Player</span>
+                  <span className={`text-sm text-right ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Wins</span>
+                  <span className={`text-sm text-right hidden sm:block ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Streak</span>
+                  <span className={`text-sm text-right hidden sm:block ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Avg</span>
                 </div>
 
                 <AnimatePresence mode="wait">
@@ -367,7 +367,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                     return (
                       <motion.div
                         key={p.rank}
-                        className={`grid grid-cols-[56px_1fr_80px_100px_110px] px-5 py-4 items-center border-b last:border-b-0 border-[#2B2017] ${
+                        className={`grid grid-cols-[52px_1fr_70px] sm:grid-cols-[56px_1fr_80px_100px_110px] px-5 py-4 items-center border-b last:border-b-0 border-[#2B2017] ${
                           isYou
                             ? (dark ? "bg-[#1B120C]" : "bg-[#FFE9B0]")
                             : (dark ? "bg-[#0F0B08]" : "bg-[#FFF7E8]")
@@ -381,13 +381,18 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                         <span className={`flex items-center ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                           <RankDisplay rank={p.rank} />
                         </span>
-                        <span className={`font-semibold flex items-center gap-2 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
-                          {p.username}
-                          {isYou && <YouBadge />}
-                        </span>
+                        <div className={`min-w-0 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
+                          <div className="flex items-center gap-2 font-semibold">
+                            <span className="truncate">{p.username}</span>
+                            {isYou && <YouBadge />}
+                          </div>
+                          <div className={`sm:hidden text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+                            Streak {p.current_streak} · Avg {p.avg_attempts}
+                          </div>
+                        </div>
                         <span className={`text-right ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>{p.total_wins}</span>
                         <motion.div
-                          className={`flex items-center justify-end gap-1.5 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
+                          className={`hidden sm:flex items-center justify-end gap-1.5 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
                           whileHover={{ scale: 1.1 }}
                         >
                           <motion.span
@@ -398,7 +403,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                           </motion.span>
                           {p.current_streak}
                         </motion.div>
-                        <span className={`text-right text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+                        <span className={`hidden sm:block text-right text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                           {p.avg_attempts} avg
                         </span>
                       </motion.div>
@@ -519,12 +524,15 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
               >
                 {/* Headers */}
                 {/* Columns: Rank | Player | Best | Avg time | Wins | Win% | Streak | XP */}
-                <div className="grid grid-cols-[48px_1fr_70px_80px_60px_65px_70px_70px] px-5 py-3 border-b border-[#2B2017]">
-                  {["Rank", "Player", "Best", "Avg time", "Wins", "Win%", "Streak", "XP"].map((h, i) => (
-                    <span key={h} className={`text-xs ${i >= 2 ? "text-right" : ""} ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-                      {h}
-                    </span>
-                  ))}
+                <div className="grid grid-cols-[44px_1fr_70px_60px] sm:grid-cols-[48px_1fr_70px_80px_60px_65px_70px_70px] px-5 py-3 border-b border-[#2B2017]">
+                  <span className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Rank</span>
+                  <span className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Player</span>
+                  <span className={`text-xs text-right ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Best</span>
+                  <span className={`text-xs text-right ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Wins</span>
+                  <span className={`text-xs text-right hidden sm:block ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Avg time</span>
+                  <span className={`text-xs text-right hidden sm:block ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Win%</span>
+                  <span className={`text-xs text-right hidden sm:block ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Streak</span>
+                  <span className={`text-xs text-right hidden sm:block ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>XP</span>
                 </div>
 
                 {/* Loading */}
@@ -552,7 +560,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                     return (
                       <motion.div
                         key={p.rank}
-                        className={`grid grid-cols-[48px_1fr_70px_80px_60px_65px_70px_70px] px-5 py-4 items-center border-b last:border-b-0 border-[#2B2017] ${
+                        className={`grid grid-cols-[44px_1fr_70px_60px] sm:grid-cols-[48px_1fr_70px_80px_60px_65px_70px_70px] px-5 py-4 items-center border-b last:border-b-0 border-[#2B2017] ${
                           isYou
                             ? (dark ? "bg-[#1B120C]" : "bg-[#FFE9B0]")
                             : (dark ? "bg-[#0F0B08]" : "bg-[#FFF7E8]")
@@ -569,10 +577,15 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                         </span>
 
                         {/* Username */}
-                        <span className={`font-semibold flex items-center gap-2 text-sm ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
-                          {p.username}
-                          {isYou && <YouBadge />}
-                        </span>
+                        <div className={`min-w-0 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
+                          <div className="flex items-center gap-2 text-sm font-semibold">
+                            <span className="truncate">{p.username}</span>
+                            {isYou && <YouBadge />}
+                          </div>
+                          <div className={`sm:hidden text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+                            Best {p.best_time != null ? `${p.best_time}s` : "—"} · Win {p.win_rate}%
+                          </div>
+                        </div>
 
                         {/* Best time */}
                         <motion.div
@@ -583,24 +596,24 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                           {p.best_time != null ? `${p.best_time}s` : "—"}
                         </motion.div>
 
-                        {/* Avg time */}
-                        <span className={`text-right text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-                          {p.avg_time != null ? `${p.avg_time}s` : "—"}
-                        </span>
-
                         {/* Wins */}
                         <span className={`text-right text-sm ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                           {p.total_speed_wins}
                         </span>
 
+                        {/* Avg time */}
+                        <span className={`hidden sm:block text-right text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+                          {p.avg_time != null ? `${p.avg_time}s` : "—"}
+                        </span>
+
                         {/* Win rate */}
-                        <span className={`text-right text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+                        <span className={`hidden sm:block text-right text-sm ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                           {p.win_rate}%
                         </span>
 
                         {/* Streak */}
                         <motion.div
-                          className={`flex items-center justify-end gap-1 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
+                          className={`hidden sm:flex items-center justify-end gap-1 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
                           whileHover={{ scale: 1.1 }}
                         >
                           <motion.span
@@ -613,7 +626,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                         </motion.div>
 
                         {/* XP */}
-                        <span className={`text-right text-sm font-semibold ${dark ? "text-[#2FAF74]" : "text-[#1E7E52]"}`}>
+                        <span className={`hidden sm:block text-right text-sm font-semibold ${dark ? "text-[#2FAF74]" : "text-[#1E7E52]"}`}>
                           {p.total_xp} XP
                         </span>
                       </motion.div>
