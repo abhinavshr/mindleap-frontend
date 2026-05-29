@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import { Analytics } from '@vercel/analytics/react'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -51,6 +52,7 @@ function App() {
           },
         }}
       />
+      <Analytics />
       <Routes>
         <Route path="/" element={<HomePage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route path="/login" element={<LoginPage dark={dark} onToggleDark={handleToggleDark} />} />
