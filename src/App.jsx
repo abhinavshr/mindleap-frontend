@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { Analytics } from '@vercel/analytics/react'
 import HomePage from './pages/HomePage'
@@ -12,6 +12,18 @@ import AllLevelsPage from "./pages/LevelPage";
 import HallOfFamePage from "./pages/HallOfFrame";
 import MissionsPage from "./pages/MissionPage";
 import NotFoundPage from "./pages/NotFoundPage";
+
+function ProtectedRoute({ children }) {
+  const location = useLocation();
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    const redirect = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/login?redirect=${redirect}`} replace />;
+  }
+
+  return children;
+}
 
 function App() {
   const [dark, setDark] = useState(() => {
@@ -59,7 +71,14 @@ function App() {
         <Route path="/register" element={<RegisterPage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route path="/leaderboard" element={<LeaderboardPage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route path="/profile" element={<ProfilePage dark={dark} onToggleDark={handleToggleDark} />} />
-        <Route path="/speed-game" element={<SpeedGamePage dark={dark} onToggleDark={handleToggleDark} />} />
+        <Route
+          path="/speed-game"
+          element={
+            <ProtectedRoute>
+              <SpeedGamePage dark={dark} onToggleDark={handleToggleDark} />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/levels" element={<AllLevelsPage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route path="/hall-of-fame" element={<HallOfFamePage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route path="/missions" element={<MissionsPage dark={dark} onToggleDark={handleToggleDark} />} />
