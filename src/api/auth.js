@@ -14,3 +14,6 @@ export const refreshToken = () =>
 
 export const getMe = () =>
   api.get("/auth/me");
+
+export const getPublicProfile = (username) =>
+  api.get(`/auth/profile/${username}`);
