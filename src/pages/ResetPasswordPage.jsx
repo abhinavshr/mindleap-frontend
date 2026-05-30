@@ -1,13 +1,19 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import toast from "react-hot-toast";
 import Navbar from "../components/Reuseable/Navbar";
+import { resetPassword } from "../api/auth";
 
 export default function ResetPasswordPage({ dark, onToggleDark }) {
   const [form, setForm] = useState({ password: "", confirmPassword: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const email = location.state?.email ?? "";
 
   const inputBase = `w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors duration-150 ${
     dark
@@ -23,8 +29,33 @@ export default function ResetPasswordPage({ dark, onToggleDark }) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!email) {
+      toast.error("Email is missing. Please start again.");
+      navigate("/forgot-password");
+      return;
+    }
+    if (!form.password || !form.confirmPassword) {
+      toast.error("Both password fields are required.");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await resetPassword(email, form.password, form.confirmPassword);
+      toast.success("Password updated. Please log in.");
+      navigate("/login");
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to reset password.";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -166,9 +197,10 @@ export default function ResetPasswordPage({ dark, onToggleDark }) {
                 whileHover={{ scale: 1.015 }}
                 whileTap={{ scale: 0.985 }}
                 type="submit"
-                className="w-full py-3 rounded-lg bg-[#6AAA64] hover:bg-[#538d4e] active:bg-[#4a7d45] text-white font-bold text-sm tracking-wide transition-colors duration-150"
+                disabled={loading}
+                className="w-full py-3 rounded-lg bg-[#6AAA64] hover:bg-[#538d4e] active:bg-[#4a7d45] text-white font-bold text-sm tracking-wide transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Update password
+                {loading ? "Updating..." : "Update password"}
               </motion.button>
             </form>
 
