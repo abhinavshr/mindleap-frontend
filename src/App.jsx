@@ -15,6 +15,9 @@ import MissionsPage from "./pages/MissionPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import PublicProfilePage from "./pages/PublicProfilePage";
 import BackendDownPage from "./pages/BackendDownPage";
+import ForgotPasswordEmailPage from "./pages/ForgotPasswordEmailPage";
+import ForgotPasswordOtpPage from "./pages/ForgotPasswordOtpPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
@@ -100,6 +103,9 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route path="/login" element={<LoginPage dark={dark} onToggleDark={handleToggleDark} />} />
+        <Route path="/forgot-password" element={<ForgotPasswordEmailPage dark={dark} onToggleDark={handleToggleDark} />} />
+        <Route path="/forgot-password/verify" element={<ForgotPasswordOtpPage dark={dark} onToggleDark={handleToggleDark} />} />
+        <Route path="/forgot-password/reset" element={<ResetPasswordPage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route path="/register" element={<RegisterPage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route path="/leaderboard" element={<LeaderboardPage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route path="/profile" element={<ProfilePage dark={dark} onToggleDark={handleToggleDark} />} />

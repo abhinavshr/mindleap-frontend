@@ -229,6 +229,14 @@ export default function LoginPage({ dark, onToggleDark }) {
                     {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
                   </span>
                 </div>
+                <div className="mt-2 text-right">
+                  <Link
+                    to="/forgot-password"
+                    className={`${dark ? "text-[#B0B6BA]" : "text-[#6AAA64]"} text-xs font-medium hover:underline`}
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
               </div>
 
               <motion.button
