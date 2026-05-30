@@ -23,3 +23,6 @@ export const requestPasswordReset = (email) =>
 
 export const verifyResetOtp = (email, otp) =>
   api.post("/auth/verify-reset-otp", { email, otp });
+
+export const resetPassword = (email, password, confirmPassword) =>
+  api.post("/auth/reset-password", { email, password, confirmPassword });
