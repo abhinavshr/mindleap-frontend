@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { Analytics } from '@vercel/analytics/react'
+import axios from "axios";
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -13,6 +14,7 @@ import HallOfFamePage from "./pages/HallOfFrame";
 import MissionsPage from "./pages/MissionPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import PublicProfilePage from "./pages/PublicProfilePage";
+import BackendDownPage from "./pages/BackendDownPage";
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
@@ -30,6 +32,7 @@ function App() {
   const [dark, setDark] = useState(() => {
     return localStorage.getItem("theme") === "dark";
   });
+  const [healthStatus, setHealthStatus] = useState("checking");
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -42,6 +45,34 @@ function App() {
       return next;
     });
   };
+
+  const checkHealth = useCallback(async () => {
+    setHealthStatus("checking");
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/health`, {
+        timeout: 5000,
+      });
+      const isOk = res?.data?.status === "ok";
+      setHealthStatus(isOk ? "ok" : "down");
+    } catch {
+      setHealthStatus("down");
+    }
+  }, []);
+
+  useEffect(() => {
+    checkHealth();
+  }, [checkHealth]);
+
+  if (healthStatus !== "ok") {
+    return (
+      <BackendDownPage
+        dark={dark}
+        onToggleDark={handleToggleDark}
+        status={healthStatus}
+        onRetry={checkHealth}
+      />
+    );
+  }
 
   return (
     <BrowserRouter>
