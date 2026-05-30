@@ -20,3 +20,6 @@ export const getPublicProfile = (username) =>
 
 export const requestPasswordReset = (email) =>
   api.post("/auth/forgot-password", { email });
+
+export const verifyResetOtp = (email, otp) =>
+  api.post("/auth/verify-reset-otp", { email, otp });

@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import Navbar from "../components/Reuseable/Navbar";
+import { verifyResetOtp } from "../api/auth";
 
 export default function ForgotPasswordOtpPage({ dark, onToggleDark }) {
   const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
+  const email = location.state?.email ?? "";
 
   const inputBase = `w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors duration-150 tracking-[0.35em] text-center ${
     dark
@@ -13,9 +18,29 @@ export default function ForgotPasswordOtpPage({ dark, onToggleDark }) {
       : "bg-white border-[#D9D1C6] text-[#1A1A1B] placeholder-[#8B8378] focus:border-[#6AAA64]"
   }`;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate("/forgot-password/reset");
+    if (!email) {
+      toast.error("Email is missing. Please start again.");
+      navigate("/forgot-password");
+      return;
+    }
+    if (!otp) {
+      toast.error("OTP is required.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await verifyResetOtp(email, otp);
+      toast.success("OTP verified.");
+      navigate("/forgot-password/reset", { state: { email, otp } });
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to verify OTP.";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -132,9 +157,10 @@ export default function ForgotPasswordOtpPage({ dark, onToggleDark }) {
                 whileHover={{ scale: 1.015 }}
                 whileTap={{ scale: 0.985 }}
                 type="submit"
-                className="w-full py-3 rounded-lg bg-[#6AAA64] hover:bg-[#538d4e] active:bg-[#4a7d45] text-white font-bold text-sm tracking-wide transition-colors duration-150"
+                disabled={loading}
+                className="w-full py-3 rounded-lg bg-[#6AAA64] hover:bg-[#538d4e] active:bg-[#4a7d45] text-white font-bold text-sm tracking-wide transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Verify OTP
+                {loading ? "Verifying..." : "Verify OTP"}
               </motion.button>
             </form>
 
