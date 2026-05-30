@@ -17,3 +17,6 @@ export const getMe = () =>
 
 export const getPublicProfile = (username) =>
   api.get(`/auth/profile/${username}`);
+
+export const requestPasswordReset = (email) =>
+  api.post("/auth/forgot-password", { email });

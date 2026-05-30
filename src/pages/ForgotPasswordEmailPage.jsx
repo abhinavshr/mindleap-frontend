@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import Navbar from "../components/Reuseable/Navbar";
+import { requestPasswordReset } from "../api/auth";
 
 export default function ForgotPasswordEmailPage({ dark, onToggleDark }) {
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const inputBase = `w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors duration-150 ${
@@ -13,9 +16,24 @@ export default function ForgotPasswordEmailPage({ dark, onToggleDark }) {
       : "bg-white border-[#D9D1C6] text-[#1A1A1B] placeholder-[#8B8378] focus:border-[#6AAA64]"
   }`;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate("/forgot-password/verify");
+    if (!email) {
+      toast.error("Email is required.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await requestPasswordReset(email);
+      toast.success("OTP sent. Check your email.");
+      navigate("/forgot-password/verify", { state: { email } });
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to send OTP.";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -131,9 +149,10 @@ export default function ForgotPasswordEmailPage({ dark, onToggleDark }) {
                 whileHover={{ scale: 1.015 }}
                 whileTap={{ scale: 0.985 }}
                 type="submit"
-                className="w-full py-3 rounded-lg bg-[#6AAA64] hover:bg-[#538d4e] active:bg-[#4a7d45] text-white font-bold text-sm tracking-wide transition-colors duration-150"
+                disabled={loading}
+                className="w-full py-3 rounded-lg bg-[#6AAA64] hover:bg-[#538d4e] active:bg-[#4a7d45] text-white font-bold text-sm tracking-wide transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Send OTP
+                {loading ? "Sending..." : "Send OTP"}
               </motion.button>
             </form>
 
