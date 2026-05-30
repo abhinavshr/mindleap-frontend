@@ -5,6 +5,7 @@ import {
   AnimatePresence,
   useReducedMotion,
 } from "framer-motion";
+import { Link } from "react-router-dom";
 import Navbar from "../components/Reuseable/Navbar";
 import { getLeaderboard, getMyRank } from "../api/leaderboard";
 import { getSpeedLeaderboard, getMySpeedStats } from "../api/speedGame";
@@ -383,7 +384,16 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                         </span>
                         <div className={`min-w-0 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                           <div className="flex items-center gap-2 font-semibold">
-                            <span className="truncate">{p.username}</span>
+                            {isYou ? (
+                              <span className="truncate">{p.username}</span>
+                            ) : (
+                              <Link
+                                to={`/profile/${encodeURIComponent(p.username)}`}
+                                className={`truncate hover:underline ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
+                              >
+                                {p.username}
+                              </Link>
+                            )}
                             {isYou && <YouBadge />}
                           </div>
                           <div className={`sm:hidden text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
@@ -579,7 +589,16 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                         {/* Username */}
                         <div className={`min-w-0 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
                           <div className="flex items-center gap-2 text-sm font-semibold">
-                            <span className="truncate">{p.username}</span>
+                            {isYou ? (
+                              <span className="truncate">{p.username}</span>
+                            ) : (
+                              <Link
+                                to={`/profile/${encodeURIComponent(p.username)}`}
+                                className={`truncate hover:underline ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}
+                              >
+                                {p.username}
+                              </Link>
+                            )}
                             {isYou && <YouBadge />}
                           </div>
                           <div className={`sm:hidden text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>

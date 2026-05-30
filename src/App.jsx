@@ -12,6 +12,7 @@ import AllLevelsPage from "./pages/LevelPage";
 import HallOfFamePage from "./pages/HallOfFrame";
 import MissionsPage from "./pages/MissionPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import PublicProfilePage from "./pages/PublicProfilePage";
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
@@ -71,6 +72,7 @@ function App() {
         <Route path="/register" element={<RegisterPage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route path="/leaderboard" element={<LeaderboardPage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route path="/profile" element={<ProfilePage dark={dark} onToggleDark={handleToggleDark} />} />
+        <Route path="/profile/:username" element={<PublicProfilePage dark={dark} onToggleDark={handleToggleDark} />} />
         <Route
           path="/speed-game"
           element={
