@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Reuseable/Navbar";
 import Board from "../components/Board/Board";
 import Keyboard from "../components/Keyboard/Keyboard";
+import AdComponent from "../components/Ads/AdComponent";
 import { fetchDailyInfo, submitGuessApi, checkAlreadyPlayed } from "../api/game";
 import { Howl, Howler } from "howler";
 
@@ -430,6 +431,9 @@ export default function HomePage({ dark, onToggleDark }) {
       </AnimatePresence>
 
       <main className="flex-1 flex flex-col items-center justify-between md:justify-center py-6 sm:py-7 md:py-4 gap-4 sm:gap-5 md:gap-3 px-4 sm:px-6 md:min-h-0 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top [@media(max-height:760px)]:justify-start [@media(max-height:760px)]:py-5 [@media(max-height:760px)]:gap-3 [@media(max-height:760px)]:scale-100">
+        <div className="w-full flex justify-center">
+          <AdComponent className="max-w-[728px]" />
+        </div>
 
         <motion.div
           variants={fadeSlideUp}
