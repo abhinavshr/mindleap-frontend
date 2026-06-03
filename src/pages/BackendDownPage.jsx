@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 // ─── animations ──────────────────────────────────────────────────────────────
 
@@ -29,10 +29,27 @@ const EMOJI_POOL = [
 ];
 
 const DIFFICULTIES = {
-  easy: { label: "Easy", pairs: 6, cols: 4 },
-  medium: { label: "Medium", pairs: 8, cols: 4 },
-  hard: { label: "Hard", pairs: 10, cols: 5 },
+  easy:   { label: "Easy",   pairs: 6,  cols: 4 },
+  medium: { label: "Medium", pairs: 8,  cols: 4 },
+  hard:   { label: "Hard",   pairs: 10, cols: 5 },
 };
+
+const LS_KEY = (diff) => `memoryFlip_best_${diff}`;
+
+function getStoredBest(diff) {
+  try {
+    const v = localStorage.getItem(LS_KEY(diff));
+    return v ? parseInt(v, 10) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setStoredBest(diff, moves) {
+  try {
+    localStorage.setItem(LS_KEY(diff), String(moves));
+  } catch {}
+}
 
 function shuffle(arr) {
   const a = [...arr];
@@ -65,41 +82,31 @@ function Card({ card, isFlipped, isMatched, onClick, dark }) {
       >
         {/* Back face */}
         <div
-          className={`absolute inset-0 rounded-xl flex items-center justify-center border-2 ${dark
-              ? "bg-[#1B120C] border-[#5A3E1E]"
-              : "bg-[#FFE9B0] border-[#C9A86C]"
-            }`}
+          className={`absolute inset-0 rounded-xl flex items-center justify-center border-2 ${
+            dark ? "bg-[#1B120C] border-[#5A3E1E]" : "bg-[#FFE9B0] border-[#C9A86C]"
+          }`}
           style={{ backfaceVisibility: "hidden" }}
         >
-          <span
-            className={`font-arcade text-xs ${dark ? "text-[#8A7060]" : "text-[#C9A86C]"
-              }`}
-          >
+          <span className={`font-arcade text-xs ${dark ? "text-[#8A7060]" : "text-[#C9A86C]"}`}>
             ?
           </span>
         </div>
 
         {/* Front face */}
         <motion.div
-          className={`absolute inset-0 rounded-xl flex items-center justify-center border-2 ${isMatched
-              ? dark
-                ? "border-[#F2B84B] bg-[#221508]"
-                : "border-[#D4860A] bg-[#FFF8EC]"
-              : dark
-                ? "border-[#5A3E1E] bg-[#1A110A]"
-                : "border-[#C9A86C] bg-[#FFF8EC]"
-            }`}
-          style={{
-            backfaceVisibility: "hidden",
-            transform: "rotateY(180deg)",
-          }}
+          className={`absolute inset-0 rounded-xl flex items-center justify-center border-2 ${
+            isMatched
+              ? dark ? "border-[#F2B84B] bg-[#221508]" : "border-[#D4860A] bg-[#FFF8EC]"
+              : dark ? "border-[#5A3E1E] bg-[#1A110A]" : "border-[#C9A86C] bg-[#FFF8EC]"
+          }`}
+          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
           animate={
             isMatched
               ? {
-                boxShadow: dark
-                  ? ["0 0 0px #F2B84B00", "0 0 16px #F2B84B66", "0 0 8px #F2B84B33"]
-                  : ["0 0 0px #D4860A00", "0 0 16px #FFD38C88", "0 0 8px #FFD38C44"],
-              }
+                  boxShadow: dark
+                    ? ["0 0 0px #F2B84B00", "0 0 16px #F2B84B66", "0 0 8px #F2B84B33"]
+                    : ["0 0 0px #D4860A00", "0 0 16px #FFD38C88", "0 0 8px #FFD38C44"],
+                }
               : { boxShadow: "0 0 0px transparent" }
           }
           transition={{ duration: 0.6 }}
@@ -122,6 +129,27 @@ function MemoryGame({ dark }) {
   const [locked, setLocked] = useState(false);
   const [message, setMessage] = useState("flip a card to start");
   const [won, setWon] = useState(false);
+  const [winResult, setWinResult] = useState(null); // { isNew, prev, current }
+  const [bestScores, setBestScores] = useState(() => ({
+    easy:   getStoredBest("easy"),
+    medium: getStoredBest("medium"),
+    hard:   getStoredBest("hard"),
+  }));
+
+  // ── cross-tab sync ────────────────────────────────────────────────────────
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (!e.key) return;
+      const match = e.key.match(/^memoryFlip_best_(.+)$/);
+      if (match) {
+        const d = match[1];
+        const val = e.newValue ? parseInt(e.newValue, 10) : null;
+        setBestScores((prev) => ({ ...prev, [d]: val }));
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const startGame = useCallback((d = diff) => {
     setDiff(d);
@@ -132,6 +160,7 @@ function MemoryGame({ dark }) {
     setLocked(false);
     setMessage("flip a card to start");
     setWon(false);
+    setWinResult(null);
   }, [diff]);
 
   useEffect(() => { startGame("easy"); }, []); // eslint-disable-line
@@ -153,7 +182,16 @@ function MemoryGame({ dark }) {
         setMatched(newMatched);
         setFlipped([]);
         setMessage("nice match! ✓");
+
         if (newMatched.size === DIFFICULTIES[diff].pairs) {
+          // ── evaluate high score ─────────────────────────────────────────
+          const prev = getStoredBest(diff);
+          const isNew = prev === null || newMoves < prev;
+          if (isNew) {
+            setStoredBest(diff, newMoves);
+            setBestScores((s) => ({ ...s, [diff]: newMoves }));
+          }
+          setWinResult({ isNew, prev, current: newMoves });
           setTimeout(() => setWon(true), 500);
         }
       } else {
@@ -175,20 +213,58 @@ function MemoryGame({ dark }) {
 
   return (
     <div className="w-full">
+      {/* High score board */}
+      <div className={`rounded-xl border mb-4 px-4 py-3 ${dark ? "bg-[#130D07] border-[#3A2810]" : "bg-[#FFF8EC] border-[#E8D5A8]"}`}>
+        <p className={`font-arcade text-xs text-center mb-2 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>
+          ── high scores ──
+        </p>
+        <div className="flex justify-around gap-2">
+          {Object.entries(DIFFICULTIES).map(([key, { label }]) => {
+            const score = bestScores[key];
+            const isActive = diff === key;
+            return (
+              <div
+                key={key}
+                className={`flex-1 text-center rounded-lg py-2 px-1 border transition-all ${
+                  isActive
+                    ? dark
+                      ? "border-[#F2B84B] bg-[#221508]"
+                      : "border-[#D4860A] bg-[#FFF3D6]"
+                    : dark
+                    ? "border-[#2B1A08] bg-transparent"
+                    : "border-[#E8D5A8] bg-transparent"
+                }`}
+              >
+                <div className={`text-xs mb-1 ${isActive ? (dark ? "text-[#F2B84B]" : "text-[#D4860A]") : (dark ? "text-[#6A5040]" : "text-[#C9A86C]")}`}>
+                  {label}
+                </div>
+                <div className={`font-arcade text-sm ${score !== null ? (dark ? "text-[#F2B84B]" : "text-[#D4860A]") : (dark ? "text-[#3A2810]" : "text-[#DDD0B0]")}`}>
+                  {score !== null ? score : "—"}
+                </div>
+                <div className={`text-xs mt-0.5 ${dark ? "text-[#5A4030]" : "text-[#C9B080]"}`}>
+                  {score !== null ? "moves" : "unplayed"}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Difficulty row */}
       <div className="flex items-center justify-center gap-2 mb-4">
         {Object.entries(DIFFICULTIES).map(([key, { label }]) => (
           <button
             key={key}
             onClick={() => startGame(key)}
-            className={`px-3 py-1.5 rounded-lg text-xs border transition-colors font-copy ${diff === key
+            className={`px-3 py-1.5 rounded-lg text-xs border transition-colors font-copy ${
+              diff === key
                 ? dark
                   ? "border-[#F2B84B] text-[#F2B84B] bg-[#221508]"
                   : "border-[#D4860A] text-[#D4860A] bg-[#FFF3D6]"
                 : dark
-                  ? "border-[#5A3E1E] text-[#CBBEAC] hover:border-[#F2B84B]"
-                  : "border-[#C9A86C] text-[#7A5C3E] hover:border-[#D4860A]"
-              }`}
+                ? "border-[#5A3E1E] text-[#CBBEAC] hover:border-[#F2B84B]"
+                : "border-[#C9A86C] text-[#7A5C3E] hover:border-[#D4860A]"
+            }`}
           >
             {label}
           </button>
@@ -197,46 +273,35 @@ function MemoryGame({ dark }) {
 
       {/* Stats row */}
       <div className="flex items-center justify-between mb-3">
-        <div className="flex gap-3">
-          <div
-            className={`px-3 py-1.5 rounded-lg border text-center ${dark ? "bg-[#1A110A] border-[#5A3E1E]" : "bg-[#FFF8EC] border-[#C9A86C]"
-              }`}
-          >
-            <div className={`font-arcade text-sm ${dark ? "text-[#F2B84B]" : "text-[#D4860A]"}`}>
-              {moves}
-            </div>
-            <div className={`text-xs mt-0.5 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>
-              moves
-            </div>
+        <div className="flex gap-2">
+          {/* Moves */}
+          <div className={`px-3 py-1.5 rounded-lg border text-center ${dark ? "bg-[#1A110A] border-[#5A3E1E]" : "bg-[#FFF8EC] border-[#C9A86C]"}`}>
+            <div className={`font-arcade text-sm ${dark ? "text-[#F2B84B]" : "text-[#D4860A]"}`}>{moves}</div>
+            <div className={`text-xs mt-0.5 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>moves</div>
           </div>
-          <div
-            className={`px-3 py-1.5 rounded-lg border text-center ${dark ? "bg-[#1A110A] border-[#5A3E1E]" : "bg-[#FFF8EC] border-[#C9A86C]"
-              }`}
-          >
-            <div className={`font-arcade text-sm ${dark ? "text-[#F2B84B]" : "text-[#D4860A]"}`}>
-              {matched.size}/{pairs}
-            </div>
-            <div className={`text-xs mt-0.5 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>
-              pairs
-            </div>
+
+          {/* Pairs */}
+          <div className={`px-3 py-1.5 rounded-lg border text-center ${dark ? "bg-[#1A110A] border-[#5A3E1E]" : "bg-[#FFF8EC] border-[#C9A86C]"}`}>
+            <div className={`font-arcade text-sm ${dark ? "text-[#F2B84B]" : "text-[#D4860A]"}`}>{matched.size}/{pairs}</div>
+            <div className={`text-xs mt-0.5 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>pairs</div>
           </div>
+
         </div>
+
         <button
           onClick={() => startGame()}
-          className={`px-4 py-2 rounded-lg text-xs font-semibold border-2 transition-colors ${dark
+          className={`px-4 py-2 rounded-lg text-xs font-semibold border-2 transition-colors ${
+            dark
               ? "bg-[#1B120C] border-[#F7EEDB] text-[#F7EEDB] hover:bg-[#2B2017]"
               : "bg-[#FFE9B0] border-[#2B2017] text-[#2B2017] hover:bg-[#FFDFA0]"
-            }`}
+          }`}
         >
           New Game
         </button>
       </div>
 
       {/* Progress bar */}
-      <div
-        className={`h-1.5 rounded-full mb-4 overflow-hidden ${dark ? "bg-[#221508]" : "bg-[#E8D5A8]"
-          }`}
-      >
+      <div className={`h-1.5 rounded-full mb-4 overflow-hidden ${dark ? "bg-[#221508]" : "bg-[#E8D5A8]"}`}>
         <motion.div
           className={`h-full rounded-full ${dark ? "bg-[#F2B84B]" : "bg-[#D4860A]"}`}
           animate={{ width: `${progress}%` }}
@@ -262,39 +327,72 @@ function MemoryGame({ dark }) {
       </div>
 
       {/* Message */}
-      <div
-        className={`text-center font-arcade text-xs mt-4 h-5 ${dark ? "text-[#8A7060]" : "text-[#A08060]"
-          }`}
-      >
+      <div className={`text-center font-arcade text-xs mt-4 h-5 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>
         {message}
       </div>
 
       {/* Win overlay */}
       <AnimatePresence>
-        {won && (
+        {won && winResult && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className={`absolute inset-0 flex flex-col items-center justify-center rounded-xl z-20 ${dark ? "bg-[#1A110A]/95" : "bg-[#FFF8EC]/95"
-              }`}
+            className={`absolute inset-0 flex flex-col items-center justify-center rounded-xl z-20 ${
+              dark ? "bg-[#1A110A]/95" : "bg-[#FFF8EC]/95"
+            }`}
           >
-            <p
-              className={`font-arcade text-xl mb-2 ${dark ? "text-[#F2B84B]" : "text-[#D4860A]"
-                }`}
+            {/* Trophy / firework icon */}
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, type: "spring", stiffness: 260, damping: 18 }}
+              className="text-4xl mb-2"
             >
+              {winResult.isNew ? "🏆" : "🎉"}
+            </motion.div>
+
+            <p className={`font-arcade text-xl mb-1 ${dark ? "text-[#F2B84B]" : "text-[#D4860A]"}`}>
               you win!
             </p>
+
+            {/* High score line */}
+            {winResult.isNew ? (
+              <motion.p
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                className={`text-xs font-arcade mb-1 px-3 py-1 rounded-lg border ${
+                  dark
+                    ? "text-[#F2B84B] border-[#F2B84B] bg-[#2B1A06]"
+                    : "text-[#D4860A] border-[#D4860A] bg-[#FFF3D6]"
+                }`}
+              >
+                ★ new high score!
+              </motion.p>
+            ) : (
+              <p className={`text-xs mb-1 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>
+                best: {winResult.prev} moves
+              </p>
+            )}
+
             <p className={`text-sm mb-6 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
-              {moves} moves · {pairs} pairs matched
+              {winResult.current} moves · {pairs} pairs
+              {!winResult.isNew && winResult.prev !== null && (
+                <span className={`ml-2 text-xs ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>
+                  ({winResult.current - winResult.prev > 0 ? "+" : ""}{winResult.current - winResult.prev} vs best)
+                </span>
+              )}
             </p>
+
             <button
               onClick={() => startGame()}
-              className={`px-5 py-2.5 rounded-lg text-xs font-semibold font-arcade border-2 transition-colors ${dark
+              className={`px-5 py-2.5 rounded-lg text-xs font-semibold font-arcade border-2 transition-colors ${
+                dark
                   ? "bg-[#1B120C] border-[#F7EEDB] text-[#F7EEDB] hover:bg-[#2B2017]"
                   : "bg-[#FFE9B0] border-[#2B2017] text-[#2B2017] hover:bg-[#FFDFA0]"
-                }`}
+              }`}
             >
               play again
             </button>
@@ -313,37 +411,38 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
 
   return (
     <div
-      className={`min-h-screen flex items-center justify-center px-4 font-copy transition-colors duration-300 ${dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
-        }`}
+      className={`min-h-screen flex items-center justify-center px-4 font-copy transition-colors duration-300 ${
+        dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
+      }`}
     >
       <div className="relative w-full max-w-lg">
         {/* Ambient orbs */}
         <motion.div
-          className={`absolute -top-12 -left-12 h-40 w-40 rounded-full blur-3xl opacity-40 ${dark ? "bg-[#2E1C10]" : "bg-[#FFD38C]"
-            }`}
+          className={`absolute -top-12 -left-12 h-40 w-40 rounded-full blur-3xl opacity-40 ${
+            dark ? "bg-[#2E1C10]" : "bg-[#FFD38C]"
+          }`}
           variants={pulseOrbit}
           initial="idle"
           animate="active"
         />
         <motion.div
-          className={`absolute -bottom-10 -right-8 h-48 w-48 rounded-full blur-3xl opacity-30 ${dark ? "bg-[#1C2E1B]" : "bg-[#CFE6D0]"
-            }`}
+          className={`absolute -bottom-10 -right-8 h-48 w-48 rounded-full blur-3xl opacity-30 ${
+            dark ? "bg-[#1C2E1B]" : "bg-[#CFE6D0]"
+          }`}
           variants={pulseOrbit}
           initial="idle"
           animate="active"
         />
 
         {/* Main panel */}
-        <div
-          className={`arcade-panel relative z-10 px-6 py-8 sm:px-8 sm:py-10 ${dark ? "arcade-panel-dark" : ""
-            }`}
-        >
+        <div className={`arcade-panel relative z-10 px-6 py-8 sm:px-8 sm:py-10 ${dark ? "arcade-panel-dark" : ""}`}>
           {/* Header */}
           <div className="flex items-center justify-between gap-4 mb-5">
             <div className="flex items-center gap-4">
               <motion.div
-                className={`h-14 w-14 rounded-full border-2 flex-shrink-0 ${dark ? "border-[#F2B84B]" : "border-[#2B2017]"
-                  } flex items-center justify-center`}
+                className={`h-14 w-14 rounded-full border-2 flex-shrink-0 ${
+                  dark ? "border-[#F2B84B]" : "border-[#2B2017]"
+                } flex items-center justify-center`}
                 variants={pulseOrbit}
                 initial="idle"
                 animate="active"
@@ -352,8 +451,7 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
                   {[0, 1, 2].map((i) => (
                     <motion.span
                       key={i}
-                      className={`w-1.5 rounded-full origin-bottom ${dark ? "bg-[#F2B84B]" : "bg-[#2B2017]"
-                        }`}
+                      className={`w-1.5 rounded-full origin-bottom ${dark ? "bg-[#F2B84B]" : "bg-[#2B2017]"}`}
                       style={{ height: "100%" }}
                       variants={barWave(i * 0.18)}
                       initial="idle"
@@ -364,10 +462,7 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
               </motion.div>
 
               <div>
-                <p
-                  className={`text-xs uppercase tracking-[0.3em] ${dark ? "text-[#CBBEAC]" : "text-[#7A5C3E]"
-                    }`}
-                >
+                <p className={`text-xs uppercase tracking-[0.3em] ${dark ? "text-[#CBBEAC]" : "text-[#7A5C3E]"}`}>
                   System Status
                 </p>
                 <h1 className="font-arcade text-xl sm:text-2xl leading-snug">
@@ -379,20 +474,18 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
             {/* Theme toggle */}
             <button
               onClick={onToggleDark}
-              className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${dark
+              className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${
+                dark
                   ? "border-[#CBBEAC] text-[#F7EEDB] hover:border-[#F7EEDB]"
                   : "border-[#5A4636] text-[#2B2017] hover:border-[#2B2017]"
-                }`}
+              }`}
             >
               {dark ? "☀ Light" : "☾ Dark"}
             </button>
           </div>
 
           {/* Status message */}
-          <p
-            className={`text-sm mb-5 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"
-              }`}
-          >
+          <p className={`text-sm mb-5 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
             {isChecking
               ? "Hang tight while we ping the API."
               : "We cannot reach the game servers right now. Try again in a moment — or kill some time below."}
@@ -403,24 +496,26 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
             <button
               onClick={onRetry}
               disabled={isChecking}
-              className={`px-5 py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${dark
+              className={`px-5 py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${
+                dark
                   ? "bg-[#1B120C] border-[#F7EEDB] text-[#F7EEDB] hover:bg-[#2B2017]"
                   : "bg-[#FFE9B0] border-[#2B2017] text-[#2B2017] hover:bg-[#FFDFA0]"
-                }`}
+              }`}
             >
               {isChecking ? "Checking…" : "↺ Retry"}
             </button>
 
             <button
               onClick={() => setShowGame((v) => !v)}
-              className={`px-5 py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors ${showGame
+              className={`px-5 py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors ${
+                showGame
                   ? dark
                     ? "bg-[#2B2017] border-[#F2B84B] text-[#F2B84B]"
                     : "bg-[#FFF3D6] border-[#D4860A] text-[#D4860A]"
                   : dark
-                    ? "border-[#CBBEAC] text-[#F7EEDB] hover:border-[#F7EEDB]"
-                    : "border-[#5A4636] text-[#2B2017] hover:border-[#2B2017]"
-                }`}
+                  ? "border-[#CBBEAC] text-[#F7EEDB] hover:border-[#F7EEDB]"
+                  : "border-[#5A4636] text-[#2B2017] hover:border-[#2B2017]"
+              }`}
             >
               {showGame ? "▲ Hide Game" : "▼ Play a Game"}
             </button>
@@ -437,19 +532,10 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
                 transition={{ duration: 0.35, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                {/* Divider */}
-                <div
-                  className={`border-t mb-5 ${dark ? "border-[#2B2017]" : "border-[#E8D5A8]"
-                    }`}
-                />
-
-                <p
-                  className={`font-arcade text-xs mb-4 ${dark ? "text-[#CBBEAC]" : "text-[#7A5C3E]"
-                    }`}
-                >
+                <div className={`border-t mb-5 ${dark ? "border-[#2B2017]" : "border-[#E8D5A8]"}`} />
+                <p className={`font-arcade text-xs mb-4 ${dark ? "text-[#CBBEAC]" : "text-[#7A5C3E]"}`}>
                   Memory Flip
                 </p>
-
                 <div className="relative">
                   <MemoryGame dark={dark} />
                 </div>
