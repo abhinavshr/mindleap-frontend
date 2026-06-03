@@ -430,7 +430,8 @@ export default function HomePage({ dark, onToggleDark }) {
         )}
       </AnimatePresence>
 
-      <main className="flex-1 flex flex-col items-center justify-between md:justify-center h-full min-h-screen py-6 sm:py-7 md:py-4 gap-4 sm:gap-5 md:gap-3 px-4 sm:px-6 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top [@media(max-height:760px)]:justify-start [@media(max-height:760px)]:py-5 [@media(max-height:760px)]:gap-3 [@media(max-height:760px)]:scale-100">
+      {/* ↓ FIXED: removed min-h-screen, changed justify-between → justify-center for mobile only */}
+      <main className="flex-1 flex flex-col items-center justify-center md:justify-center h-full py-8 sm:py-7 md:py-4 gap-6 sm:gap-5 md:gap-3 px-4 sm:px-6 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top [@media(max-height:760px)]:justify-start [@media(max-height:760px)]:py-5 [@media(max-height:760px)]:gap-3 [@media(max-height:760px)]:scale-100">
         <div className="w-full flex justify-center">
           <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-[1fr,auto,1fr] items-center justify-center gap-6">
             <motion.div
@@ -578,7 +579,7 @@ export default function HomePage({ dark, onToggleDark }) {
           )}
         </AnimatePresence>
 
-        <div className="-mt-1 flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm">
+        <div className="mt-0 sm:-mt-1 flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm">
           <div className="flex items-center gap-2">
             <span className="w-3.5 h-3.5 rounded-sm bg-[#2FAF74] border border-[#1E7E52]" />
             <span className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}>Correct spot</span>
@@ -598,7 +599,7 @@ export default function HomePage({ dark, onToggleDark }) {
           initial="hidden"
           animate="visible"
           custom={2}
-          className="w-full flex justify-center px-2 md:scale-[0.92] md:origin-top"
+          className="w-full flex justify-center px-1 md:px-2 md:scale-[0.92] md:origin-top"
         >
           <Keyboard
             onKey={handleKey}
