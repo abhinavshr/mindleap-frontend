@@ -430,34 +430,32 @@ export default function HomePage({ dark, onToggleDark }) {
         )}
       </AnimatePresence>
 
-      <main className="flex-1 flex flex-col items-center justify-between md:justify-center py-6 sm:py-7 md:py-4 gap-4 sm:gap-5 md:gap-3 px-4 sm:px-6 md:min-h-0 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top [@media(max-height:760px)]:justify-start [@media(max-height:760px)]:py-5 [@media(max-height:760px)]:gap-3 [@media(max-height:760px)]:scale-100">
+      <main className="flex-1 flex flex-col items-center justify-between md:justify-center h-full min-h-screen py-6 sm:py-7 md:py-4 gap-4 sm:gap-5 md:gap-3 px-4 sm:px-6 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top [@media(max-height:760px)]:justify-start [@media(max-height:760px)]:py-5 [@media(max-height:760px)]:gap-3 [@media(max-height:760px)]:scale-100">
         <div className="w-full flex justify-center">
-          <AdComponent className="max-w-[728px]" />
-        </div>
-
-        <motion.div
-          variants={fadeSlideUp}
-          initial="hidden"
-          animate="visible"
-          custom={1}
-          className="flex-1 flex items-center justify-center w-full"
-        >
-          <div className="relative">
+          <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-[1fr,auto,1fr] items-center justify-center gap-6">
             <motion.div
-              variants={winPulseVariant}
-              initial="idle"
-              animate={showWinFx ? "active" : "idle"}
-              className="arcade-panel px-4 sm:px-6 py-5 sm:py-6 md:scale-[0.92] md:origin-top"
+              variants={fadeSlideUp}
+              initial="hidden"
+              animate="visible"
+              custom={1}
+              className="flex items-center justify-center w-full md:col-start-2 md:col-end-3"
             >
-              <Board
-                guesses={guesses}
-                currentGuess={currentGuess}
-                maxGuesses={maxGuesses}
-                wordLength={wordLength}
-                shakeRow={shakeRow}
-              />
-            </motion.div>
-            <AnimatePresence>
+              <div className="relative">
+                <motion.div
+                  variants={winPulseVariant}
+                  initial="idle"
+                  animate={showWinFx ? "active" : "idle"}
+                  className="arcade-panel px-4 sm:px-6 py-5 sm:py-6 md:scale-[0.92] md:origin-top"
+                >
+                  <Board
+                    guesses={guesses}
+                    currentGuess={currentGuess}
+                    maxGuesses={maxGuesses}
+                    wordLength={wordLength}
+                    shakeRow={shakeRow}
+                  />
+                </motion.div>
+                <AnimatePresence>
               {showWinFx && (
                 <motion.div
                   key="win-confetti"
@@ -540,6 +538,12 @@ export default function HomePage({ dark, onToggleDark }) {
             </AnimatePresence>
           </div>
         </motion.div>
+
+            <div className="hidden md:flex md:col-start-3 md:col-end-4 md:w-64 lg:w-80 justify-center">
+              <AdComponent className="w-full" />
+            </div>
+          </div>
+        </div>
 
         <AnimatePresence>
           {gameOver && revealedWord && (
