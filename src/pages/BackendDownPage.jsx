@@ -1,4 +1,7 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useCallback } from "react";
+
+// ─── animations ──────────────────────────────────────────────────────────────
 
 const pulseOrbit = {
   idle: { opacity: 0.5, scale: 0.95 },
@@ -17,100 +20,442 @@ const barWave = (delay = 0) => ({
   },
 });
 
+// ─── memory game constants ────────────────────────────────────────────────────
+
+const EMOJI_POOL = [
+  "🐶", "🐱", "🦊", "🐸", "🦄", "🐙", "🦋", "🦁",
+  "🐯", "🐧", "🦖", "🐳", "🦚", "🌺", "🍄", "🎃",
+  "🔮", "🌈", "🎸", "🍕",
+];
+
+const DIFFICULTIES = {
+  easy: { label: "Easy", pairs: 6, cols: 4 },
+  medium: { label: "Medium", pairs: 8, cols: 4 },
+  hard: { label: "Hard", pairs: 10, cols: 5 },
+};
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildDeck(pairs) {
+  const pool = shuffle([...EMOJI_POOL]).slice(0, pairs);
+  return shuffle([...pool, ...pool].map((emoji, id) => ({ id, emoji, key: emoji })));
+}
+
+// ─── Card component ───────────────────────────────────────────────────────────
+
+function Card({ card, isFlipped, isMatched, onClick, dark }) {
+  return (
+    <div
+      className="relative cursor-pointer"
+      style={{ perspective: "600px", aspectRatio: "1/1", maxWidth: "64px", width: "100%" }}
+      onClick={onClick}
+    >
+      <motion.div
+        className="relative w-full h-full"
+        style={{ transformStyle: "preserve-3d" }}
+        animate={{ rotateY: isFlipped || isMatched ? 180 : 0 }}
+        transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+      >
+        {/* Back face */}
+        <div
+          className={`absolute inset-0 rounded-xl flex items-center justify-center border-2 ${dark
+              ? "bg-[#1B120C] border-[#5A3E1E]"
+              : "bg-[#FFE9B0] border-[#C9A86C]"
+            }`}
+          style={{ backfaceVisibility: "hidden" }}
+        >
+          <span
+            className={`font-arcade text-xs ${dark ? "text-[#8A7060]" : "text-[#C9A86C]"
+              }`}
+          >
+            ?
+          </span>
+        </div>
+
+        {/* Front face */}
+        <motion.div
+          className={`absolute inset-0 rounded-xl flex items-center justify-center border-2 ${isMatched
+              ? dark
+                ? "border-[#F2B84B] bg-[#221508]"
+                : "border-[#D4860A] bg-[#FFF8EC]"
+              : dark
+                ? "border-[#5A3E1E] bg-[#1A110A]"
+                : "border-[#C9A86C] bg-[#FFF8EC]"
+            }`}
+          style={{
+            backfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+          }}
+          animate={
+            isMatched
+              ? {
+                boxShadow: dark
+                  ? ["0 0 0px #F2B84B00", "0 0 16px #F2B84B66", "0 0 8px #F2B84B33"]
+                  : ["0 0 0px #D4860A00", "0 0 16px #FFD38C88", "0 0 8px #FFD38C44"],
+              }
+              : { boxShadow: "0 0 0px transparent" }
+          }
+          transition={{ duration: 0.6 }}
+        >
+          <span className="text-lg select-none">{card.emoji}</span>
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ─── Memory Game component ────────────────────────────────────────────────────
+
+function MemoryGame({ dark }) {
+  const [diff, setDiff] = useState("easy");
+  const [cards, setCards] = useState([]);
+  const [flipped, setFlipped] = useState([]);
+  const [matched, setMatched] = useState(new Set());
+  const [moves, setMoves] = useState(0);
+  const [locked, setLocked] = useState(false);
+  const [message, setMessage] = useState("flip a card to start");
+  const [won, setWon] = useState(false);
+
+  const startGame = useCallback((d = diff) => {
+    setDiff(d);
+    setCards(buildDeck(DIFFICULTIES[d].pairs));
+    setFlipped([]);
+    setMatched(new Set());
+    setMoves(0);
+    setLocked(false);
+    setMessage("flip a card to start");
+    setWon(false);
+  }, [diff]);
+
+  useEffect(() => { startGame("easy"); }, []); // eslint-disable-line
+
+  const handleFlip = (idx) => {
+    if (locked || flipped.includes(idx) || matched.has(cards[idx].key)) return;
+    if (flipped.length === 2) return;
+
+    const next = [...flipped, idx];
+    setFlipped(next);
+
+    if (next.length === 2) {
+      const [a, b] = next;
+      const newMoves = moves + 1;
+      setMoves(newMoves);
+
+      if (cards[a].key === cards[b].key) {
+        const newMatched = new Set([...matched, cards[a].key]);
+        setMatched(newMatched);
+        setFlipped([]);
+        setMessage("nice match! ✓");
+        if (newMatched.size === DIFFICULTIES[diff].pairs) {
+          setTimeout(() => setWon(true), 500);
+        }
+      } else {
+        setLocked(true);
+        setMessage("no match...");
+        setTimeout(() => {
+          setFlipped([]);
+          setLocked(false);
+          setMessage("keep going!");
+        }, 900);
+      }
+    } else {
+      setMessage("pick another card");
+    }
+  };
+
+  const { pairs, cols } = DIFFICULTIES[diff];
+  const progress = Math.round((matched.size / pairs) * 100);
+
+  return (
+    <div className="w-full">
+      {/* Difficulty row */}
+      <div className="flex items-center justify-center gap-2 mb-4">
+        {Object.entries(DIFFICULTIES).map(([key, { label }]) => (
+          <button
+            key={key}
+            onClick={() => startGame(key)}
+            className={`px-3 py-1.5 rounded-lg text-xs border transition-colors font-copy ${diff === key
+                ? dark
+                  ? "border-[#F2B84B] text-[#F2B84B] bg-[#221508]"
+                  : "border-[#D4860A] text-[#D4860A] bg-[#FFF3D6]"
+                : dark
+                  ? "border-[#5A3E1E] text-[#CBBEAC] hover:border-[#F2B84B]"
+                  : "border-[#C9A86C] text-[#7A5C3E] hover:border-[#D4860A]"
+              }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Stats row */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex gap-3">
+          <div
+            className={`px-3 py-1.5 rounded-lg border text-center ${dark ? "bg-[#1A110A] border-[#5A3E1E]" : "bg-[#FFF8EC] border-[#C9A86C]"
+              }`}
+          >
+            <div className={`font-arcade text-sm ${dark ? "text-[#F2B84B]" : "text-[#D4860A]"}`}>
+              {moves}
+            </div>
+            <div className={`text-xs mt-0.5 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>
+              moves
+            </div>
+          </div>
+          <div
+            className={`px-3 py-1.5 rounded-lg border text-center ${dark ? "bg-[#1A110A] border-[#5A3E1E]" : "bg-[#FFF8EC] border-[#C9A86C]"
+              }`}
+          >
+            <div className={`font-arcade text-sm ${dark ? "text-[#F2B84B]" : "text-[#D4860A]"}`}>
+              {matched.size}/{pairs}
+            </div>
+            <div className={`text-xs mt-0.5 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>
+              pairs
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={() => startGame()}
+          className={`px-4 py-2 rounded-lg text-xs font-semibold border-2 transition-colors ${dark
+              ? "bg-[#1B120C] border-[#F7EEDB] text-[#F7EEDB] hover:bg-[#2B2017]"
+              : "bg-[#FFE9B0] border-[#2B2017] text-[#2B2017] hover:bg-[#FFDFA0]"
+            }`}
+        >
+          New Game
+        </button>
+      </div>
+
+      {/* Progress bar */}
+      <div
+        className={`h-1.5 rounded-full mb-4 overflow-hidden ${dark ? "bg-[#221508]" : "bg-[#E8D5A8]"
+          }`}
+      >
+        <motion.div
+          className={`h-full rounded-full ${dark ? "bg-[#F2B84B]" : "bg-[#D4860A]"}`}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.5 }}
+        />
+      </div>
+
+      {/* Card grid */}
+      <div
+        className="grid gap-1.5 relative"
+        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 64px))`, justifyContent: "center" }}
+      >
+        {cards.map((card, idx) => (
+          <Card
+            key={card.id}
+            card={card}
+            isFlipped={flipped.includes(idx)}
+            isMatched={matched.has(card.key)}
+            onClick={() => handleFlip(idx)}
+            dark={dark}
+          />
+        ))}
+      </div>
+
+      {/* Message */}
+      <div
+        className={`text-center font-arcade text-xs mt-4 h-5 ${dark ? "text-[#8A7060]" : "text-[#A08060]"
+          }`}
+      >
+        {message}
+      </div>
+
+      {/* Win overlay */}
+      <AnimatePresence>
+        {won && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className={`absolute inset-0 flex flex-col items-center justify-center rounded-xl z-20 ${dark ? "bg-[#1A110A]/95" : "bg-[#FFF8EC]/95"
+              }`}
+          >
+            <p
+              className={`font-arcade text-xl mb-2 ${dark ? "text-[#F2B84B]" : "text-[#D4860A]"
+                }`}
+            >
+              you win!
+            </p>
+            <p className={`text-sm mb-6 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+              {moves} moves · {pairs} pairs matched
+            </p>
+            <button
+              onClick={() => startGame()}
+              className={`px-5 py-2.5 rounded-lg text-xs font-semibold font-arcade border-2 transition-colors ${dark
+                  ? "bg-[#1B120C] border-[#F7EEDB] text-[#F7EEDB] hover:bg-[#2B2017]"
+                  : "bg-[#FFE9B0] border-[#2B2017] text-[#2B2017] hover:bg-[#FFDFA0]"
+                }`}
+            >
+              play again
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── BackendDownPage ──────────────────────────────────────────────────────────
+
 export default function BackendDownPage({ dark, onToggleDark, status, onRetry }) {
   const isChecking = status === "checking";
+  const [showGame, setShowGame] = useState(false);
 
   return (
     <div
-      className={`min-h-screen flex items-center justify-center px-4 font-copy transition-colors duration-300 ${
-        dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
-      }`}
+      className={`min-h-screen flex items-center justify-center px-4 font-copy transition-colors duration-300 ${dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
+        }`}
     >
-      <div className="relative w-full max-w-3xl">
+      <div className="relative w-full max-w-lg">
+        {/* Ambient orbs */}
         <motion.div
-          className={`absolute -top-12 -left-12 h-40 w-40 rounded-full blur-3xl opacity-40 ${
-            dark ? "bg-[#2E1C10]" : "bg-[#FFD38C]"
-          }`}
+          className={`absolute -top-12 -left-12 h-40 w-40 rounded-full blur-3xl opacity-40 ${dark ? "bg-[#2E1C10]" : "bg-[#FFD38C]"
+            }`}
           variants={pulseOrbit}
           initial="idle"
           animate="active"
         />
         <motion.div
-          className={`absolute -bottom-10 -right-8 h-48 w-48 rounded-full blur-3xl opacity-30 ${
-            dark ? "bg-[#1C2E1B]" : "bg-[#CFE6D0]"
-          }`}
+          className={`absolute -bottom-10 -right-8 h-48 w-48 rounded-full blur-3xl opacity-30 ${dark ? "bg-[#1C2E1B]" : "bg-[#CFE6D0]"
+            }`}
           variants={pulseOrbit}
           initial="idle"
           animate="active"
         />
 
+        {/* Main panel */}
         <div
-          className={`arcade-panel relative z-10 px-6 py-10 sm:px-10 sm:py-12 text-center ${
-            dark ? "arcade-panel-dark" : ""
-          }`}
+          className={`arcade-panel relative z-10 px-6 py-8 sm:px-8 sm:py-10 ${dark ? "arcade-panel-dark" : ""
+            }`}
         >
-          <div className="flex items-center justify-center gap-4">
-            <motion.div
-              className={`h-16 w-16 rounded-full border-2 ${
-                dark ? "border-[#F2B84B]" : "border-[#2B2017]"
-              } flex items-center justify-center`}
-              variants={pulseOrbit}
-              initial="idle"
-              animate="active"
-            >
-              <div className="flex items-end gap-1 h-8">
-                {[0, 1, 2].map((i) => (
-                  <motion.span
-                    key={i}
-                    className={`w-2 rounded-full origin-bottom ${dark ? "bg-[#F2B84B]" : "bg-[#2B2017]"}`}
-                    style={{ height: "100%" }}
-                    variants={barWave(i * 0.18)}
-                    initial="idle"
-                    animate="active"
-                  />
-                ))}
-              </div>
-            </motion.div>
+          {/* Header */}
+          <div className="flex items-center justify-between gap-4 mb-5">
+            <div className="flex items-center gap-4">
+              <motion.div
+                className={`h-14 w-14 rounded-full border-2 flex-shrink-0 ${dark ? "border-[#F2B84B]" : "border-[#2B2017]"
+                  } flex items-center justify-center`}
+                variants={pulseOrbit}
+                initial="idle"
+                animate="active"
+              >
+                <div className="flex items-end gap-1 h-6">
+                  {[0, 1, 2].map((i) => (
+                    <motion.span
+                      key={i}
+                      className={`w-1.5 rounded-full origin-bottom ${dark ? "bg-[#F2B84B]" : "bg-[#2B2017]"
+                        }`}
+                      style={{ height: "100%" }}
+                      variants={barWave(i * 0.18)}
+                      initial="idle"
+                      animate="active"
+                    />
+                  ))}
+                </div>
+              </motion.div>
 
-            <div className="text-left">
-              <p className={`text-xs uppercase tracking-[0.3em] ${dark ? "text-[#CBBEAC]" : "text-[#7A5C3E]"}`}>
-                System Status
-              </p>
-              <h1 className="font-arcade text-2xl sm:text-3xl">
-                {isChecking ? "Checking servers" : "Backend offline"}
-              </h1>
+              <div>
+                <p
+                  className={`text-xs uppercase tracking-[0.3em] ${dark ? "text-[#CBBEAC]" : "text-[#7A5C3E]"
+                    }`}
+                >
+                  System Status
+                </p>
+                <h1 className="font-arcade text-xl sm:text-2xl leading-snug">
+                  {isChecking ? "Checking servers" : "Backend offline"}
+                </h1>
+              </div>
             </div>
+
+            {/* Theme toggle */}
+            <button
+              onClick={onToggleDark}
+              className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${dark
+                  ? "border-[#CBBEAC] text-[#F7EEDB] hover:border-[#F7EEDB]"
+                  : "border-[#5A4636] text-[#2B2017] hover:border-[#2B2017]"
+                }`}
+            >
+              {dark ? "☀ Light" : "☾ Dark"}
+            </button>
           </div>
 
-          <p className={`mt-4 text-sm sm:text-base ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+          {/* Status message */}
+          <p
+            className={`text-sm mb-5 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"
+              }`}
+          >
             {isChecking
               ? "Hang tight while we ping the API."
-              : "We cannot reach the game servers right now. Try again in a moment."}
+              : "We cannot reach the game servers right now. Try again in a moment — or kill some time below."}
           </p>
 
-          <div className="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
+          {/* Retry button */}
+          <div className="flex gap-3 mb-6">
             <button
               onClick={onRetry}
               disabled={isChecking}
-              className={`px-5 py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${
-                dark
+              className={`px-5 py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${dark
                   ? "bg-[#1B120C] border-[#F7EEDB] text-[#F7EEDB] hover:bg-[#2B2017]"
                   : "bg-[#FFE9B0] border-[#2B2017] text-[#2B2017] hover:bg-[#FFDFA0]"
-              }`}
+                }`}
             >
-              {isChecking ? "Checking" : "Retry"}
+              {isChecking ? "Checking…" : "↺ Retry"}
             </button>
+
             <button
-              onClick={onToggleDark}
-              className={`px-5 py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors ${
-                dark
-                  ? "border-[#CBBEAC] text-[#F7EEDB] hover:border-[#F7EEDB]"
-                  : "border-[#5A4636] text-[#2B2017] hover:border-[#2B2017]"
-              }`}
+              onClick={() => setShowGame((v) => !v)}
+              className={`px-5 py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors ${showGame
+                  ? dark
+                    ? "bg-[#2B2017] border-[#F2B84B] text-[#F2B84B]"
+                    : "bg-[#FFF3D6] border-[#D4860A] text-[#D4860A]"
+                  : dark
+                    ? "border-[#CBBEAC] text-[#F7EEDB] hover:border-[#F7EEDB]"
+                    : "border-[#5A4636] text-[#2B2017] hover:border-[#2B2017]"
+                }`}
             >
-              Toggle theme
+              {showGame ? "▲ Hide Game" : "▼ Play a Game"}
             </button>
           </div>
+
+          {/* Memory game — collapsible */}
+          <AnimatePresence>
+            {showGame && (
+              <motion.div
+                key="game"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.35, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                {/* Divider */}
+                <div
+                  className={`border-t mb-5 ${dark ? "border-[#2B2017]" : "border-[#E8D5A8]"
+                    }`}
+                />
+
+                <p
+                  className={`font-arcade text-xs mb-4 ${dark ? "text-[#CBBEAC]" : "text-[#7A5C3E]"
+                    }`}
+                >
+                  Memory Flip
+                </p>
+
+                <div className="relative">
+                  <MemoryGame dark={dark} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>
