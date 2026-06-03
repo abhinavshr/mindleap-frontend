@@ -1,7 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useCallback, useRef } from "react";
-
-// ─── animations ──────────────────────────────────────────────────────────────
+import { useState, useEffect, useCallback } from "react";
 
 const pulseOrbit = {
   idle: { opacity: 0.5, scale: 0.95 },
@@ -20,8 +18,6 @@ const barWave = (delay = 0) => ({
   },
 });
 
-// ─── memory game constants ────────────────────────────────────────────────────
-
 const EMOJI_POOL = [
   "🐶", "🐱", "🦊", "🐸", "🦄", "🐙", "🦋", "🦁",
   "🐯", "🐧", "🦖", "🐳", "🦚", "🌺", "🍄", "🎃",
@@ -33,6 +29,14 @@ const DIFFICULTIES = {
   medium: { label: "Medium", pairs: 8,  cols: 4 },
   hard:   { label: "Hard",   pairs: 10, cols: 5 },
 };
+
+const OFFLINE_MESSAGES = [
+  { icon: "🐹", text: "Our hamsters are on strike. Union negotiations ongoing. ETA: unknown." },
+  { icon: "☕", text: "The servers went for coffee and haven't come back. They do this sometimes." },
+  { icon: "🧦", text: "Someone tripped over the server cable. We're not pointing fingers. (It was Dave.)" },
+  { icon: "🛸", text: "Our backend was abducted by aliens. We've filed a report. Please hold." },
+  { icon: "😴", text: "The server is napping. We tried yelling at it. Currently trying bribery." },
+];
 
 const LS_KEY = (diff) => `memoryFlip_best_${diff}`;
 
@@ -65,8 +69,6 @@ function buildDeck(pairs) {
   return shuffle([...pool, ...pool].map((emoji, id) => ({ id, emoji, key: emoji })));
 }
 
-// ─── Card component ───────────────────────────────────────────────────────────
-
 function Card({ card, isFlipped, isMatched, onClick, dark }) {
   return (
     <div
@@ -80,7 +82,6 @@ function Card({ card, isFlipped, isMatched, onClick, dark }) {
         animate={{ rotateY: isFlipped || isMatched ? 180 : 0 }}
         transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
       >
-        {/* Back face */}
         <div
           className={`absolute inset-0 rounded-xl flex items-center justify-center border-2 ${
             dark ? "bg-[#1B120C] border-[#5A3E1E]" : "bg-[#FFE9B0] border-[#C9A86C]"
@@ -92,7 +93,6 @@ function Card({ card, isFlipped, isMatched, onClick, dark }) {
           </span>
         </div>
 
-        {/* Front face */}
         <motion.div
           className={`absolute inset-0 rounded-xl flex items-center justify-center border-2 ${
             isMatched
@@ -118,8 +118,6 @@ function Card({ card, isFlipped, isMatched, onClick, dark }) {
   );
 }
 
-// ─── Memory Game component ────────────────────────────────────────────────────
-
 function MemoryGame({ dark }) {
   const [diff, setDiff] = useState("easy");
   const [cards, setCards] = useState([]);
@@ -129,14 +127,13 @@ function MemoryGame({ dark }) {
   const [locked, setLocked] = useState(false);
   const [message, setMessage] = useState("flip a card to start");
   const [won, setWon] = useState(false);
-  const [winResult, setWinResult] = useState(null); // { isNew, prev, current }
+  const [winResult, setWinResult] = useState(null);
   const [bestScores, setBestScores] = useState(() => ({
     easy:   getStoredBest("easy"),
     medium: getStoredBest("medium"),
     hard:   getStoredBest("hard"),
   }));
 
-  // ── cross-tab sync ────────────────────────────────────────────────────────
   useEffect(() => {
     const onStorage = (e) => {
       if (!e.key) return;
@@ -184,7 +181,6 @@ function MemoryGame({ dark }) {
         setMessage("nice match! ✓");
 
         if (newMatched.size === DIFFICULTIES[diff].pairs) {
-          // ── evaluate high score ─────────────────────────────────────────
           const prev = getStoredBest(diff);
           const isNew = prev === null || newMoves < prev;
           if (isNew) {
@@ -213,7 +209,6 @@ function MemoryGame({ dark }) {
 
   return (
     <div className="w-full">
-      {/* High score board */}
       <div className={`rounded-xl border mb-4 px-4 py-3 ${dark ? "bg-[#130D07] border-[#3A2810]" : "bg-[#FFF8EC] border-[#E8D5A8]"}`}>
         <p className={`font-arcade text-xs text-center mb-2 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>
           ── high scores ──
@@ -250,7 +245,6 @@ function MemoryGame({ dark }) {
         </div>
       </div>
 
-      {/* Difficulty row */}
       <div className="flex items-center justify-center gap-2 mb-4">
         {Object.entries(DIFFICULTIES).map(([key, { label }]) => (
           <button
@@ -271,21 +265,16 @@ function MemoryGame({ dark }) {
         ))}
       </div>
 
-      {/* Stats row */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex gap-2">
-          {/* Moves */}
           <div className={`px-3 py-1.5 rounded-lg border text-center ${dark ? "bg-[#1A110A] border-[#5A3E1E]" : "bg-[#FFF8EC] border-[#C9A86C]"}`}>
             <div className={`font-arcade text-sm ${dark ? "text-[#F2B84B]" : "text-[#D4860A]"}`}>{moves}</div>
             <div className={`text-xs mt-0.5 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>moves</div>
           </div>
-
-          {/* Pairs */}
           <div className={`px-3 py-1.5 rounded-lg border text-center ${dark ? "bg-[#1A110A] border-[#5A3E1E]" : "bg-[#FFF8EC] border-[#C9A86C]"}`}>
             <div className={`font-arcade text-sm ${dark ? "text-[#F2B84B]" : "text-[#D4860A]"}`}>{matched.size}/{pairs}</div>
             <div className={`text-xs mt-0.5 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>pairs</div>
           </div>
-
         </div>
 
         <button
@@ -300,7 +289,6 @@ function MemoryGame({ dark }) {
         </button>
       </div>
 
-      {/* Progress bar */}
       <div className={`h-1.5 rounded-full mb-4 overflow-hidden ${dark ? "bg-[#221508]" : "bg-[#E8D5A8]"}`}>
         <motion.div
           className={`h-full rounded-full ${dark ? "bg-[#F2B84B]" : "bg-[#D4860A]"}`}
@@ -309,7 +297,6 @@ function MemoryGame({ dark }) {
         />
       </div>
 
-      {/* Card grid */}
       <div
         className="grid gap-1.5 relative"
         style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 64px))`, justifyContent: "center" }}
@@ -326,12 +313,10 @@ function MemoryGame({ dark }) {
         ))}
       </div>
 
-      {/* Message */}
       <div className={`text-center font-arcade text-xs mt-4 h-5 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>
         {message}
       </div>
 
-      {/* Win overlay */}
       <AnimatePresence>
         {won && winResult && (
           <motion.div
@@ -343,7 +328,6 @@ function MemoryGame({ dark }) {
               dark ? "bg-[#1A110A]/95" : "bg-[#FFF8EC]/95"
             }`}
           >
-            {/* Trophy / firework icon */}
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -357,7 +341,6 @@ function MemoryGame({ dark }) {
               you win!
             </p>
 
-            {/* High score line */}
             {winResult.isNew ? (
               <motion.p
                 initial={{ opacity: 0, y: 6 }}
@@ -403,11 +386,25 @@ function MemoryGame({ dark }) {
   );
 }
 
-// ─── BackendDownPage ──────────────────────────────────────────────────────────
-
 export default function BackendDownPage({ dark, onToggleDark, status, onRetry }) {
   const isChecking = status === "checking";
   const [showGame, setShowGame] = useState(false);
+  const [msgIdx, setMsgIdx] = useState(0);
+  const [msgVisible, setMsgVisible] = useState(true);
+
+  useEffect(() => {
+    if (isChecking) return;
+    const timer = setInterval(() => {
+      setMsgVisible(false);
+      setTimeout(() => {
+        setMsgIdx((i) => (i + 1) % OFFLINE_MESSAGES.length);
+        setMsgVisible(true);
+      }, 400);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [isChecking]);
+
+  const currentMsg = OFFLINE_MESSAGES[msgIdx];
 
   return (
     <div
@@ -416,7 +413,6 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
       }`}
     >
       <div className="relative w-full max-w-lg">
-        {/* Ambient orbs */}
         <motion.div
           className={`absolute -top-12 -left-12 h-40 w-40 rounded-full blur-3xl opacity-40 ${
             dark ? "bg-[#2E1C10]" : "bg-[#FFD38C]"
@@ -434,9 +430,7 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
           animate="active"
         />
 
-        {/* Main panel */}
         <div className={`arcade-panel relative z-10 px-6 py-8 sm:px-8 sm:py-10 ${dark ? "arcade-panel-dark" : ""}`}>
-          {/* Header */}
           <div className="flex items-center justify-between gap-4 mb-5">
             <div className="flex items-center gap-4">
               <motion.div
@@ -471,7 +465,6 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
               </div>
             </div>
 
-            {/* Theme toggle */}
             <button
               onClick={onToggleDark}
               className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${
@@ -484,14 +477,18 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
             </button>
           </div>
 
-          {/* Status message */}
-          <p className={`text-sm mb-5 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
+          <motion.p
+            key={msgIdx}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: msgVisible ? 1 : 0, y: msgVisible ? 0 : -4 }}
+            transition={{ duration: 0.4 }}
+            className={`text-sm mb-5 ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}
+          >
             {isChecking
               ? "Hang tight while we ping the API."
-              : "We cannot reach the game servers right now. Try again in a moment — or kill some time below."}
-          </p>
+              : `${currentMsg.icon}  ${currentMsg.text}`}
+          </motion.p>
 
-          {/* Retry button */}
           <div className="flex gap-3 mb-6">
             <button
               onClick={onRetry}
@@ -521,7 +518,6 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
             </button>
           </div>
 
-          {/* Memory game — collapsible */}
           <AnimatePresence>
             {showGame && (
               <motion.div
