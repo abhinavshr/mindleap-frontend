@@ -391,11 +391,11 @@ export default function HomePage({ dark, onToggleDark }) {
       className={`flex flex-col font-copy min-h-screen transition-colors duration-300 ${dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"}`}
     >
       <Helmet>
-        <title>Mindleap — Brain Training Games</title>
-        <meta name="description" content="Play daily brain training games to boost memory, attention and cognitive speed. Join Mindleap for short, fun exercises." />
+        <title>Mindleap — Daily Brain Training Games for Memory, Attention & Speed</title>
+        <meta name="description" content="Daily short games and exercises to improve memory, attention, and processing speed. Track progress, join leaderboards, and play on Mindleap." />
         <link rel="canonical" href="https://mindleap.live/" />
-        <meta property="og:title" content="Mindleap — Brain Training Games" />
-        <meta property="og:description" content="Play daily brain training games to boost memory, attention and cognitive speed." />
+        <meta property="og:title" content="Mindleap — Daily Brain Training Games" />
+        <meta property="og:description" content="Daily short games and exercises to improve memory, attention, and processing speed." />
         <meta property="og:url" content="https://mindleap.live/" />
         <meta property="og:image" content="https://mindleap.live/assets/images/logo.png" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -465,6 +465,11 @@ export default function HomePage({ dark, onToggleDark }) {
               custom={1}
               className="flex items-center justify-center w-full md:col-start-2 md:col-end-3 mt-10 md:mt-20"
             >
+              <div className="w-full flex items-center justify-center mb-4">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center leading-tight">
+                  Daily Brain Training — Boost Memory, Attention & Speed
+                </h1>
+              </div>
               <div className="relative">
                 <motion.div
                   variants={winPulseVariant}
