@@ -362,8 +362,7 @@ export default function HomePage({ dark, onToggleDark }) {
   if (loading) {
     return (
       <div
-        className={`flex flex-col font-copy ${dark ? "bg-[#121213]" : "bg-white"}`}
-        style={{ height: "100dvh", overflow: "hidden" }}
+        className={`flex flex-col font-copy min-h-screen ${dark ? "bg-[#121213]" : "bg-white"}`}
       >
         <Helmet>
           <title>Mindleap — Brain Training Games</title>
@@ -389,8 +388,7 @@ export default function HomePage({ dark, onToggleDark }) {
 
   return (
     <div
-      className={`flex flex-col font-copy transition-colors duration-300 ${dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"}`}
-      style={{ height: "100dvh", overflow: "hidden" }}
+      className={`flex flex-col font-copy min-h-screen transition-colors duration-300 ${dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"}`}
     >
       <Helmet>
         <title>Mindleap — Brain Training Games</title>
