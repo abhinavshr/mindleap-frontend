@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { FaTrophy } from "react-icons/fa";
@@ -364,6 +365,16 @@ export default function HomePage({ dark, onToggleDark }) {
         className={`flex flex-col font-copy ${dark ? "bg-[#121213]" : "bg-white"}`}
         style={{ height: "100dvh", overflow: "hidden" }}
       >
+        <Helmet>
+          <title>Mindleap — Brain Training Games</title>
+          <meta name="description" content="Play daily brain training games to boost memory, attention and cognitive speed." />
+          <link rel="canonical" href="https://mindleap.live/" />
+          <meta property="og:title" content="Mindleap — Brain Training Games" />
+          <meta property="og:description" content="Play daily brain training games to boost memory, attention and cognitive speed." />
+          <meta property="og:url" content="https://mindleap.live/" />
+          <meta property="og:image" content="https://mindleap.live/assets/images/logo.png" />
+          <meta name="twitter:card" content="summary_large_image" />
+        </Helmet>
         <Navbar dark={dark} onToggleDark={onToggleDark} />
         <div className="flex-1 min-h-0 flex items-center justify-center">
           <motion.div
@@ -381,6 +392,16 @@ export default function HomePage({ dark, onToggleDark }) {
       className={`flex flex-col font-copy transition-colors duration-300 ${dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"}`}
       style={{ height: "100dvh", overflow: "hidden" }}
     >
+      <Helmet>
+        <title>Mindleap — Brain Training Games</title>
+        <meta name="description" content="Play daily brain training games to boost memory, attention and cognitive speed. Join Mindleap for short, fun exercises." />
+        <link rel="canonical" href="https://mindleap.live/" />
+        <meta property="og:title" content="Mindleap — Brain Training Games" />
+        <meta property="og:description" content="Play daily brain training games to boost memory, attention and cognitive speed." />
+        <meta property="og:url" content="https://mindleap.live/" />
+        <meta property="og:image" content="https://mindleap.live/assets/images/logo.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <AnimatePresence>
