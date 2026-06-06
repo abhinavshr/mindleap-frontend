@@ -1,5 +1,8 @@
 {
   "rewrites": [
+    { "source": "/sitemap", "destination": "/sitemap.xml" },
+    { "source": "/robots", "destination": "/robots.txt" },
+    { "source": "/BingSiteAuth.xml", "destination": "/BingSiteAuth.xml" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
