@@ -463,7 +463,7 @@ export default function HomePage({ dark, onToggleDark }) {
               initial="hidden"
               animate="visible"
               custom={1}
-              className="flex items-center justify-center w-full md:col-start-2 md:col-end-3"
+              className="flex items-center justify-center w-full md:col-start-2 md:col-end-3 mt-10 md:mt-20"
             >
               <div className="relative">
                 <motion.div
