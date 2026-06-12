@@ -455,8 +455,8 @@ export default function HomePage({ dark, onToggleDark }) {
         )}
       </AnimatePresence>
 
-      <main className="flex-1 min-h-0 flex flex-col items-center justify-center overflow-hidden px-4 sm:px-6">
-        <div className="w-full flex flex-col items-center justify-center gap-6 sm:gap-5 md:gap-3 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-center">
+      <main className="flex-1 min-h-0 flex flex-col items-center justify-start md:justify-center overflow-hidden px-4 sm:px-6 pb-3 md:pb-0">
+        <div className="w-full flex flex-col items-center justify-start md:justify-center gap-6 sm:gap-5 md:gap-3 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-center">
           <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-[1fr,auto,1fr] items-center justify-center gap-6">
             <motion.div
               variants={fadeSlideUp}
@@ -608,34 +608,37 @@ export default function HomePage({ dark, onToggleDark }) {
           )}
         </AnimatePresence>
 
-        <div className="mt-0 sm:-mt-1 flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm">
-          <div className="flex items-center gap-2">
-            <span className="w-3.5 h-3.5 rounded-sm bg-[#2FAF74] border border-[#1E7E52]" />
-            <span className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}>Correct spot</span>
+        {/* Bottom group: legend + keyboard, pushed together to the bottom */}
+        <div className="w-full flex flex-col items-center mt-auto gap-2 md:gap-1">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm">
+            <div className="flex items-center gap-2">
+              <span className="w-3.5 h-3.5 rounded-sm bg-[#2FAF74] border border-[#1E7E52]" />
+              <span className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}>Correct spot</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3.5 h-3.5 rounded-sm bg-[#F2B84B] border border-[#C58B1D]" />
+              <span className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}>In word, wrong spot</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3.5 h-3.5 rounded-sm bg-[#8A8A8A] border border-[#5E5E5E]" />
+              <span className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}>Not in word</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3.5 h-3.5 rounded-sm bg-[#F2B84B] border border-[#C58B1D]" />
-            <span className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}>In word, wrong spot</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3.5 h-3.5 rounded-sm bg-[#8A8A8A] border border-[#5E5E5E]" />
-            <span className={dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}>Not in word</span>
-          </div>
-        </div>
 
-        <motion.div
-          variants={fadeSlideUp}
-          initial="hidden"
-          animate="visible"
-          custom={2}
-          className="w-full flex justify-center px-1 md:px-2 md:scale-[0.92] md:origin-top"
-        >
-          <Keyboard
-            onKey={handleKey}
-            keyStatuses={keyStatuses}
-            disabled={submitting || gameOver}
-          />
-        </motion.div>
+          <motion.div
+            variants={fadeSlideUp}
+            initial="hidden"
+            animate="visible"
+            custom={2}
+            className="w-full flex justify-center px-1 md:px-2 mb-2 md:mb-0 md:scale-[0.92] md:origin-top"
+          >
+            <Keyboard
+              onKey={handleKey}
+              keyStatuses={keyStatuses}
+              disabled={submitting || gameOver}
+            />
+          </motion.div>
+        </div>
       </main>
     </div>
   );
