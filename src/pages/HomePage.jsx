@@ -463,7 +463,7 @@ export default function HomePage({ dark, onToggleDark }) {
               initial="hidden"
               animate="visible"
               custom={1}
-              className="flex items-center justify-center w-full md:col-start-2 md:col-end-3 mt-10 md:mt-20"
+              className="flex items-center justify-center w-full max-md:flex-col max-md:gap-4 md:col-start-2 md:col-end-3 mt-10 md:mt-20"
             >
               <div className="w-full flex items-center justify-center mb-4">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center leading-tight">
