@@ -1,5 +1,6 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion as Motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
+import Footer from "../components/Reuseable/Footer";
 
 const pulseOrbit = {
   idle: { opacity: 0.5, scale: 0.95 },
@@ -52,7 +53,9 @@ function getStoredBest(diff) {
 function setStoredBest(diff, moves) {
   try {
     localStorage.setItem(LS_KEY(diff), String(moves));
-  } catch {}
+  } catch {
+    return;
+  }
 }
 
 function shuffle(arr) {
@@ -76,7 +79,7 @@ function Card({ card, isFlipped, isMatched, onClick, dark }) {
       style={{ perspective: "600px", aspectRatio: "1/1", maxWidth: "64px", width: "100%" }}
       onClick={onClick}
     >
-      <motion.div
+      <Motion.div
         className="relative w-full h-full"
         style={{ transformStyle: "preserve-3d" }}
         animate={{ rotateY: isFlipped || isMatched ? 180 : 0 }}
@@ -93,7 +96,7 @@ function Card({ card, isFlipped, isMatched, onClick, dark }) {
           </span>
         </div>
 
-        <motion.div
+        <Motion.div
           className={`absolute inset-0 rounded-xl flex items-center justify-center border-2 ${
             isMatched
               ? dark ? "border-[#F2B84B] bg-[#221508]" : "border-[#D4860A] bg-[#FFF8EC]"
@@ -112,8 +115,8 @@ function Card({ card, isFlipped, isMatched, onClick, dark }) {
           transition={{ duration: 0.6 }}
         >
           <span className="text-lg select-none">{card.emoji}</span>
-        </motion.div>
-      </motion.div>
+        </Motion.div>
+      </Motion.div>
     </div>
   );
 }
@@ -174,6 +177,7 @@ function MemoryGame({ dark }) {
       const newMoves = moves + 1;
       setMoves(newMoves);
 
+        <Footer dark={dark} />
       if (cards[a].key === cards[b].key) {
         const newMatched = new Set([...matched, cards[a].key]);
         setMatched(newMatched);
@@ -290,7 +294,7 @@ function MemoryGame({ dark }) {
       </div>
 
       <div className={`h-1.5 rounded-full mb-4 overflow-hidden ${dark ? "bg-[#221508]" : "bg-[#E8D5A8]"}`}>
-        <motion.div
+        <Motion.div
           className={`h-full rounded-full ${dark ? "bg-[#F2B84B]" : "bg-[#D4860A]"}`}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.5 }}
@@ -319,7 +323,7 @@ function MemoryGame({ dark }) {
 
       <AnimatePresence>
         {won && winResult && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -328,21 +332,21 @@ function MemoryGame({ dark }) {
               dark ? "bg-[#1A110A]/95" : "bg-[#FFF8EC]/95"
             }`}
           >
-            <motion.div
+            <Motion.div
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1, type: "spring", stiffness: 260, damping: 18 }}
               className="text-4xl mb-2"
             >
               {winResult.isNew ? "🏆" : "🎉"}
-            </motion.div>
+            </Motion.div>
 
             <p className={`font-arcade text-xl mb-1 ${dark ? "text-[#F2B84B]" : "text-[#D4860A]"}`}>
               you win!
             </p>
 
             {winResult.isNew ? (
-              <motion.p
+              <Motion.p
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 }}
@@ -353,7 +357,7 @@ function MemoryGame({ dark }) {
                 }`}
               >
                 ★ new high score!
-              </motion.p>
+              </Motion.p>
             ) : (
               <p className={`text-xs mb-1 ${dark ? "text-[#8A7060]" : "text-[#A08060]"}`}>
                 best: {winResult.prev} moves
@@ -379,7 +383,7 @@ function MemoryGame({ dark }) {
             >
               play again
             </button>
-          </motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
     </div>
@@ -413,7 +417,7 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
       }`}
     >
       <div className="relative w-full max-w-lg">
-        <motion.div
+        <Motion.div
           className={`absolute -top-12 -left-12 h-40 w-40 rounded-full blur-3xl opacity-40 ${
             dark ? "bg-[#2E1C10]" : "bg-[#FFD38C]"
           }`}
@@ -421,7 +425,7 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
           initial="idle"
           animate="active"
         />
-        <motion.div
+        <Motion.div
           className={`absolute -bottom-10 -right-8 h-48 w-48 rounded-full blur-3xl opacity-30 ${
             dark ? "bg-[#1C2E1B]" : "bg-[#CFE6D0]"
           }`}
@@ -433,8 +437,8 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
         <div className={`arcade-panel relative z-10 px-6 py-8 sm:px-8 sm:py-10 ${dark ? "arcade-panel-dark" : ""}`}>
           <div className="flex items-center justify-between gap-4 mb-5">
             <div className="flex items-center gap-4">
-              <motion.div
-                className={`h-14 w-14 rounded-full border-2 flex-shrink-0 ${
+              <Motion.div
+                className={`h-14 w-14 rounded-full border-2 shrink-0 ${
                   dark ? "border-[#F2B84B]" : "border-[#2B2017]"
                 } flex items-center justify-center`}
                 variants={pulseOrbit}
@@ -443,7 +447,7 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
               >
                 <div className="flex items-end gap-1 h-6">
                   {[0, 1, 2].map((i) => (
-                    <motion.span
+                    <Motion.span
                       key={i}
                       className={`w-1.5 rounded-full origin-bottom ${dark ? "bg-[#F2B84B]" : "bg-[#2B2017]"}`}
                       style={{ height: "100%" }}
@@ -453,7 +457,7 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
                     />
                   ))}
                 </div>
-              </motion.div>
+              </Motion.div>
 
               <div>
                 <p className={`text-xs uppercase tracking-[0.3em] ${dark ? "text-[#CBBEAC]" : "text-[#7A5C3E]"}`}>
@@ -467,7 +471,7 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
 
             <button
               onClick={onToggleDark}
-              className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${
+              className={`shrink-0 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${
                 dark
                   ? "border-[#CBBEAC] text-[#F7EEDB] hover:border-[#F7EEDB]"
                   : "border-[#5A4636] text-[#2B2017] hover:border-[#2B2017]"
@@ -477,7 +481,7 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
             </button>
           </div>
 
-          <motion.p
+          <Motion.p
             key={msgIdx}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: msgVisible ? 1 : 0, y: msgVisible ? 0 : -4 }}
@@ -487,7 +491,7 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
             {isChecking
               ? "Hang tight while we ping the API."
               : `${currentMsg.icon}  ${currentMsg.text}`}
-          </motion.p>
+          </Motion.p>
 
           <div className="flex gap-3 mb-6">
             <button
@@ -520,7 +524,7 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
 
           <AnimatePresence>
             {showGame && (
-              <motion.div
+              <Motion.div
                 key="game"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
@@ -535,7 +539,7 @@ export default function BackendDownPage({ dark, onToggleDark, status, onRetry })
                 <div className="relative">
                   <MemoryGame dark={dark} />
                 </div>
-              </motion.div>
+              </Motion.div>
             )}
           </AnimatePresence>
         </div>

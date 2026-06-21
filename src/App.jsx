@@ -18,6 +18,11 @@ import BackendDownPage from "./pages/BackendDownPage";
 import ForgotPasswordEmailPage from "./pages/ForgotPasswordEmailPage";
 import ForgotPasswordOtpPage from "./pages/ForgotPasswordOtpPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import AboutUsPage from "./pages/AboutUsPage";
+import ContactUsPage from "./pages/ContactUsPage";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
+import Footer from "./components/Reuseable/Footer";
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
@@ -79,50 +84,59 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#1A1A1B',
-            color: '#ffffff',
-            fontSize: '14px',
-            fontWeight: '600',
-            borderRadius: '8px',
-            padding: '10px 16px',
-          },
-          success: {
-            iconTheme: { primary: '#6AAA64', secondary: '#fff' },
-          },
-          error: {
-            iconTheme: { primary: '#E24B4A', secondary: '#fff' },
-          },
-        }}
-      />
-      <Analytics />
-      <Routes>
-        <Route path="/" element={<HomePage dark={dark} onToggleDark={handleToggleDark} />} />
-        <Route path="/login" element={<LoginPage dark={dark} onToggleDark={handleToggleDark} />} />
-        <Route path="/forgot-password" element={<ForgotPasswordEmailPage dark={dark} onToggleDark={handleToggleDark} />} />
-        <Route path="/forgot-password/verify" element={<ForgotPasswordOtpPage dark={dark} onToggleDark={handleToggleDark} />} />
-        <Route path="/forgot-password/reset" element={<ResetPasswordPage dark={dark} onToggleDark={handleToggleDark} />} />
-        <Route path="/register" element={<RegisterPage dark={dark} onToggleDark={handleToggleDark} />} />
-        <Route path="/leaderboard" element={<LeaderboardPage dark={dark} onToggleDark={handleToggleDark} />} />
-        <Route path="/profile" element={<ProfilePage dark={dark} onToggleDark={handleToggleDark} />} />
-        <Route path="/profile/:username" element={<PublicProfilePage dark={dark} onToggleDark={handleToggleDark} />} />
-        <Route
-          path="/speed-game"
-          element={
-            <ProtectedRoute>
-              <SpeedGamePage dark={dark} onToggleDark={handleToggleDark} />
-            </ProtectedRoute>
-          }
+      <div className="flex min-h-screen flex-col">
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: '#1A1A1B',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: '600',
+              borderRadius: '8px',
+              padding: '10px 16px',
+            },
+            success: {
+              iconTheme: { primary: '#6AAA64', secondary: '#fff' },
+            },
+            error: {
+              iconTheme: { primary: '#E24B4A', secondary: '#fff' },
+            },
+          }}
         />
-        <Route path="/levels" element={<AllLevelsPage dark={dark} onToggleDark={handleToggleDark} />} />
-        <Route path="/hall-of-fame" element={<HallOfFamePage dark={dark} onToggleDark={handleToggleDark} />} />
-        <Route path="/missions" element={<MissionsPage dark={dark} onToggleDark={handleToggleDark} />} />
-        <Route path="*" element={<NotFoundPage dark={dark} onToggleDark={handleToggleDark} />} />
-      </Routes>
+        <Analytics />
+        <div className="flex-1">
+          <Routes>
+            <Route path="/" element={<HomePage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/login" element={<LoginPage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/forgot-password" element={<ForgotPasswordEmailPage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/forgot-password/verify" element={<ForgotPasswordOtpPage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/forgot-password/reset" element={<ResetPasswordPage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/register" element={<RegisterPage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/leaderboard" element={<LeaderboardPage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/profile" element={<ProfilePage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/profile/:username" element={<PublicProfilePage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route
+              path="/speed-game"
+              element={
+                <ProtectedRoute>
+                  <SpeedGamePage dark={dark} onToggleDark={handleToggleDark} />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/levels" element={<AllLevelsPage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/hall-of-fame" element={<HallOfFamePage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/missions" element={<MissionsPage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/about-us" element={<AboutUsPage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/contact-us" element={<ContactUsPage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="/terms-of-service" element={<TermsOfServicePage dark={dark} onToggleDark={handleToggleDark} />} />
+            <Route path="*" element={<NotFoundPage dark={dark} onToggleDark={handleToggleDark} />} />
+          </Routes>
+        </div>
+        <Footer dark={dark} />
+      </div>
     </BrowserRouter>
   )
 }
