@@ -5,6 +5,7 @@ export default function PrivacyPolicyPage({ dark, onToggleDark }) {
     ? "rounded-2xl border border-[#3A2A1C] bg-[#1A130E] p-5 sm:p-6"
     : "rounded-2xl border border-[#E6D5B9] bg-[#FFFDF7] p-5 sm:p-6";
   const bodyClass = dark ? "text-[#D0BFA8]" : "text-[#5A4636]";
+  const listClass = `mt-3 space-y-2 text-sm sm:text-base ${bodyClass}`;
 
   return (
     <StaticPageShell
@@ -12,24 +13,45 @@ export default function PrivacyPolicyPage({ dark, onToggleDark }) {
       onToggleDark={onToggleDark}
       eyebrow="Trust Page"
       title="Privacy Policy"
-      subtitle="This is a static placeholder for now. It can be replaced with your final legal copy later."
+      subtitle="How we collect, use, and protect your information while you use Mindleap."
     >
       <section className={cardClass}>
-        <h2 className={`text-xl font-bold ${dark ? "text-[#FFF4E2]" : "text-[#2B2017]"}`}>What we collect</h2>
-        <p className={`mt-2 text-sm sm:text-base ${bodyClass}`}>
-          We may collect basic account details, gameplay progress, and usage data needed to run the app.
-        </p>
+        <h2 className={`text-xl font-bold ${dark ? "text-[#FFF4E2]" : "text-[#2B2017]"}`}>Information we collect</h2>
+        <ul className={listClass}>
+          <li>Account details such as name, email address, and username.</li>
+          <li>Game activity such as guesses, scores, streaks, and leaderboard progress.</li>
+          <li>Basic device and usage information to help keep the app stable and improve performance.</li>
+        </ul>
       </section>
       <section className={cardClass}>
-        <h2 className={`text-xl font-bold ${dark ? "text-[#FFF4E2]" : "text-[#2B2017]"}`}>How we use it</h2>
-        <p className={`mt-2 text-sm sm:text-base ${bodyClass}`}>
-          Data is used to authenticate users, save scores, improve gameplay, and keep the experience functioning.
-        </p>
+        <h2 className={`text-xl font-bold ${dark ? "text-[#FFF4E2]" : "text-[#2B2017]"}`}>How we use information</h2>
+        <ul className={listClass}>
+          <li>To create and manage your account.</li>
+          <li>To save your game progress, scores, and daily activity.</li>
+          <li>To provide leaderboards, reminders, and support messages.</li>
+          <li>To improve the product, monitor errors, and keep the app secure.</li>
+        </ul>
       </section>
       <section className={cardClass}>
-        <h2 className={`text-xl font-bold ${dark ? "text-[#FFF4E2]" : "text-[#2B2017]"}`}>Your choice</h2>
+        <h2 className={`text-xl font-bold ${dark ? "text-[#FFF4E2]" : "text-[#2B2017]"}`}>Sharing and retention</h2>
+        <ul className={listClass}>
+          <li>We do not sell your personal data.</li>
+          <li>We may share data with trusted service providers only when needed to run the app.</li>
+          <li>We keep your data only as long as necessary for gameplay, account access, and support.</li>
+        </ul>
+      </section>
+      <section className={cardClass}>
+        <h2 className={`text-xl font-bold ${dark ? "text-[#FFF4E2]" : "text-[#2B2017]"}`}>Your choices</h2>
+        <ul className={listClass}>
+          <li>You can update your profile information when logged in.</li>
+          <li>You can request account help or deletion by contacting us.</li>
+          <li>You may disable cookies in your browser, but some features may not work as expected.</li>
+        </ul>
+      </section>
+      <section className={cardClass}>
+        <h2 className={`text-xl font-bold ${dark ? "text-[#FFF4E2]" : "text-[#2B2017]"}`}>Contact</h2>
         <p className={`mt-2 text-sm sm:text-base ${bodyClass}`}>
-          You can request updates or deletion of your account information once the final policy is published.
+          If you have any questions about privacy, contact us at infomindleap@gmail.com.
         </p>
       </section>
     </StaticPageShell>
