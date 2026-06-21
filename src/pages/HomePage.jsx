@@ -609,7 +609,7 @@ export default function HomePage({ dark, onToggleDark }) {
         </AnimatePresence>
 
         {/* Bottom group: legend + keyboard, pushed together to the bottom */}
-        <div className="w-full flex flex-col items-center mt-auto gap-2 md:gap-1">
+        <div className="w-full flex flex-col items-center mt-auto gap-2 md:gap-1 pb-4 md:pb-0">
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm">
             <div className="flex items-center gap-2">
               <span className="w-3.5 h-3.5 rounded-sm bg-[#2FAF74] border border-[#1E7E52]" />
