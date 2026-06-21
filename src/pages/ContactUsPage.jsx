@@ -54,7 +54,7 @@ export default function ContactUsPage({ dark, onToggleDark }) {
       onToggleDark={onToggleDark}
       eyebrow="Trust Page"
       title="Contact Us"
-      subtitle="A static contact form and contact details for now."
+      subtitle="Need help or have a question? Send us a message and our team will get back to you."
     >
       <section className={cardClass}>
         <h2 className={`text-xl font-bold ${dark ? "text-[#FFF4E2]" : "text-[#2B2017]"}`}>Send a message</h2>
@@ -116,7 +116,7 @@ export default function ContactUsPage({ dark, onToggleDark }) {
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <p className={`text-xs sm:text-sm ${bodyClass}`}>
-              This form submits to the support endpoint in development.
+              We usually respond within one business day.
             </p>
             <button
               type="submit"
