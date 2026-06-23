@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import toast from "react-hot-toast";
 import Navbar from "../components/Reuseable/Navbar";
@@ -62,6 +63,12 @@ export default function ResetPasswordPage({ dark, onToggleDark }) {
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
       dark ? "bg-[#0E0F10]" : "bg-[#F6F4F0]"
     }`}>
+      <Helmet>
+        <title>Set Your New Mindleap Password</title>
+        <meta name="description" content="Enter your new password to complete the password reset process on Mindleap." />
+        <link rel="canonical" href="https://mindleap.live/forgot-password/reset" />
+        <meta name="robots" content="noindex, follow" />
+      </Helmet>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="relative flex-1 px-4 py-14">

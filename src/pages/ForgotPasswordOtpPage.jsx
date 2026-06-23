@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import toast from "react-hot-toast";
 import Navbar from "../components/Reuseable/Navbar";
 import { verifyResetOtp } from "../api/auth";
@@ -47,6 +48,12 @@ export default function ForgotPasswordOtpPage({ dark, onToggleDark }) {
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
       dark ? "bg-[#0E0F10]" : "bg-[#F6F4F0]"
     }`}>
+      <Helmet>
+        <title>Verify Your Email - Reset Mindleap Password</title>
+        <meta name="description" content="Enter the OTP sent to your email to verify your account and reset your Mindleap password." />
+        <link rel="canonical" href="https://mindleap.live/forgot-password/verify" />
+        <meta name="robots" content="noindex, follow" />
+      </Helmet>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="relative flex-1 px-4 py-14">

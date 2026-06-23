@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import { Helmet } from "react-helmet-async";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import Navbar from "../components/Reuseable/Navbar";
 import { loginUser } from "../api/auth";
@@ -72,6 +73,15 @@ export default function LoginPage({ dark, onToggleDark }) {
         dark ? "bg-[#0E0F10]" : "bg-[#F6F4F0]"
       }`}
     >
+      <Helmet>
+        <title>Log In to Mindleap - Brain Training Games</title>
+        <meta name="description" content="Sign in to your Mindleap account to play brain training games and track your progress." />
+        <link rel="canonical" href="https://mindleap.live/login" />
+        <meta property="og:title" content="Log In to Mindleap" />
+        <meta property="og:description" content="Sign in to your Mindleap account to play brain training games and track your progress." />
+        <meta property="og:url" content="https://mindleap.live/login" />
+        <meta name="twitter:card" content="summary" />
+      </Helmet>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="relative flex-1 px-4 py-14">

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { FaFire, FaTrophy, FaMedal, FaBolt } from "react-icons/fa";
+import { Helmet } from "react-helmet-async";
 import {
   motion,
   AnimatePresence,
@@ -229,6 +230,15 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
     <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
       dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
     }`}>
+      <Helmet>
+        <title>Mindleap Leaderboard - Compete & Track Rankings</title>
+        <meta name="description" content="View the Mindleap leaderboard and compete with players worldwide. Track your ranking and compare statistics." />
+        <link rel="canonical" href="https://mindleap.live/leaderboard" />
+        <meta property="og:title" content="Mindleap Leaderboard" />
+        <meta property="og:description" content="Compete with players worldwide and track your ranking on the Mindleap leaderboard." />
+        <meta property="og:url" content="https://mindleap.live/leaderboard" />
+        <meta name="twitter:card" content="summary" />
+      </Helmet>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <div className="flex flex-col items-center py-10 px-4 sm:px-6">

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import { Helmet } from "react-helmet-async";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import Navbar from "../components/Reuseable/Navbar";
 import { registerUser } from "../api/auth";
@@ -81,6 +82,15 @@ export default function RegisterPage({ dark, onToggleDark }) {
         dark ? "bg-[#0E0F10]" : "bg-[#F6F4F0]"
       }`}
     >
+      <Helmet>
+        <title>Create Your Mindleap Account - Free Brain Training</title>
+        <meta name="description" content="Sign up for Mindleap and start playing daily brain training games to boost memory, attention, and speed." />
+        <link rel="canonical" href="https://mindleap.live/register" />
+        <meta property="og:title" content="Create Your Mindleap Account" />
+        <meta property="og:description" content="Sign up for Mindleap and start playing daily brain training games." />
+        <meta property="og:url" content="https://mindleap.live/register" />
+        <meta name="twitter:card" content="summary" />
+      </Helmet>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="relative flex-1 px-4 py-14">

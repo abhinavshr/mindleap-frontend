@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import StaticPageShell from "../components/Reuseable/StaticPageShell";
 
 export default function AboutUsPage({ dark, onToggleDark }) {
@@ -8,13 +9,22 @@ export default function AboutUsPage({ dark, onToggleDark }) {
   const listClass = `mt-3 space-y-2 text-sm sm:text-base ${bodyClass}`;
 
   return (
-    <StaticPageShell
-      dark={dark}
-      onToggleDark={onToggleDark}
-      eyebrow="Trust Page"
-      title="About Us"
-      subtitle="Learn what Mindleap is, why it exists, and how it helps people build focus habits."
-    >
+    <>
+      <Helmet>
+        <title>About Mindleap - Our Mission & Values</title>
+        <meta name="description" content="Learn about Mindleap's mission to provide daily brain training games that help build focus and memory skills." />
+        <link rel="canonical" href="https://mindleap.live/about-us" />
+        <meta property="og:title" content="About Mindleap" />
+        <meta property="og:description" content="Learn about Mindleap's mission and how we help users build focus habits." />
+        <meta property="og:url" content="https://mindleap.live/about-us" />
+      </Helmet>
+      <StaticPageShell
+        dark={dark}
+        onToggleDark={onToggleDark}
+        eyebrow="Trust Page"
+        title="About Us"
+        subtitle="Learn what Mindleap is, why it exists, and how it helps people build focus habits."
+      >
       <section className={cardClass}>
         <h2 className={`text-xl font-bold ${dark ? "text-[#FFF4E2]" : "text-[#2B2017]"}`}>What Mindleap is</h2>
         <p className={`mt-2 text-sm sm:text-base ${bodyClass}`}>
@@ -45,5 +55,6 @@ export default function AboutUsPage({ dark, onToggleDark }) {
         </p>
       </section>
     </StaticPageShell>
+    </>
   );
 }

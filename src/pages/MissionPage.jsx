@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import { FaBolt, FaCheckCircle, FaClock, FaFire } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { getMyMissions } from "../api/Level.js";
@@ -197,6 +198,15 @@ export default function MissionsPage({ dark, onToggleDark }) {
     <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
       dark ? "bg-[#0F0B08]" : "arcade-bg"
     }`}>
+      <Helmet>
+        <title>Daily Missions - Brain Training Challenges on Mindleap</title>
+        <meta name="description" content="Complete daily and weekly missions to earn XP and unlock rewards on Mindleap." />
+        <link rel="canonical" href="https://mindleap.live/missions" />
+        <meta property="og:title" content="Daily Missions - Mindleap" />
+        <meta property="og:description" content="Complete daily and weekly missions to earn XP and unlock rewards." />
+        <meta property="og:url" content="https://mindleap.live/missions" />
+        <meta name="twitter:card" content="summary" />
+      </Helmet>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 sm:py-10">
