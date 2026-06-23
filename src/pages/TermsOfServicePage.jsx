@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import StaticPageShell from "../components/Reuseable/StaticPageShell";
 
 export default function TermsOfServicePage({ dark, onToggleDark }) {
@@ -8,13 +9,22 @@ export default function TermsOfServicePage({ dark, onToggleDark }) {
   const listClass = `mt-3 space-y-2 text-sm sm:text-base ${bodyClass}`;
 
   return (
-    <StaticPageShell
-      dark={dark}
-      onToggleDark={onToggleDark}
-      eyebrow="Trust Page"
-      title="Terms of Service"
-      subtitle="These terms explain how Mindleap can be used and what users should expect."
-    >
+    <>
+      <Helmet>
+        <title>Terms of Service - Mindleap</title>
+        <meta name="description" content="Read Mindleap's Terms of Service to understand how to use our platform and what to expect." />
+        <link rel="canonical" href="https://mindleap.live/terms-of-service" />
+        <meta property="og:title" content="Terms of Service - Mindleap" />
+        <meta property="og:description" content="Read Mindleap's Terms of Service to understand how to use our platform." />
+        <meta property="og:url" content="https://mindleap.live/terms-of-service" />
+      </Helmet>
+      <StaticPageShell
+        dark={dark}
+        onToggleDark={onToggleDark}
+        eyebrow="Trust Page"
+        title="Terms of Service"
+        subtitle="These terms explain how Mindleap can be used and what users should expect."
+      >
       <section className={cardClass}>
         <h2 className={`text-xl font-bold ${dark ? "text-[#FFF4E2]" : "text-[#2B2017]"}`}>Acceptable use</h2>
         <ul className={listClass}>
@@ -45,5 +55,6 @@ export default function TermsOfServicePage({ dark, onToggleDark }) {
         </p>
       </section>
     </StaticPageShell>
+    </>
   );
 }

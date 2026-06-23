@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { FaBolt, FaTrophy } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
+import { Helmet } from "react-helmet-async";
 import Navbar from "../components/Reuseable/Navbar";
 import Board from "../components/Board/Board";
 import Keyboard from "../components/Keyboard/Keyboard";

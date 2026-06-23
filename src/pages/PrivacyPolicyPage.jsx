@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import StaticPageShell from "../components/Reuseable/StaticPageShell";
 
 export default function PrivacyPolicyPage({ dark, onToggleDark }) {
@@ -8,13 +9,22 @@ export default function PrivacyPolicyPage({ dark, onToggleDark }) {
   const listClass = `mt-3 space-y-2 text-sm sm:text-base ${bodyClass}`;
 
   return (
-    <StaticPageShell
-      dark={dark}
-      onToggleDark={onToggleDark}
-      eyebrow="Trust Page"
-      title="Privacy Policy"
-      subtitle="How we collect, use, and protect your information while you use Mindleap."
-    >
+    <>
+      <Helmet>
+        <title>Privacy Policy - Mindleap</title>
+        <meta name="description" content="Learn how Mindleap collects, uses, and protects your personal information and game data." />
+        <link rel="canonical" href="https://mindleap.live/privacy-policy" />
+        <meta property="og:title" content="Privacy Policy - Mindleap" />
+        <meta property="og:description" content="Learn how Mindleap collects, uses, and protects your personal information." />
+        <meta property="og:url" content="https://mindleap.live/privacy-policy" />
+      </Helmet>
+      <StaticPageShell
+        dark={dark}
+        onToggleDark={onToggleDark}
+        eyebrow="Trust Page"
+        title="Privacy Policy"
+        subtitle="How we collect, use, and protect your information while you use Mindleap."
+      >
       <section className={cardClass}>
         <h2 className={`text-xl font-bold ${dark ? "text-[#FFF4E2]" : "text-[#2B2017]"}`}>Information we collect</h2>
         <ul className={listClass}>
@@ -55,5 +65,6 @@ export default function PrivacyPolicyPage({ dark, onToggleDark }) {
         </p>
       </section>
     </StaticPageShell>
+    </>
   );
 }

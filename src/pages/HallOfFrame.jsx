@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import { FaArrowLeft, FaTrophy } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { getLeaderboard } from "../api/Level.js";
@@ -69,6 +70,15 @@ export default function HallOfFamePage({ dark, onToggleDark }) {
     <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
       dark ? "bg-[#0F0B08]" : "arcade-bg"
     }`}>
+      <Helmet>
+        <title>Hall of Fame - Top Mindleap Players</title>
+        <meta name="description" content="View the Hall of Fame and see the top-ranked Mindleap players competing on the leaderboard." />
+        <link rel="canonical" href="https://mindleap.live/hall-of-fame" />
+        <meta property="og:title" content="Hall of Fame - Mindleap" />
+        <meta property="og:description" content="View the top-ranked Mindleap players competing on the leaderboard." />
+        <meta property="og:url" content="https://mindleap.live/hall-of-fame" />
+        <meta name="twitter:card" content="summary" />
+      </Helmet>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 sm:py-10">

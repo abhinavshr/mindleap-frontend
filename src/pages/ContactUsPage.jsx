@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { Helmet } from "react-helmet-async";
 import StaticPageShell from "../components/Reuseable/StaticPageShell";
 
 export default function ContactUsPage({ dark, onToggleDark }) {
@@ -49,13 +50,22 @@ export default function ContactUsPage({ dark, onToggleDark }) {
   };
 
   return (
-    <StaticPageShell
-      dark={dark}
-      onToggleDark={onToggleDark}
-      eyebrow="Trust Page"
-      title="Contact Us"
-      subtitle="Need help or have a question? Send us a message and our team will get back to you."
-    >
+    <>
+      <Helmet>
+        <title>Contact Mindleap - Get in Touch with Our Team</title>
+        <meta name="description" content="Have questions or feedback? Contact Mindleap directly. Fill out the form and our team will respond promptly." />
+        <link rel="canonical" href="https://mindleap.live/contact-us" />
+        <meta property="og:title" content="Contact Mindleap" />
+        <meta property="og:description" content="Contact Mindleap directly with questions or feedback." />
+        <meta property="og:url" content="https://mindleap.live/contact-us" />
+      </Helmet>
+      <StaticPageShell
+        dark={dark}
+        onToggleDark={onToggleDark}
+        eyebrow="Trust Page"
+        title="Contact Us"
+        subtitle="Need help or have a question? Send us a message and our team will get back to you."
+      >
       <section className={cardClass}>
         <h2 className={`text-xl font-bold ${dark ? "text-[#FFF4E2]" : "text-[#2B2017]"}`}>Send a message</h2>
         <p className={`mt-2 text-sm sm:text-base ${bodyClass}`}>
@@ -143,5 +153,6 @@ export default function ContactUsPage({ dark, onToggleDark }) {
         </p>
       </section>
     </StaticPageShell>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import { FaArrowLeft, FaCheckCircle, FaStar, FaLock } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { getAllLevels, getMyLevel } from "../api/Level.js";
@@ -102,6 +103,15 @@ export default function AllLevelsPage({ dark, onToggleDark }) {
     <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
       dark ? "bg-[#0F0B08]" : "arcade-bg"
     }`}>
+      <Helmet>
+        <title>Levels & Ranks - Progress Through Mindleap Tiers</title>
+        <meta name="description" content="Progress through Mindleap levels and unlock ranks from Beginner to MindLeap Master as you complete daily challenges." />
+        <link rel="canonical" href="https://mindleap.live/levels" />
+        <meta property="og:title" content="Levels & Ranks - Mindleap" />
+        <meta property="og:description" content="Progress through Mindleap levels and unlock ranks from Beginner to MindLeap Master." />
+        <meta property="og:url" content="https://mindleap.live/levels" />
+        <meta name="twitter:card" content="summary" />
+      </Helmet>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 sm:py-10">

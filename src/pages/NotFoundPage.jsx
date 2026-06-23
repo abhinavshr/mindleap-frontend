@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import Navbar from "../components/Reuseable/Navbar";
 
 const fadeUp = {
@@ -14,6 +15,11 @@ export default function NotFoundPage({ dark, onToggleDark }) {
         dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
       }`}
     >
+      <Helmet>
+        <title>Page Not Found - Mindleap</title>
+        <meta name="description" content="The page you are looking for could not be found. Return to Mindleap home." />
+        <meta name="robots" content="noindex, follow" />
+      </Helmet>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
       <main className="flex-1 flex items-center justify-center px-4 py-16">

@@ -1,5 +1,6 @@
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
+import { Helmet } from "react-helmet-async";
 import Footer from "../components/Reuseable/Footer";
 
 const pulseOrbit = {

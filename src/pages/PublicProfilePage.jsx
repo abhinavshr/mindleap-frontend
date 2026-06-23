@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import toast from "react-hot-toast";
 import { FaArrowLeft, FaChartBar, FaClock, FaCheckCircle, FaLock } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
