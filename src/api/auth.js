@@ -26,3 +26,9 @@ export const verifyResetOtp = (email, otp) =>
 
 export const resetPassword = (email, password, confirmPassword) =>
   api.post("/auth/reset-password", { email, password, confirmPassword });
+
+export const loginAdmin = (data) =>
+  api.post("/admin/login", data);
+
+export const logoutAdmin = () =>
+  api.post("/admin/logout");
