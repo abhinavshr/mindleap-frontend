@@ -24,11 +24,9 @@ import ContactUsPage from "./pages/ContactUsPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import Footer from "./components/Reuseable/Footer";
 
-// ── Admin pages ───────────────────────────────────────────────────────────────
 import AdminLoginPage from "./pages/Admin/AdminLogin";
-import AdminDashboardPage from "./pages/Admin/AdminDashboardPage";
+import AdminLayout, { DashboardPage, PlaceholderPage } from "./components/Admin/AdminLayout";
 
-// ─── User protected route ─────────────────────────────────────────────────────
 function ProtectedRoute({ children }) {
   const location = useLocation();
   const token = localStorage.getItem("accessToken");
@@ -41,7 +39,6 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-// ─── Admin protected route ────────────────────────────────────────────────────
 function AdminProtectedRoute({ children }) {
   const token = localStorage.getItem("adminToken");
 
@@ -125,7 +122,6 @@ function App() {
         <div className="flex-1">
           <Routes>
 
-            {/* ── User routes ─────────────────────────────────────── */}
             <Route path="/" element={<HomePage dark={dark} onToggleDark={handleToggleDark} />} />
             <Route path="/login" element={<LoginPage dark={dark} onToggleDark={handleToggleDark} />} />
             <Route path="/forgot-password" element={<ForgotPasswordEmailPage dark={dark} onToggleDark={handleToggleDark} />} />
@@ -151,24 +147,40 @@ function App() {
             <Route path="/contact-us" element={<ContactUsPage dark={dark} onToggleDark={handleToggleDark} />} />
             <Route path="/terms-of-service" element={<TermsOfServicePage dark={dark} onToggleDark={handleToggleDark} />} />
 
-            {/* ── Admin routes ─────────────────────────────────────── */}
             <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route
-              path="/admin/dashboard"
+              path="/admin"
               element={
                 <AdminProtectedRoute>
-                  <AdminDashboardPage />
+                  <AdminLayout />
                 </AdminProtectedRoute>
               }
-            />
+            >
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<DashboardPage />} />
+              <Route
+                path="users"
+                element={<PlaceholderPage title="Users" description="View, search, and manage every user on MindLeap." />}
+              />
+              <Route
+                path="admin-list"
+                element={<PlaceholderPage title="Admin List" description="See every admin, super admin, and moderator with access." />}
+              />
+              <Route
+                path="contact"
+                element={<PlaceholderPage title="Contact" description="Messages and support requests submitted by users." />}
+              />
+              <Route
+                path="settings"
+                element={<PlaceholderPage title="Settings" description="Configure platform-wide preferences and controls." />}
+              />
+            </Route>
 
-            {/* ── 404 ─────────────────────────────────────────────── */}
             <Route path="*" element={<NotFoundPage dark={dark} onToggleDark={handleToggleDark} />} />
 
           </Routes>
         </div>
 
-        {/* Hide footer on admin routes */}
         <FooterWrapper dark={dark} />
 
       </div>
@@ -176,10 +188,9 @@ function App() {
   )
 }
 
-// ─── Hide footer on /admin/* routes ──────────────────────────────────────────
 function FooterWrapper({ dark }) {
   const location = useLocation();
-  const isAdmin  = location.pathname.startsWith("/admin");
+  const isAdmin = location.pathname.startsWith("/admin");
   if (isAdmin) return null;
   return <Footer dark={dark} />;
 }
