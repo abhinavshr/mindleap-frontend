@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { loginAdmin } from "../../api/auth";
 
 const ROLES = [
@@ -21,6 +22,7 @@ const FEATURES = [
 ];
 
 export default function AdminLogin() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPw, setShowPw] = useState(false);
@@ -38,7 +40,7 @@ export default function AdminLogin() {
         try {
             const res = await loginAdmin({ email, password });
             localStorage.setItem("adminToken", res.data.token);
-            window.location.href = "/admin/dashboard";
+            navigate("/admin/dashboard", { replace: true });
         } catch (err) {
             setError(err.response?.data?.message || "Invalid email or password.");
         } finally {
@@ -53,10 +55,8 @@ export default function AdminLogin() {
     return (
         <div className="min-h-screen flex bg-gray-950">
 
-            {/* ── Left panel ───────────────────────────────────────────── */}
             <div className="hidden lg:flex flex-col w-[52%] relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-900 to-blue-950">
 
-                {/* Subtle grid overlay */}
                 <div
                     className="absolute inset-0 opacity-[0.04]"
                     style={{
@@ -65,13 +65,11 @@ export default function AdminLogin() {
                     }}
                 />
 
-                {/* Glow accent */}
                 <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-600 opacity-[0.08] rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none" />
                 <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-indigo-500 opacity-[0.06] rounded-full translate-x-1/4 translate-y-1/4 blur-3xl pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col h-full px-14 py-12">
 
-                    {/* Brand */}
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-900/40">
                             <ShieldCheckIcon className="w-5 h-5 text-white" />
@@ -82,7 +80,6 @@ export default function AdminLogin() {
                         </span>
                     </div>
 
-                    {/* Main content — vertically centered */}
                     <div className="flex-1 flex flex-col justify-center py-16">
                         <p className="text-[11px] font-semibold tracking-widest text-blue-400 uppercase mb-4">
                             Control Center
@@ -96,7 +93,6 @@ export default function AdminLogin() {
                             One place for user management, analytics, moderation, and system controls across all of MindLeap.
                         </p>
 
-                        {/* Feature list */}
                         <div className="flex flex-col gap-3 mb-12">
                             {FEATURES.map((f, i) => (
                                 <div key={i} className="flex items-center gap-3">
@@ -108,7 +104,6 @@ export default function AdminLogin() {
                             ))}
                         </div>
 
-                        {/* Stats row */}
                         <div className="flex gap-8 pt-8 border-t border-white/5">
                             {STATS.map((s) => (
                                 <div key={s.label}>
@@ -119,7 +114,6 @@ export default function AdminLogin() {
                         </div>
                     </div>
 
-                    {/* Footer */}
                     <p className="text-xs text-gray-600">
                         © 2025 MindLeap &nbsp;·&nbsp;
                         <a href="#" className="text-gray-500 hover:text-gray-400 transition">Privacy</a>
@@ -129,10 +123,8 @@ export default function AdminLogin() {
                 </div>
             </div>
 
-            {/* ── Right panel ──────────────────────────────────────────── */}
             <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 bg-gray-950">
 
-                {/* Mobile brand */}
                 <div className="flex items-center gap-2 mb-8 lg:hidden">
                     <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
                         <ShieldCheckIcon className="w-4 h-4 text-white" />
@@ -142,13 +134,11 @@ export default function AdminLogin() {
 
                 <div className="w-full max-w-[380px]">
 
-                    {/* Heading */}
                     <div className="mb-8">
                         <h2 className="text-2xl font-bold text-white mb-1.5">Sign in</h2>
                         <p className="text-sm text-gray-500">Access the MindLeap admin panel</p>
                     </div>
 
-                    {/* Error */}
                     {error && (
                         <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-6">
                             <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
@@ -156,7 +146,6 @@ export default function AdminLogin() {
                         </div>
                     )}
 
-                    {/* Email */}
                     <div className="mb-4">
                         <label className="block text-[13px] font-medium text-gray-400 mb-1.5">
                             Email address
@@ -172,7 +161,6 @@ export default function AdminLogin() {
                         />
                     </div>
 
-                    {/* Password */}
                     <div className="mb-7">
                         <div className="flex items-center justify-between mb-1.5">
                             <label className="text-[13px] font-medium text-gray-400">Password</label>
@@ -199,7 +187,6 @@ export default function AdminLogin() {
                         </div>
                     </div>
 
-                    {/* Submit */}
                     <button
                         type="button"
                         onClick={handleLogin}
@@ -216,14 +203,12 @@ export default function AdminLogin() {
                         )}
                     </button>
 
-                    {/* Divider */}
                     <div className="flex items-center gap-3 my-6">
                         <div className="flex-1 h-px bg-white/5" />
                         <span className="text-xs text-gray-600">access level</span>
                         <div className="flex-1 h-px bg-white/5" />
                     </div>
 
-                    {/* Role pills */}
                     <div className="flex gap-2">
                         {ROLES.map((r) => (
                             <button
@@ -251,7 +236,6 @@ export default function AdminLogin() {
     );
 }
 
-// ── Icons ─────────────────────────────────────────────────────────────────────
 function ShieldCheckIcon({ className }) {
     return (
         <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
