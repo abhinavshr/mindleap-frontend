@@ -78,7 +78,7 @@ export default function AdminUsersPage() {
     };
 
     return (
-        <div className="max-w-6xl">
+        <div className="w-full">
 
             <div className="flex items-center justify-between mb-5">
                 <div>
