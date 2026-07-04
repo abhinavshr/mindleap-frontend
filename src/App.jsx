@@ -28,6 +28,7 @@ import AdminLoginPage from "./pages/Admin/AdminLogin";
 import AdminLayout, { DashboardPage, PlaceholderPage } from "./components/Admin/AdminLayout";
 import AdminDashboardPage from "./pages/Admin/AdminDashboardPage";
 import AdminUsersPage from "./pages/Admin/AdminUserPage";
+import AdminListPage from "./pages/Admin/AdminListPage";
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
@@ -166,7 +167,7 @@ function App() {
               />
               <Route
                 path="admin-list"
-                element={<PlaceholderPage title="Admin List" description="See every admin, super admin, and moderator with access." />}
+                element={<AdminListPage />}
               />
               <Route
                 path="contact"
