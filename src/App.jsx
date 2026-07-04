@@ -26,6 +26,7 @@ import Footer from "./components/Reuseable/Footer";
 
 import AdminLoginPage from "./pages/Admin/AdminLogin";
 import AdminLayout, { DashboardPage, PlaceholderPage } from "./components/Admin/AdminLayout";
+import AdminDashboardPage from "./pages/Admin/AdminDashboardPage";
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
@@ -157,7 +158,7 @@ function App() {
               }
             >
               <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="dashboard" element={<AdminDashboardPage />} />
               <Route
                 path="users"
                 element={<PlaceholderPage title="Users" description="View, search, and manage every user on MindLeap." />}
