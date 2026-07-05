@@ -1,28 +1,5 @@
-import { useState } from "react";
-
-const ADMIN_LIST_RESPONSE = {
-    success: true,
-    message: "Admin list fetched successfully.",
-    data: [
-        {
-            id: 3,
-            username: "abhinav",
-            email: "abhinavshr002@gmail.com",
-            role: "admin",
-            is_active: true,
-            last_login: null,
-            created_at: "2026-07-04T09:40:20.000Z",
-        },
-    ],
-    meta: {
-        total: 1,
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-        hasNextPage: false,
-        hasPrevPage: false,
-    },
-};
+import { useEffect, useState } from "react";
+import { fetchAdminList } from "../../api/admin";
 
 const ROLE_OPTIONS = [
     { value: "super_admin", label: "Super admin" },
@@ -52,10 +29,42 @@ function roleLabel(role) {
 }
 
 export default function AdminListPage() {
-    const [admins, setAdmins] = useState(ADMIN_LIST_RESPONSE.data);
-    const meta = ADMIN_LIST_RESPONSE.meta;
+    const [admins, setAdmins] = useState([]);
+    const [meta, setMeta] = useState(null);
+    const [page, setPage] = useState(1);
+    const [limit] = useState(10);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
     const [showModal, setShowModal] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadAdmins = async () => {
+            setLoading(true);
+            setError("");
+            try {
+                const res = await fetchAdminList(page, limit);
+                if (!cancelled) {
+                    setAdmins(res.data.data);
+                    setMeta(res.data.meta);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setError(err.response?.data?.message || "Failed to load admin list.");
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+
+        loadAdmins();
+        return () => {
+            cancelled = true;
+        };
+    }, [page, limit]);
 
     const handleAddAdmin = (newAdmin) => {
         setAdmins((prev) => [
@@ -84,7 +93,9 @@ export default function AdminListPage() {
             <div className="flex items-center justify-between mb-5">
                 <div>
                     <h2 className="text-sm font-semibold text-white">Admin list</h2>
-                    <p className="text-xs text-gray-500 mt-0.5">{meta.total} total admins</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                        {meta ? `${meta.total} total admins` : "Loading…"}
+                    </p>
                 </div>
                 <button
                     type="button"
@@ -95,6 +106,13 @@ export default function AdminListPage() {
                     Add admin
                 </button>
             </div>
+
+            {error && (
+                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
+                    <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
+                    <span className="text-sm text-red-400">{error}</span>
+                </div>
+            )}
 
             <div className="rounded-2xl border border-white/8 bg-white/[0.03] overflow-hidden">
                 <div className="overflow-x-auto">
@@ -110,65 +128,81 @@ export default function AdminListPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {admins.map((a) => (
-                                <tr key={a.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition">
-                                    <td className="px-5 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-300 text-xs font-semibold shrink-0">
-                                                {a.username.slice(0, 2).toUpperCase()}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-medium text-white truncate">{a.username}</p>
-                                                <p className="text-xs text-gray-500 truncate">{a.email}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-5 py-4">
-                                        <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">
-                                            {roleLabel(a.role)}
-                                        </span>
-                                    </td>
-                                    <td className="px-5 py-4">
-                                        {a.is_active ? (
-                                            <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                                Active
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-white/5 text-gray-500 border border-white/10">
-                                                Inactive
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-5 py-4 text-sm text-gray-500">{formatLastLogin(a.last_login)}</td>
-                                    <td className="px-5 py-4 text-sm text-gray-500">{formatDate(a.created_at)}</td>
-                                    <td className="px-5 py-4 text-right">
-                                        <button
-                                            type="button"
-                                            onClick={() => setDeleteTarget(a)}
-                                            className="text-xs font-medium px-3.5 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition"
-                                        >
-                                            Delete
-                                        </button>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={6} className="px-5 py-10 text-center">
+                                        <SpinnerIcon className="w-5 h-5 text-blue-400 animate-spin mx-auto" />
                                     </td>
                                 </tr>
-                            ))}
+                            ) : admins.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="px-5 py-10 text-center text-sm text-gray-500">
+                                        No admins found.
+                                    </td>
+                                </tr>
+                            ) : (
+                                admins.map((a) => (
+                                    <tr key={a.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition">
+                                        <td className="px-5 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-300 text-xs font-semibold shrink-0">
+                                                    {a.username.slice(0, 2).toUpperCase()}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-white truncate">{a.username}</p>
+                                                    <p className="text-xs text-gray-500 truncate">{a.email}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                                                {roleLabel(a.role)}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            {a.is_active ? (
+                                                <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                    Active
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-white/5 text-gray-500 border border-white/10">
+                                                    Inactive
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-4 text-sm text-gray-500">{formatLastLogin(a.last_login)}</td>
+                                        <td className="px-5 py-4 text-sm text-gray-500">{formatDate(a.created_at)}</td>
+                                        <td className="px-5 py-4 text-right">
+                                            <button
+                                                type="button"
+                                                onClick={() => setDeleteTarget(a)}
+                                                className="text-xs font-medium px-3.5 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition"
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
 
                 <div className="flex items-center justify-between px-5 py-3.5 border-t border-white/8">
                     <p className="text-xs text-gray-600">
-                        Page {meta.page} of {meta.totalPages}
+                        {meta ? `Page ${meta.page} of ${meta.totalPages}` : "—"}
                     </p>
                     <div className="flex gap-2">
                         <button
-                            disabled={!meta.hasPrevPage}
+                            disabled={!meta?.hasPrevPage || loading}
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
                             className="text-xs px-3 py-1.5 rounded-lg border border-white/8 text-gray-500 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/5 transition"
                         >
                             Previous
                         </button>
                         <button
-                            disabled={!meta.hasNextPage}
+                            disabled={!meta?.hasNextPage || loading}
+                            onClick={() => setPage((p) => p + 1)}
                             className="text-xs px-3 py-1.5 rounded-lg border border-white/8 text-gray-500 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/5 transition"
                         >
                             Next
@@ -385,6 +419,14 @@ function AlertCircleIcon({ className }) {
     return (
         <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+    );
+}
+function SpinnerIcon({ className }) {
+    return (
+        <svg className={className} fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
     );
 }
