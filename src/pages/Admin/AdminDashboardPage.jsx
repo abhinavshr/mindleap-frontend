@@ -1,21 +1,55 @@
-const DASHBOARD_RESPONSE = {
-    success: true,
-    message: "Dashboard stats fetched successfully.",
-    data: {
-        totalUsers: 4,
-        verifiedUsers: 4,
-        unverifiedUsers: 0,
-        newUsersToday: 0,
-        totalClassicGames: 24,
-        totalSpeedGames: 33,
-        totalGames: 57,
-        gamesPlayedToday: 0,
-        totalWords: 2546,
-    },
-};
+import { useEffect, useState } from "react";
+import { fetchDashboardStats } from "../../api/admin";
 
 export default function AdminDashboardPage() {
-    const stats = DASHBOARD_RESPONSE.data;
+    const [stats, setStats] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadStats = async () => {
+            setLoading(true);
+            setError("");
+            try {
+                const res = await fetchDashboardStats();
+                if (!cancelled) setStats(res.data.data);
+            } catch (err) {
+                if (!cancelled) {
+                    setError(err.response?.data?.message || "Failed to load dashboard stats.");
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+
+        loadStats();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="w-full flex items-center justify-center py-24">
+                <SpinnerIcon className="w-6 h-6 text-blue-400 animate-spin" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="w-full">
+                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                    <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
+                    <span className="text-sm text-red-400">{error}</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (!stats) return null;
 
     const verifiedPct = stats.totalUsers
         ? Math.round((stats.verifiedUsers / stats.totalUsers) * 100)
@@ -35,7 +69,6 @@ export default function AdminDashboardPage() {
     return (
         <div className="w-full">
 
-            {/* KPI cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {kpis.map((k) => {
                     const Icon = k.icon;
@@ -54,10 +87,8 @@ export default function AdminDashboardPage() {
                 })}
             </div>
 
-            {/* Breakdown row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
 
-                {/* User verification breakdown */}
                 <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6">
                     <div className="flex items-center justify-between mb-5">
                         <h2 className="text-sm font-semibold text-white">User verification</h2>
@@ -87,7 +118,6 @@ export default function AdminDashboardPage() {
                     </div>
                 </div>
 
-                {/* Game type breakdown */}
                 <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6">
                     <div className="flex items-center justify-between mb-5">
                         <h2 className="text-sm font-semibold text-white">Games by type</h2>
@@ -116,7 +146,6 @@ export default function AdminDashboardPage() {
                 </div>
             </div>
 
-            {/* Today snapshot */}
             <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12">
                 <div>
                     <h2 className="text-sm font-semibold text-white mb-1">Today</h2>
@@ -162,6 +191,21 @@ function ShieldCheckIcon({ className }) {
     return (
         <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+        </svg>
+    );
+}
+function AlertCircleIcon({ className }) {
+    return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+    );
+}
+function SpinnerIcon({ className }) {
+    return (
+        <svg className={className} fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
     );
 }
