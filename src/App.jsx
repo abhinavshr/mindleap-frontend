@@ -29,6 +29,7 @@ import AdminLayout, { DashboardPage, PlaceholderPage } from "./components/Admin/
 import AdminDashboardPage from "./pages/Admin/AdminDashboardPage";
 import AdminUsersPage from "./pages/Admin/AdminUserPage";
 import AdminListPage from "./pages/Admin/AdminListPage";
+import AdminContactPage from "./pages/Admin/AdminContactPage";
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
@@ -171,7 +172,7 @@ function App() {
               />
               <Route
                 path="contact"
-                element={<PlaceholderPage title="Contact" description="Messages and support requests submitted by users." />}
+                element={<AdminContactPage />}
               />
               <Route
                 path="settings"
