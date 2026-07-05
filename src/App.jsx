@@ -30,6 +30,7 @@ import AdminDashboardPage from "./pages/Admin/AdminDashboardPage";
 import AdminUsersPage from "./pages/Admin/AdminUserPage";
 import AdminListPage from "./pages/Admin/AdminListPage";
 import AdminContactPage from "./pages/Admin/AdminContactPage";
+import AdminSettingsPage from "./pages/Admin/AdminSettingPage";
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
@@ -176,7 +177,7 @@ function App() {
               />
               <Route
                 path="settings"
-                element={<PlaceholderPage title="Settings" description="Configure platform-wide preferences and controls." />}
+                element={<AdminSettingsPage />}
               />
             </Route>
 
