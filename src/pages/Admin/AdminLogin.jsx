@@ -39,7 +39,11 @@ export default function AdminLogin() {
         setLoading(true);
         try {
             const res = await loginAdmin({ email, password });
+            const admin = res.data.data;
             localStorage.setItem("adminToken", res.data.token);
+            localStorage.setItem("adminRole", admin?.role || role);
+            localStorage.setItem("adminEmail", admin?.email || email);
+            localStorage.setItem("adminUsername", admin?.username || "");
             navigate("/admin/dashboard", { replace: true });
         } catch (err) {
             setError(err.response?.data?.message || "Invalid email or password.");

@@ -9,10 +9,24 @@ const NAV_ITEMS = [
     { path: "settings", label: "Settings", icon: SettingsIcon },
 ];
 
+const ROLE_LABELS = {
+    super_admin: "Super Admin",
+    admin: "Admin",
+    moderator: "Moderator",
+};
+
 export default function AdminLayout() {
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
+
+    const adminRole = localStorage.getItem("adminRole");
+    const adminEmail = localStorage.getItem("adminEmail") || "admin@mindleap.com";
+    const adminUsername = localStorage.getItem("adminUsername");
+    const roleDisplay = ROLE_LABELS[adminRole] || "Admin";
+    const initials = (adminUsername || adminEmail).slice(0, 2).toUpperCase();
+
+    const navItems = NAV_ITEMS.filter((item) => item.path !== "admin-list" || adminRole === "super_admin");
 
     const activeLabel =
         NAV_ITEMS.find((n) => location.pathname.startsWith(`/admin/${n.path}`))?.label ?? "Dashboard";
@@ -63,7 +77,7 @@ export default function AdminLayout() {
                                 Menu
                             </p>
                         )}
-                        {NAV_ITEMS.map((item) => {
+                        {navItems.map((item) => {
                             const Icon = item.icon;
                             return (
                                 <NavLink
@@ -106,12 +120,12 @@ export default function AdminLayout() {
 
                         <div className={`flex items-center gap-3 mt-3 px-3 ${collapsed ? "justify-center px-0" : ""}`}>
                             <div className="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-300 text-xs font-semibold shrink-0">
-                                SA
+                                {initials}
                             </div>
                             {!collapsed && (
                                 <div className="leading-none">
-                                    <p className="text-xs font-medium text-gray-300">Super Admin</p>
-                                    <p className="text-[11px] text-gray-600 mt-1">admin@mindleap.com</p>
+                                    <p className="text-xs font-medium text-gray-300">{roleDisplay}</p>
+                                    <p className="text-[11px] text-gray-600 mt-1">{adminEmail}</p>
                                 </div>
                             )}
                         </div>
@@ -142,7 +156,7 @@ export default function AdminLayout() {
                             <BellIcon className="w-4 h-4" />
                         </button>
                         <div className="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-300 text-xs font-semibold">
-                            SA
+                            {initials}
                         </div>
                     </div>
                 </header>
