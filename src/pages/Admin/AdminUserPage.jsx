@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchUsers } from "../../api/admin";
+import { fetchUsers, banUser, unbanUser } from "../../api/admin";
 
 function formatDate(iso) {
     return new Date(iso).toLocaleDateString("en-US", {
@@ -16,6 +16,8 @@ export default function AdminUsersPage() {
     const [limit] = useState(10);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [banningId, setBanningId] = useState(null);
+    const [banError, setBanError] = useState("");
 
     useEffect(() => {
         let cancelled = false;
@@ -44,10 +46,20 @@ export default function AdminUsersPage() {
         };
     }, [page, limit]);
 
-    const toggleBan = (id) => {
-        setUsers((prev) =>
-            prev.map((u) => (u.id === id ? { ...u, is_banned: !u.is_banned } : u))
-        );
+    const toggleBan = async (u) => {
+        setBanError("");
+        setBanningId(u.id);
+        try {
+            const res = u.is_banned ? await unbanUser(u.id) : await banUser(u.id);
+            const updated = res.data.data;
+            setUsers((prev) =>
+                prev.map((usr) => (usr.id === updated.id ? { ...usr, is_banned: updated.is_banned } : usr))
+            );
+        } catch (err) {
+            setBanError(err.response?.data?.message || "Failed to update user status.");
+        } finally {
+            setBanningId(null);
+        }
     };
 
     return (
@@ -66,6 +78,13 @@ export default function AdminUsersPage() {
                 <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
                     <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
                     <span className="text-sm text-red-400">{error}</span>
+                </div>
+            )}
+
+            {banError && (
+                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
+                    <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
+                    <span className="text-sm text-red-400">{banError}</span>
                 </div>
             )}
 
@@ -140,14 +159,24 @@ export default function AdminUsersPage() {
                                         <td className="px-5 py-4 text-right">
                                             <button
                                                 type="button"
-                                                onClick={() => toggleBan(u.id)}
-                                                className={`text-xs font-medium px-3.5 py-1.5 rounded-lg border transition
+                                                onClick={() => toggleBan(u)}
+                                                disabled={banningId === u.id}
+                                                className={`text-xs font-medium px-3.5 py-1.5 rounded-lg border transition disabled:opacity-50 disabled:cursor-not-allowed
                           ${u.is_banned
                                                         ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
                                                         : "border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20"
                                                     }`}
                                             >
-                                                {u.is_banned ? "Unban" : "Ban"}
+                                                {banningId === u.id ? (
+                                                    <span className="inline-flex items-center gap-1.5">
+                                                        <SpinnerIcon className="w-3.5 h-3.5 animate-spin" />
+                                                        {u.is_banned ? "Unbanning…" : "Banning…"}
+                                                    </span>
+                                                ) : u.is_banned ? (
+                                                    "Unban"
+                                                ) : (
+                                                    "Ban"
+                                                )}
                                             </button>
                                         </td>
                                     </tr>
