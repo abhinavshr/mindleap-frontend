@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 const NAV_ITEMS = [
     { path: "dashboard", label: "Dashboard", icon: DashboardIcon },
@@ -26,7 +26,16 @@ export default function AdminLayout() {
     const roleDisplay = ROLE_LABELS[adminRole] || "Admin";
     const initials = (adminUsername || adminEmail).slice(0, 2).toUpperCase();
 
-    const navItems = NAV_ITEMS.filter((item) => item.path !== "admin-list" || adminRole === "super_admin");
+    const navItems = NAV_ITEMS.filter(
+        (item) => (item.path !== "admin-list" && item.path !== "dashboard") || adminRole === "super_admin"
+    );
+    const defaultPath = adminRole === "super_admin" ? "dashboard" : "users";
+
+    useEffect(() => {
+        if (location.pathname === "/admin" || location.pathname === "/admin/") {
+            navigate(`/admin/${defaultPath}`, { replace: true });
+        }
+    }, [location.pathname, defaultPath, navigate]);
 
     const activeLabel =
         NAV_ITEMS.find((n) => location.pathname.startsWith(`/admin/${n.path}`))?.label ?? "Dashboard";
@@ -168,6 +177,14 @@ export default function AdminLayout() {
             </div>
         </div>
     );
+}
+
+export function RequireSuperAdmin({ children }) {
+    const adminRole = localStorage.getItem("adminRole");
+    if (adminRole !== "super_admin") {
+        return <Navigate to="/admin/users" replace />;
+    }
+    return children;
 }
 
 export function DashboardPage() {
