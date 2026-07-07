@@ -14,3 +14,6 @@ export const unbanUser = (id) =>
 
 export const fetchAdminList = (page = 1, limit = 10) =>
   adminApi.get("/admin/list", { params: { page, limit } });
+
+export const createAdmin = (adminData) =>
+  adminApi.post("/admin/create", adminData);
