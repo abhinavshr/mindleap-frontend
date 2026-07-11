@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchContacts } from "../../api/admin";
+import { fetchContacts, fetchContactById } from "../../api/admin";
 
 function formatDateTime(iso) {
     return new Date(iso).toLocaleString("en-US", {
@@ -19,6 +19,8 @@ export default function AdminContactPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [selected, setSelected] = useState(null);
+    const [openingId, setOpeningId] = useState(null);
+    const [detailError, setDetailError] = useState("");
 
     useEffect(() => {
         let cancelled = false;
@@ -49,11 +51,21 @@ export default function AdminContactPage() {
 
     const unreadCount = contacts.filter((c) => !c.is_read).length;
 
-    const openContact = (contact) => {
-        setSelected(contact);
-        setContacts((prev) =>
-            prev.map((c) => (c.id === contact.id ? { ...c, is_read: true } : c))
-        );
+    const openContact = async (contact) => {
+        setDetailError("");
+        setOpeningId(contact.id);
+        try {
+            const res = await fetchContactById(contact.id);
+            const full = res.data.data;
+            setSelected(full);
+            setContacts((prev) =>
+                prev.map((c) => (c.id === full.id ? { ...c, is_read: full.is_read } : c))
+            );
+        } catch (err) {
+            setDetailError(err.response?.data?.message || "Failed to load contact submission.");
+        } finally {
+            setOpeningId(null);
+        }
     };
 
     return (
@@ -72,6 +84,13 @@ export default function AdminContactPage() {
                 <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
                     <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
                     <span className="text-sm text-red-400">{error}</span>
+                </div>
+            )}
+
+            {detailError && (
+                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
+                    <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
+                    <span className="text-sm text-red-400">{detailError}</span>
                 </div>
             )}
 
@@ -136,9 +155,17 @@ export default function AdminContactPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => openContact(c)}
-                                                className="text-xs font-medium px-3.5 py-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 transition"
+                                                disabled={openingId === c.id}
+                                                className="text-xs font-medium px-3.5 py-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition"
                                             >
-                                                View
+                                                {openingId === c.id ? (
+                                                    <span className="inline-flex items-center gap-1.5">
+                                                        <SpinnerIcon className="w-3.5 h-3.5 animate-spin" />
+                                                        Loading…
+                                                    </span>
+                                                ) : (
+                                                    "View"
+                                                )}
                                             </button>
                                         </td>
                                     </tr>
@@ -217,9 +244,15 @@ function ContactDetailModal({ contact, onClose }) {
 
                 <div className="flex items-center justify-between text-xs text-gray-600">
                     <span>Received {formatDateTime(contact.created_at)}</span>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 text-gray-500 border border-white/10">
-                        Read
-                    </span>
+                    {contact.is_read ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 text-gray-500 border border-white/10">
+                            Read
+                        </span>
+                    ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                            Unread
+                        </span>
+                    )}
                 </div>
             </div>
         </div>
