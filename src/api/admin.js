@@ -26,3 +26,9 @@ export const fetchContacts = (page = 1, limit = 10) =>
 
 export const fetchContactById = (id) =>
   adminApi.get(`/admin/contact-us/view/${id}`);
+
+export const markContactAsRead = (id) =>
+  adminApi.put(`/admin/contact-us/mark-as-read/${id}`);
+
+export const markContactAsUnread = (id) =>
+  adminApi.put(`/admin/contact-us/mark-as-unread/${id}`);
