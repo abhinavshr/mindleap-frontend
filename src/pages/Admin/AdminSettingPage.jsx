@@ -1,18 +1,5 @@
-import { useState } from "react";
-
-const ADMIN_PROFILE_RESPONSE = {
-    success: true,
-    message: "Admin profile fetched successfully.",
-    data: {
-        id: 1,
-        username: "abhinav001",
-        email: "infomindleap@gmail.com",
-        role: "super_admin",
-        is_active: true,
-        last_login: "2026-07-05T05:51:35.000Z",
-        created_at: "2026-06-26T16:12:28.000Z",
-    },
-};
+import { useEffect, useState } from "react";
+import { fetchAdminProfile } from "../../api/admin";
 
 const ROLE_LABELS = {
     super_admin: "Super admin",
@@ -32,7 +19,54 @@ function formatDateTime(iso) {
 }
 
 export default function AdminSettingsPage() {
-    const profile = ADMIN_PROFILE_RESPONSE.data;
+    const [profile, setProfile] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadProfile = async () => {
+            setLoading(true);
+            setError("");
+            try {
+                const res = await fetchAdminProfile();
+                if (!cancelled) setProfile(res.data.data);
+            } catch (err) {
+                if (!cancelled) {
+                    setError(err.response?.data?.message || "Failed to load profile.");
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+
+        loadProfile();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="w-full flex items-center justify-center py-24">
+                <SpinnerIcon className="w-6 h-6 text-blue-400 animate-spin" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="w-full">
+                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                    <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
+                    <span className="text-sm text-red-400">{error}</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (!profile) return null;
 
     return (
         <div className="w-full">

@@ -35,3 +35,6 @@ export const markContactAsUnread = (id) =>
 
 export const deleteContact = (id) =>
   adminApi.delete(`/admin/contact-us/delete/${id}`);
+
+export const fetchAdminProfile = () =>
+  adminApi.get("/admin/profile");
