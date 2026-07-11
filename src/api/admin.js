@@ -23,3 +23,6 @@ export const deleteAdmin = (id) =>
 
 export const fetchContacts = (page = 1, limit = 10) =>
   adminApi.get("/admin/contact-us/list", { params: { page, limit } });
+
+export const fetchContactById = (id) =>
+  adminApi.get(`/admin/contact-us/view/${id}`);
