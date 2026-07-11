@@ -17,3 +17,6 @@ export const fetchAdminList = (page = 1, limit = 10) =>
 
 export const createAdmin = (adminData) =>
   adminApi.post("/admin/create", adminData);
+
+export const deleteAdmin = (id) =>
+  adminApi.delete(`/admin/remove/${id}`);
