@@ -1,37 +1,5 @@
-import { useState } from "react";
-
-const CONTACTS_RESPONSE = {
-    success: true,
-    message: "Contact submissions fetched successfully.",
-    data: [
-        {
-            id: 3,
-            name: "John Doe",
-            email: "john@example.com",
-            subject: "Need help with my account",
-            message: "Hi, I am having trouble logging in.",
-            is_read: false,
-            created_at: "2026-06-27T13:28:35.000Z",
-        },
-        {
-            id: 2,
-            name: "John Doe",
-            email: "john@example.com",
-            subject: "Need help with my account",
-            message: "Hi, I am having trouble logging in.",
-            is_read: false,
-            created_at: "2026-06-27T13:27:55.000Z",
-        },
-    ],
-    meta: {
-        total: 2,
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-        hasNextPage: false,
-        hasPrevPage: false,
-    },
-};
+import { useEffect, useState } from "react";
+import { fetchContacts } from "../../api/admin";
 
 function formatDateTime(iso) {
     return new Date(iso).toLocaleString("en-US", {
@@ -44,9 +12,40 @@ function formatDateTime(iso) {
 }
 
 export default function AdminContactPage() {
-    const [contacts, setContacts] = useState(CONTACTS_RESPONSE.data);
-    const meta = CONTACTS_RESPONSE.meta;
+    const [contacts, setContacts] = useState([]);
+    const [meta, setMeta] = useState(null);
+    const [page, setPage] = useState(1);
+    const [limit] = useState(10);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
     const [selected, setSelected] = useState(null);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadContacts = async () => {
+            setLoading(true);
+            setError("");
+            try {
+                const res = await fetchContacts(page, limit);
+                if (!cancelled) {
+                    setContacts(res.data.data);
+                    setMeta(res.data.meta);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setError(err.response?.data?.message || "Failed to load contact submissions.");
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+
+        loadContacts();
+        return () => {
+            cancelled = true;
+        };
+    }, [page, limit]);
 
     const unreadCount = contacts.filter((c) => !c.is_read).length;
 
@@ -64,10 +63,17 @@ export default function AdminContactPage() {
                 <div>
                     <h2 className="text-sm font-semibold text-white">Contact submissions</h2>
                     <p className="text-xs text-gray-500 mt-0.5">
-                        {meta.total} total &middot; {unreadCount} unread
+                        {meta ? `${meta.total} total · ${unreadCount} unread` : "Loading…"}
                     </p>
                 </div>
             </div>
+
+            {error && (
+                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
+                    <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
+                    <span className="text-sm text-red-400">{error}</span>
+                </div>
+            )}
 
             <div className="rounded-2xl border border-white/8 bg-white/[0.03] overflow-hidden">
                 <div className="overflow-x-auto">
@@ -82,65 +88,81 @@ export default function AdminContactPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {contacts.map((c) => (
-                                <tr key={c.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition">
-                                    <td className="px-5 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-300 text-xs font-semibold shrink-0">
-                                                {c.name.slice(0, 2).toUpperCase()}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-medium text-white truncate">{c.name}</p>
-                                                <p className="text-xs text-gray-500 truncate">{c.email}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-5 py-4 max-w-xs">
-                                        <p className={`text-sm truncate ${c.is_read ? "text-gray-400" : "text-white font-medium"}`}>
-                                            {c.subject}
-                                        </p>
-                                        <p className="text-xs text-gray-600 truncate">{c.message}</p>
-                                    </td>
-                                    <td className="px-5 py-4">
-                                        {c.is_read ? (
-                                            <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-white/5 text-gray-500 border border-white/10">
-                                                Read
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">
-                                                Unread
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-5 py-4 text-sm text-gray-500">{formatDateTime(c.created_at)}</td>
-                                    <td className="px-5 py-4 text-right">
-                                        <button
-                                            type="button"
-                                            onClick={() => openContact(c)}
-                                            className="text-xs font-medium px-3.5 py-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 transition"
-                                        >
-                                            View
-                                        </button>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={5} className="px-5 py-10 text-center">
+                                        <SpinnerIcon className="w-5 h-5 text-blue-400 animate-spin mx-auto" />
                                     </td>
                                 </tr>
-                            ))}
+                            ) : contacts.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="px-5 py-10 text-center text-sm text-gray-500">
+                                        No contact submissions found.
+                                    </td>
+                                </tr>
+                            ) : (
+                                contacts.map((c) => (
+                                    <tr key={c.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition">
+                                        <td className="px-5 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-300 text-xs font-semibold shrink-0">
+                                                    {c.name.slice(0, 2).toUpperCase()}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-white truncate">{c.name}</p>
+                                                    <p className="text-xs text-gray-500 truncate">{c.email}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-5 py-4 max-w-xs">
+                                            <p className={`text-sm truncate ${c.is_read ? "text-gray-400" : "text-white font-medium"}`}>
+                                                {c.subject}
+                                            </p>
+                                            <p className="text-xs text-gray-600 truncate">{c.message}</p>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            {c.is_read ? (
+                                                <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-white/5 text-gray-500 border border-white/10">
+                                                    Read
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                                                    Unread
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-4 text-sm text-gray-500">{formatDateTime(c.created_at)}</td>
+                                        <td className="px-5 py-4 text-right">
+                                            <button
+                                                type="button"
+                                                onClick={() => openContact(c)}
+                                                className="text-xs font-medium px-3.5 py-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 transition"
+                                            >
+                                                View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
 
                 <div className="flex items-center justify-between px-5 py-3.5 border-t border-white/8">
                     <p className="text-xs text-gray-600">
-                        Page {meta.page} of {meta.totalPages}
+                        {meta ? `Page ${meta.page} of ${meta.totalPages}` : "—"}
                     </p>
                     <div className="flex gap-2">
                         <button
-                            disabled={!meta.hasPrevPage}
+                            disabled={!meta?.hasPrevPage || loading}
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
                             className="text-xs px-3 py-1.5 rounded-lg border border-white/8 text-gray-500 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/5 transition"
                         >
                             Previous
                         </button>
                         <button
-                            disabled={!meta.hasNextPage}
+                            disabled={!meta?.hasNextPage || loading}
+                            onClick={() => setPage((p) => p + 1)}
                             className="text-xs px-3 py-1.5 rounded-lg border border-white/8 text-gray-500 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/5 transition"
                         >
                             Next
@@ -208,6 +230,21 @@ function XIcon({ className }) {
     return (
         <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+    );
+}
+function AlertCircleIcon({ className }) {
+    return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+    );
+}
+function SpinnerIcon({ className }) {
+    return (
+        <svg className={className} fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
     );
 }

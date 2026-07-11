@@ -20,3 +20,6 @@ export const createAdmin = (adminData) =>
 
 export const deleteAdmin = (id) =>
   adminApi.delete(`/admin/remove/${id}`);
+
+export const fetchContacts = (page = 1, limit = 10) =>
+  adminApi.get("/admin/contact-us/list", { params: { page, limit } });
