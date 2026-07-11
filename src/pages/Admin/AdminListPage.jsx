@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchAdminList, createAdmin } from "../../api/admin";
+import toast from "react-hot-toast";
+import { fetchAdminList, createAdmin, deleteAdmin } from "../../api/admin";
 
 const ROLE_OPTIONS = [
     { value: "super_admin", label: "Super admin" },
@@ -42,6 +43,8 @@ export default function AdminListPage() {
 
     const [showModal, setShowModal] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
+    const [actionError, setActionError] = useState("");
 
     useEffect(() => {
         if (!isSuperAdmin) {
@@ -75,25 +78,27 @@ export default function AdminListPage() {
         };
     }, [page, limit, isSuperAdmin, navigate]);
 
-    const handleAddAdmin = (newAdmin) => {
-        setAdmins((prev) => [
-            ...prev,
-            {
-                id: prev.length ? Math.max(...prev.map((a) => a.id)) + 1 : 1,
-                username: newAdmin.username,
-                email: newAdmin.email,
-                role: newAdmin.role,
-                is_active: true,
-                last_login: null,
-                created_at: new Date().toISOString(),
-            },
-        ]);
+    const handleAddAdmin = async (newAdmin) => {
+        const res = await createAdmin(newAdmin);
+        setAdmins((prev) => [...prev, res.data.data]);
         setShowModal(false);
     };
 
-    const handleDeleteAdmin = () => {
-        setAdmins((prev) => prev.filter((a) => a.id !== deleteTarget.id));
-        setDeleteTarget(null);
+    const handleDeleteAdmin = async () => {
+        setActionError("");
+        setDeletingId(deleteTarget.id);
+        try {
+            await deleteAdmin(deleteTarget.id);
+            setAdmins((prev) => prev.filter((a) => a.id !== deleteTarget.id));
+            toast.success(`${deleteTarget.username} was deleted successfully.`);
+            setDeleteTarget(null);
+        } catch (err) {
+            const message = err.response?.data?.message || "Failed to delete admin.";
+            setActionError(message);
+            toast.error(message);
+        } finally {
+            setDeletingId(null);
+        }
     };
 
     if (!isSuperAdmin) {
@@ -124,6 +129,13 @@ export default function AdminListPage() {
                 <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
                     <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
                     <span className="text-sm text-red-400">{error}</span>
+                </div>
+            )}
+
+            {actionError && (
+                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
+                    <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
+                    <span className="text-sm text-red-400">{actionError}</span>
                 </div>
             )}
 
@@ -231,6 +243,7 @@ export default function AdminListPage() {
             {deleteTarget && (
                 <DeleteAdminModal
                     admin={deleteTarget}
+                    deleting={deletingId === deleteTarget.id}
                     onClose={() => setDeleteTarget(null)}
                     onConfirm={handleDeleteAdmin}
                 />
@@ -239,7 +252,7 @@ export default function AdminListPage() {
     );
 }
 
-function DeleteAdminModal({ admin, onClose, onConfirm }) {
+function DeleteAdminModal({ admin, deleting, onClose, onConfirm }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -258,16 +271,25 @@ function DeleteAdminModal({ admin, onClose, onConfirm }) {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 h-11 rounded-xl border border-white/8 text-sm font-medium text-gray-400 hover:bg-white/5 transition"
+                        disabled={deleting}
+                        className="flex-1 h-11 rounded-xl border border-white/8 text-sm font-medium text-gray-400 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
                         Cancel
                     </button>
                     <button
                         type="button"
                         onClick={onConfirm}
-                        className="flex-1 h-11 rounded-xl bg-red-600 hover:bg-red-500 active:scale-[0.99] text-white text-sm font-semibold transition shadow-lg shadow-red-900/30"
+                        disabled={deleting}
+                        className="flex-1 h-11 rounded-xl bg-red-600 hover:bg-red-500 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold flex items-center justify-center gap-2 transition shadow-lg shadow-red-900/30"
                     >
-                        Delete
+                        {deleting ? (
+                            <>
+                                <SpinnerIcon className="w-4 h-4 animate-spin" />
+                                Deleting…
+                            </>
+                        ) : (
+                            "Delete"
+                        )}
                     </button>
                 </div>
             </div>
@@ -282,14 +304,22 @@ function AddAdminModal({ onClose, onSubmit }) {
     const [showPw, setShowPw] = useState(false);
     const [role, setRole] = useState("admin");
     const [error, setError] = useState("");
+    const [submitting, setSubmitting] = useState(false);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!username || !email || !password) {
             setError("All fields are required.");
             return;
         }
         setError("");
-        onSubmit({ username, email, password, role });
+        setSubmitting(true);
+        try {
+            await onSubmit({ username, email, password, role });
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to create admin.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -382,16 +412,25 @@ function AddAdminModal({ onClose, onSubmit }) {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 h-11 rounded-xl border border-white/8 text-sm font-medium text-gray-400 hover:bg-white/5 transition"
+                        disabled={submitting}
+                        className="flex-1 h-11 rounded-xl border border-white/8 text-sm font-medium text-gray-400 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
                         Cancel
                     </button>
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.99] text-white text-sm font-semibold transition shadow-lg shadow-blue-900/30"
+                        disabled={submitting}
+                        className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold flex items-center justify-center gap-2 transition shadow-lg shadow-blue-900/30"
                     >
-                        Add admin
+                        {submitting ? (
+                            <>
+                                <SpinnerIcon className="w-4 h-4 animate-spin" />
+                                Adding…
+                            </>
+                        ) : (
+                            "Add admin"
+                        )}
                     </button>
                 </div>
             </div>
