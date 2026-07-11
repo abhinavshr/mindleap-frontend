@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { fetchContacts, fetchContactById, markContactAsRead, markContactAsUnread } from "../../api/admin";
+import { fetchContacts, fetchContactById, markContactAsRead, markContactAsUnread, deleteContact } from "../../api/admin";
 
 function formatDateTime(iso) {
     return new Date(iso).toLocaleString("en-US", {
@@ -23,6 +23,8 @@ export default function AdminContactPage() {
     const [openingId, setOpeningId] = useState(null);
     const [detailError, setDetailError] = useState("");
     const [togglingId, setTogglingId] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -86,6 +88,21 @@ export default function AdminContactPage() {
             toast.error(err.response?.data?.message || "Failed to update read status.");
         } finally {
             setTogglingId(null);
+        }
+    };
+
+    const handleDeleteContact = async () => {
+        setDeletingId(deleteTarget.id);
+        try {
+            await deleteContact(deleteTarget.id);
+            setContacts((prev) => prev.filter((c) => c.id !== deleteTarget.id));
+            if (selected?.id === deleteTarget.id) setSelected(null);
+            toast.success("Contact submission deleted.");
+            setDeleteTarget(null);
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to delete contact submission.");
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -206,6 +223,13 @@ export default function AdminContactPage() {
                                                         "View"
                                                     )}
                                                 </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDeleteTarget(c)}
+                                                    className="text-xs font-medium px-3.5 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition"
+                                                >
+                                                    Delete
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -244,6 +268,15 @@ export default function AdminContactPage() {
                     onClose={() => setSelected(null)}
                     onToggleRead={() => toggleReadStatus(selected)}
                     toggling={togglingId === selected.id}
+                />
+            )}
+
+            {deleteTarget && (
+                <DeleteContactModal
+                    contact={deleteTarget}
+                    deleting={deletingId === deleteTarget.id}
+                    onClose={() => setDeleteTarget(null)}
+                    onConfirm={handleDeleteContact}
                 />
             )}
         </div>
@@ -308,6 +341,52 @@ function ContactDetailModal({ contact, onClose, onToggleRead, toggling }) {
                             "Read · Mark unread"
                         ) : (
                             "Unread · Mark read"
+                        )}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function DeleteContactModal({ contact, deleting, onClose, onConfirm }) {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+
+            <div className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-gray-900 p-6 shadow-2xl">
+                <div className="w-11 h-11 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-4">
+                    <AlertCircleIcon className="w-5 h-5 text-red-400" />
+                </div>
+
+                <h3 className="text-base font-semibold text-white mb-1.5">Delete submission</h3>
+                <p className="text-sm text-gray-500 mb-6">
+                    Are you sure you want to delete the message from{" "}
+                    <span className="text-gray-300">{contact.name}</span>? This action cannot be undone.
+                </p>
+
+                <div className="flex gap-3">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={deleting}
+                        className="flex-1 h-11 rounded-xl border border-white/8 text-sm font-medium text-gray-400 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onConfirm}
+                        disabled={deleting}
+                        className="flex-1 h-11 rounded-xl bg-red-600 hover:bg-red-500 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold flex items-center justify-center gap-2 transition shadow-lg shadow-red-900/30"
+                    >
+                        {deleting ? (
+                            <>
+                                <SpinnerIcon className="w-4 h-4 animate-spin" />
+                                Deleting…
+                            </>
+                        ) : (
+                            "Delete"
                         )}
                     </button>
                 </div>
