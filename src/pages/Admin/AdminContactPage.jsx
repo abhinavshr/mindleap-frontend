@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchContacts, fetchContactById } from "../../api/admin";
+import toast from "react-hot-toast";
+import { fetchContacts, fetchContactById, markContactAsRead, markContactAsUnread } from "../../api/admin";
 
 function formatDateTime(iso) {
     return new Date(iso).toLocaleString("en-US", {
@@ -21,6 +22,7 @@ export default function AdminContactPage() {
     const [selected, setSelected] = useState(null);
     const [openingId, setOpeningId] = useState(null);
     const [detailError, setDetailError] = useState("");
+    const [togglingId, setTogglingId] = useState(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -65,6 +67,25 @@ export default function AdminContactPage() {
             setDetailError(err.response?.data?.message || "Failed to load contact submission.");
         } finally {
             setOpeningId(null);
+        }
+    };
+
+    const toggleReadStatus = async (contact) => {
+        setTogglingId(contact.id);
+        try {
+            const res = contact.is_read
+                ? await markContactAsUnread(contact.id)
+                : await markContactAsRead(contact.id);
+            const updated = res.data.data;
+            setContacts((prev) =>
+                prev.map((c) => (c.id === updated.id ? { ...c, is_read: updated.is_read } : c))
+            );
+            setSelected((prev) => (prev && prev.id === updated.id ? { ...prev, is_read: updated.is_read } : prev));
+            toast.success(updated.is_read ? "Marked as read." : "Marked as unread.");
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to update read status.");
+        } finally {
+            setTogglingId(null);
         }
     };
 
@@ -152,21 +173,40 @@ export default function AdminContactPage() {
                                         </td>
                                         <td className="px-5 py-4 text-sm text-gray-500">{formatDateTime(c.created_at)}</td>
                                         <td className="px-5 py-4 text-right">
-                                            <button
-                                                type="button"
-                                                onClick={() => openContact(c)}
-                                                disabled={openingId === c.id}
-                                                className="text-xs font-medium px-3.5 py-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                            >
-                                                {openingId === c.id ? (
-                                                    <span className="inline-flex items-center gap-1.5">
-                                                        <SpinnerIcon className="w-3.5 h-3.5 animate-spin" />
-                                                        Loading…
-                                                    </span>
-                                                ) : (
-                                                    "View"
-                                                )}
-                                            </button>
+                                            <div className="inline-flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleReadStatus(c)}
+                                                    disabled={togglingId === c.id}
+                                                    className="text-xs font-medium px-3.5 py-1.5 rounded-lg border border-white/8 bg-white/[0.03] text-gray-400 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                                >
+                                                    {togglingId === c.id ? (
+                                                        <span className="inline-flex items-center gap-1.5">
+                                                            <SpinnerIcon className="w-3.5 h-3.5 animate-spin" />
+                                                            Updating…
+                                                        </span>
+                                                    ) : c.is_read ? (
+                                                        "Mark unread"
+                                                    ) : (
+                                                        "Mark read"
+                                                    )}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openContact(c)}
+                                                    disabled={openingId === c.id}
+                                                    className="text-xs font-medium px-3.5 py-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                                >
+                                                    {openingId === c.id ? (
+                                                        <span className="inline-flex items-center gap-1.5">
+                                                            <SpinnerIcon className="w-3.5 h-3.5 animate-spin" />
+                                                            Loading…
+                                                        </span>
+                                                    ) : (
+                                                        "View"
+                                                    )}
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -199,13 +239,18 @@ export default function AdminContactPage() {
             </div>
 
             {selected && (
-                <ContactDetailModal contact={selected} onClose={() => setSelected(null)} />
+                <ContactDetailModal
+                    contact={selected}
+                    onClose={() => setSelected(null)}
+                    onToggleRead={() => toggleReadStatus(selected)}
+                    toggling={togglingId === selected.id}
+                />
             )}
         </div>
     );
 }
 
-function ContactDetailModal({ contact, onClose }) {
+function ContactDetailModal({ contact, onClose, onToggleRead, toggling }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -242,17 +287,29 @@ function ContactDetailModal({ contact, onClose }) {
                     </p>
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-gray-600">
-                    <span>Received {formatDateTime(contact.created_at)}</span>
-                    {contact.is_read ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 text-gray-500 border border-white/10">
-                            Read
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">
-                            Unread
-                        </span>
-                    )}
+                <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-600">Received {formatDateTime(contact.created_at)}</span>
+                    <button
+                        type="button"
+                        onClick={onToggleRead}
+                        disabled={toggling}
+                        className={`text-xs font-medium px-3 py-1.5 rounded-full border transition disabled:opacity-50 disabled:cursor-not-allowed
+              ${contact.is_read
+                                ? "border-white/10 bg-white/5 text-gray-400 hover:bg-white/10"
+                                : "border-blue-500/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20"
+                            }`}
+                    >
+                        {toggling ? (
+                            <span className="inline-flex items-center gap-1.5">
+                                <SpinnerIcon className="w-3.5 h-3.5 animate-spin" />
+                                Updating…
+                            </span>
+                        ) : contact.is_read ? (
+                            "Read · Mark unread"
+                        ) : (
+                            "Unread · Mark read"
+                        )}
+                    </button>
                 </div>
             </div>
         </div>
