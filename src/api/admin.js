@@ -32,3 +32,6 @@ export const markContactAsRead = (id) =>
 
 export const markContactAsUnread = (id) =>
   adminApi.put(`/admin/contact-us/mark-as-unread/${id}`);
+
+export const deleteContact = (id) =>
+  adminApi.delete(`/admin/contact-us/delete/${id}`);
