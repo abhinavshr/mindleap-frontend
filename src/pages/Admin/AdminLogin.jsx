@@ -40,11 +40,16 @@ export default function AdminLogin() {
         try {
             const res = await loginAdmin({ email, password });
             const admin = res.data.data;
+            const resolvedRole = admin?.role || role;
+            console.log("[DEBUG] full login response:", res.data);
+            console.log("[DEBUG] admin object:", admin);
+            console.log("[DEBUG] resolvedRole:", resolvedRole);
             localStorage.setItem("adminToken", res.data.token);
-            localStorage.setItem("adminRole", admin?.role || role);
+            localStorage.setItem("adminRole", resolvedRole);
             localStorage.setItem("adminEmail", admin?.email || email);
             localStorage.setItem("adminUsername", admin?.username || "");
-            navigate("/admin/dashboard", { replace: true });
+            console.log("[DEBUG] localStorage adminRole after set:", localStorage.getItem("adminRole"));
+            navigate(resolvedRole === "super_admin" ? "/admin/dashboard" : "/admin/users", { replace: true });
         } catch (err) {
             setError(err.response?.data?.message || "Invalid email or password.");
         } finally {
@@ -168,7 +173,6 @@ export default function AdminLogin() {
                     <div className="mb-7">
                         <div className="flex items-center justify-between mb-1.5">
                             <label className="text-[13px] font-medium text-gray-400">Password</label>
-                            <a href="#" className="text-xs text-blue-400 hover:text-blue-300 transition">Forgot password?</a>
                         </div>
                         <div className="relative">
                             <input

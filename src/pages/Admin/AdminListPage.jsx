@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { fetchAdminList, createAdmin } from "../../api/admin";
 
 const ROLE_OPTIONS = [
+    { value: "super_admin", label: "Super admin" },
     { value: "admin", label: "Admin" },
     { value: "moderator", label: "Moderator" },
 ];
@@ -28,6 +30,9 @@ function roleLabel(role) {
 }
 
 export default function AdminListPage() {
+    const navigate = useNavigate();
+    const isSuperAdmin = localStorage.getItem("adminRole") === "super_admin";
+
     const [admins, setAdmins] = useState([]);
     const [meta, setMeta] = useState(null);
     const [page, setPage] = useState(1);
@@ -39,6 +44,11 @@ export default function AdminListPage() {
     const [deleteTarget, setDeleteTarget] = useState(null);
 
     useEffect(() => {
+        if (!isSuperAdmin) {
+            navigate("/admin/users", { replace: true });
+            return;
+        }
+
         let cancelled = false;
 
         const loadAdmins = async () => {
@@ -63,13 +73,21 @@ export default function AdminListPage() {
         return () => {
             cancelled = true;
         };
-    }, [page, limit]);
+    }, [page, limit, isSuperAdmin, navigate]);
 
-    const handleAddAdmin = async (newAdmin) => {
-        const res = await createAdmin(newAdmin);
-        const created = res.data.data ?? res.data;
-
-        setAdmins((prev) => [...prev, created]);
+    const handleAddAdmin = (newAdmin) => {
+        setAdmins((prev) => [
+            ...prev,
+            {
+                id: prev.length ? Math.max(...prev.map((a) => a.id)) + 1 : 1,
+                username: newAdmin.username,
+                email: newAdmin.email,
+                role: newAdmin.role,
+                is_active: true,
+                last_login: null,
+                created_at: new Date().toISOString(),
+            },
+        ]);
         setShowModal(false);
     };
 
@@ -77,6 +95,10 @@ export default function AdminListPage() {
         setAdmins((prev) => prev.filter((a) => a.id !== deleteTarget.id));
         setDeleteTarget(null);
     };
+
+    if (!isSuperAdmin) {
+        return null;
+    }
 
     return (
         <div className="w-full">
@@ -260,22 +282,14 @@ function AddAdminModal({ onClose, onSubmit }) {
     const [showPw, setShowPw] = useState(false);
     const [role, setRole] = useState("admin");
     const [error, setError] = useState("");
-    const [submitting, setSubmitting] = useState(false);
 
-    const handleSubmit = async () => {
+    const handleSubmit = () => {
         if (!username || !email || !password) {
             setError("All fields are required.");
             return;
         }
         setError("");
-        setSubmitting(true);
-        try {
-            await onSubmit({ username, email, password, role });
-        } catch (err) {
-            setError(err.response?.data?.message || "Failed to add admin.");
-        } finally {
-            setSubmitting(false);
-        }
+        onSubmit({ username, email, password, role });
     };
 
     return (
@@ -368,19 +382,16 @@ function AddAdminModal({ onClose, onSubmit }) {
                     <button
                         type="button"
                         onClick={onClose}
-                        disabled={submitting}
-                        className="flex-1 h-11 rounded-xl border border-white/8 text-sm font-medium text-gray-400 hover:bg-white/5 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="flex-1 h-11 rounded-xl border border-white/8 text-sm font-medium text-gray-400 hover:bg-white/5 transition"
                     >
                         Cancel
                     </button>
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        disabled={submitting}
-                        className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.99] text-white text-sm font-semibold transition shadow-lg shadow-blue-900/30 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.99] text-white text-sm font-semibold transition shadow-lg shadow-blue-900/30"
                     >
-                        {submitting && <SpinnerIcon className="w-4 h-4 animate-spin" />}
-                        {submitting ? "Adding…" : "Add admin"}
+                        Add admin
                     </button>
                 </div>
             </div>

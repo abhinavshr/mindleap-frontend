@@ -1,12 +1,21 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { fetchDashboardStats } from "../../api/admin";
 
 export default function AdminDashboardPage() {
+    const navigate = useNavigate();
+    const isSuperAdmin = localStorage.getItem("adminRole") === "super_admin";
+
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
     useEffect(() => {
+        if (!isSuperAdmin) {
+            navigate("/admin/users", { replace: true });
+            return;
+        }
+
         let cancelled = false;
 
         const loadStats = async () => {
@@ -28,7 +37,11 @@ export default function AdminDashboardPage() {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [isSuperAdmin, navigate]);
+
+    if (!isSuperAdmin) {
+        return null;
+    }
 
     if (loading) {
         return (
