@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchAdminProfile } from "../../api/admin";
+import { changeAdminPassword } from "../../api/auth";
 
 const ROLE_LABELS = {
     super_admin: "Super admin",

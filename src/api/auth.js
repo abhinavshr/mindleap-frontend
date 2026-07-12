@@ -1,4 +1,5 @@
 import api from "./axios";
+import adminApi from "./adminaxios";
 
 export const registerUser = (data) =>
   api.post("/auth/register", data);
@@ -32,3 +33,6 @@ export const loginAdmin = (data) =>
 
 export const logoutAdmin = () =>
   api.post("/admin/logout");
+
+export const changeAdminPassword = (oldPassword, newPassword) =>
+  adminApi.put("/admin/change-password", { oldPassword, newPassword });
