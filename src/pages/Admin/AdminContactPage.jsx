@@ -132,7 +132,7 @@ export default function AdminContactPage() {
                 </div>
             )}
 
-            <div className="rounded-2xl border border-white/8 bg-white/[0.03] overflow-hidden">
+            <div className="rounded-2xl border border-white/8 bg-white/3 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
@@ -159,7 +159,7 @@ export default function AdminContactPage() {
                                 </tr>
                             ) : (
                                 contacts.map((c) => (
-                                    <tr key={c.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition">
+                                    <tr key={c.id} className="border-b border-white/5 last:border-0 hover:bg-white/2 transition">
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-9 h-9 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-300 text-xs font-semibold shrink-0">
@@ -195,7 +195,7 @@ export default function AdminContactPage() {
                                                     type="button"
                                                     onClick={() => toggleReadStatus(c)}
                                                     disabled={togglingId === c.id}
-                                                    className="text-xs font-medium px-3.5 py-1.5 rounded-lg border border-white/8 bg-white/[0.03] text-gray-400 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                                    className="text-xs font-medium px-3.5 py-1.5 rounded-lg border border-white/8 bg-white/3 text-gray-400 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition"
                                                 >
                                                     {togglingId === c.id ? (
                                                         <span className="inline-flex items-center gap-1.5">
@@ -315,7 +315,7 @@ function ContactDetailModal({ contact, onClose, onToggleRead, toggling }) {
 
                 <div className="mb-6">
                     <p className="text-[11px] font-semibold tracking-widest text-gray-600 uppercase mb-1.5">Message</p>
-                    <p className="text-sm text-gray-300 leading-relaxed rounded-xl border border-white/8 bg-white/[0.03] p-4">
+                    <p className="text-sm text-gray-300 leading-relaxed rounded-xl border border-white/8 bg-white/3 p-4">
                         {contact.message}
                     </p>
                 </div>
