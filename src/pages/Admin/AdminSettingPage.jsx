@@ -77,7 +77,7 @@ export default function AdminSettingsPage() {
                 <p className="text-xs text-gray-500 mt-0.5">Your account details</p>
             </div>
 
-            <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6 mb-8">
+            <div className="rounded-2xl border border-white/8 bg-white/3 p-6 mb-8">
                 <div className="flex items-center gap-4 mb-6">
                     <div className="w-14 h-14 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-300 text-lg font-semibold shrink-0">
                         {profile.username.slice(0, 2).toUpperCase()}
@@ -159,7 +159,7 @@ function ChangePasswordCard() {
     };
 
     return (
-        <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6">
+        <div className="rounded-2xl border border-white/8 bg-white/3 p-6">
             <div className="mb-6">
                 <h2 className="text-sm font-semibold text-white">Change password</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Update the password used to sign in to the admin panel</p>
