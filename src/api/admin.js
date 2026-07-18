@@ -38,3 +38,6 @@ export const deleteContact = (id) =>
 
 export const fetchAdminProfile = () =>
   adminApi.get("/admin/profile");
+
+export const fetchWords = (page = 1, limit = 50) =>
+  adminApi.get("/admin/words/list", { params: { page, limit } });
