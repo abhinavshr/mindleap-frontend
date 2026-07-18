@@ -47,12 +47,12 @@ export default function AdminLayout() {
     };
 
     return (
-        <div className="min-h-screen flex bg-gray-950">
+        <div className="h-screen overflow-hidden flex bg-gray-950">
 
             {/* ── Sidebar ──────────────────────────────────────────────── */}
             <aside
                 className={`hidden md:flex flex-col ${collapsed ? "w-[76px]" : "w-[264px]"
-                    } shrink-0 relative bg-gradient-to-b from-gray-900 via-gray-900 to-blue-950 border-r border-white/5 transition-all duration-200`}
+                    } shrink-0 relative overflow-hidden bg-gradient-to-b from-gray-900 via-gray-900 to-blue-950 border-r border-white/5 transition-all duration-200`}
             >
                 {/* Subtle grid overlay, matches login */}
                 <div
@@ -153,7 +153,7 @@ export default function AdminLayout() {
             </aside>
 
             {/* ── Main ─────────────────────────────────────────────────── */}
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 min-h-0">
 
                 {/* Topbar */}
                 <header className="h-16 shrink-0 flex items-center justify-between px-6 border-b border-white/5 bg-gray-950/80 backdrop-blur">
@@ -169,7 +169,7 @@ export default function AdminLayout() {
                 </header>
 
                 {/* Page content — each nav item's page renders here via nested routes */}
-                <main className="flex-1 overflow-y-auto p-6">
+                <main className="flex-1 min-h-0 overflow-y-auto p-6">
                     <Outlet />
                 </main>
             </div>
