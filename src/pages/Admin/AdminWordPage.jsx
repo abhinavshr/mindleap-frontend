@@ -5,7 +5,7 @@ export default function AdminWordsPage() {
     const [words, setWords] = useState([]);
     const [meta, setMeta] = useState(null);
     const [page, setPage] = useState(1);
-    const [limit] = useState(50);
+    const [limit] = useState(100);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
