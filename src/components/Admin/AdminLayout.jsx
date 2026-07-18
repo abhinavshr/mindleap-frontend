@@ -5,6 +5,7 @@ const NAV_ITEMS = [
     { path: "dashboard", label: "Dashboard", icon: DashboardIcon },
     { path: "users", label: "Users", icon: UsersIcon },
     { path: "admin-list", label: "Admin List", icon: AdminListIcon },
+    { path: "words", label: "Word Management", icon: WordIcon },
     { path: "contact", label: "Contact", icon: ContactIcon },
     { path: "settings", label: "Settings", icon: SettingsIcon },
 ];
@@ -50,8 +51,8 @@ export default function AdminLayout() {
 
             {/* ── Sidebar ──────────────────────────────────────────────── */}
             <aside
-                className={`hidden md:flex flex-col ${collapsed ? "w-19" : "w-66"
-                    } shrink-0 relative bg-linear-to-b from-gray-900 via-gray-900 to-blue-950 border-r border-white/5 transition-all duration-200`}
+                className={`hidden md:flex flex-col ${collapsed ? "w-[76px]" : "w-[264px]"
+                    } shrink-0 relative bg-gradient-to-b from-gray-900 via-gray-900 to-blue-950 border-r border-white/5 transition-all duration-200`}
             >
                 {/* Subtle grid overlay, matches login */}
                 <div
@@ -62,7 +63,7 @@ export default function AdminLayout() {
                         backgroundSize: "40px 40px",
                     }}
                 />
-                <div className="absolute top-0 left-0 w-75 h-75 bg-blue-600 opacity-[0.08] rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none" />
+                <div className="absolute top-0 left-0 w-[300px] h-[300px] bg-blue-600 opacity-[0.08] rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col h-full">
 
@@ -105,9 +106,9 @@ export default function AdminLayout() {
                                     {({ isActive }) => (
                                         <>
                                             {isActive && (
-                                                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.75 rounded-full bg-blue-400" />
+                                                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full bg-blue-400" />
                                             )}
-                                            <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-blue-400" : "text-gray-500 group-hover:text-gray-300"}`} />
+                                            <Icon className={`w-[18px] h-[18px] shrink-0 ${isActive ? "text-blue-400" : "text-gray-500 group-hover:text-gray-300"}`} />
                                             {!collapsed && <span>{item.label}</span>}
                                         </>
                                     )}
@@ -123,7 +124,7 @@ export default function AdminLayout() {
                             onClick={() => setCollapsed((c) => !c)}
                             className={`flex items-center gap-3 w-full rounded-xl px-3 py-2.5 text-sm text-gray-500 hover:bg-white/5 hover:text-gray-300 transition ${collapsed ? "justify-center" : ""}`}
                         >
-                            <ChevronLeftIcon className={`w-4.5 h-4.5 transition-transform ${collapsed ? "rotate-180" : ""}`} />
+                            <ChevronLeftIcon className={`w-[18px] h-[18px] transition-transform ${collapsed ? "rotate-180" : ""}`} />
                             {!collapsed && <span>Collapse</span>}
                         </button>
 
@@ -144,7 +145,7 @@ export default function AdminLayout() {
                             onClick={handleLogout}
                             className={`flex items-center gap-3 w-full rounded-xl px-3 py-2.5 mt-1 text-sm text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition ${collapsed ? "justify-center" : ""}`}
                         >
-                            <LogoutIcon className="w-4.5 h-4.5 shrink-0" />
+                            <LogoutIcon className="w-[18px] h-[18px] shrink-0" />
                             {!collapsed && <span>Log out</span>}
                         </button>
                     </div>
@@ -197,7 +198,7 @@ export function DashboardPage() {
                 {cards.map((c) => {
                     const Icon = c.icon;
                     return (
-                        <div key={c.label} className="rounded-2xl border border-white/8 bg-white/3 p-5">
+                        <div key={c.label} className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
                                     <Icon className="w-4 h-4 text-blue-400" />
@@ -211,7 +212,7 @@ export function DashboardPage() {
                 })}
             </div>
 
-            <div className="rounded-2xl border border-white/8 bg-white/3 p-6">
+            <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6">
                 <h2 className="text-sm font-semibold text-white mb-1">Welcome back, Super Admin</h2>
                 <p className="text-sm text-gray-500">
                     This is your MindLeap control center. Use the sidebar to manage users, review the admin list,
@@ -224,7 +225,7 @@ export function DashboardPage() {
 
 export function PlaceholderPage({ title, description }) {
     return (
-        <div className="max-w-3xl rounded-2xl border border-white/8 bg-white/3 p-8 flex flex-col items-start gap-3">
+        <div className="max-w-3xl rounded-2xl border border-white/8 bg-white/[0.03] p-8 flex flex-col items-start gap-3">
             <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
                 <FolderIcon className="w-5 h-5 text-blue-400" />
             </div>
@@ -260,6 +261,13 @@ function AdminListIcon({ className }) {
     return (
         <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+        </svg>
+    );
+}
+function WordIcon({ className }) {
+    return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
         </svg>
     );
 }
