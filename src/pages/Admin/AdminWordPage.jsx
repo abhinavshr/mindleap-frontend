@@ -1,42 +1,44 @@
-import { useState } from "react";
-
-const WORDS_RESPONSE = {
-    success: true,
-    message: "Words fetched successfully.",
-    data: [
-        { id: 2546, word: "write", date: null, is_used: 0 },
-        { id: 2545, word: "wreck", date: null, is_used: 0 },
-        { id: 2544, word: "works", date: null, is_used: 0 },
-        { id: 2543, word: "words", date: null, is_used: 0 },
-        { id: 2542, word: "woods", date: null, is_used: 0 },
-        { id: 2541, word: "women", date: null, is_used: 0 },
-        { id: 2540, word: "wives", date: null, is_used: 0 },
-        { id: 2539, word: "wings", date: null, is_used: 0 },
-        { id: 2538, word: "winds", date: null, is_used: 0 },
-        { id: 2537, word: "width", date: null, is_used: 0 },
-        { id: 2536, word: "windy", date: null, is_used: 1 },
-        { id: 2535, word: "wince", date: null, is_used: 0 },
-        { id: 2534, word: "wince", date: null, is_used: 0 },
-        { id: 2533, word: "widow", date: null, is_used: 0 },
-        { id: 2532, word: "whose", date: null, is_used: 1 },
-    ],
-    meta: {
-        total: 2546,
-        page: 1,
-        limit: 50,
-        totalPages: 51,
-        hasNextPage: true,
-        hasPrevPage: false,
-    },
-};
+import { useEffect, useState } from "react";
+import { fetchWords } from "../../api/admin";
 
 export default function AdminWordsPage() {
-    const [words, setWords] = useState(WORDS_RESPONSE.data);
-    const meta = WORDS_RESPONSE.meta;
+    const [words, setWords] = useState([]);
+    const [meta, setMeta] = useState(null);
+    const [page, setPage] = useState(1);
+    const [limit] = useState(50);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     const [showAddModal, setShowAddModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadWords = async () => {
+            setLoading(true);
+            setError("");
+            try {
+                const res = await fetchWords(page, limit);
+                if (!cancelled) {
+                    setWords(res.data.data);
+                    setMeta(res.data.meta);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setError(err.response?.data?.message || "Failed to load words.");
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+
+        loadWords();
+        return () => {
+            cancelled = true;
+        };
+    }, [page, limit]);
 
     const handleAddWord = (word) => {
         setWords((prev) => [
@@ -62,7 +64,9 @@ export default function AdminWordsPage() {
             <div className="flex items-center justify-between mb-5">
                 <div>
                     <h2 className="text-sm font-semibold text-white">Word management</h2>
-                    <p className="text-xs text-gray-500 mt-0.5">{meta.total.toLocaleString()} total words</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                        {meta ? `${meta.total.toLocaleString()} total words` : "Loading…"}
+                    </p>
                 </div>
                 <button
                     type="button"
@@ -74,59 +78,78 @@ export default function AdminWordsPage() {
                 </button>
             </div>
 
-            <div className="rounded-2xl border border-white/8 bg-white/3 p-5 mb-5">
-                <div className="grid grid-cols-5 gap-3">
-                    {words.map((w) => (
-                        <div
-                            key={w.id}
-                            className={`flex items-center justify-between gap-2 rounded-full border pl-5 pr-2 py-3 transition
-                ${w.is_used
-                                    ? "border-white/10 bg-white/[0.03]"
-                                    : "border-emerald-500/20 bg-emerald-500/[0.06]"
-                                }`}
-                        >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                                <span className={`w-2 h-2 rounded-full shrink-0 ${w.is_used ? "bg-gray-500" : "bg-emerald-400"}`} />
-                                <span className="text-sm font-semibold uppercase tracking-wider text-white truncate">
-                                    {w.word}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-1 shrink-0">
-                                <button
-                                    type="button"
-                                    onClick={() => setEditTarget(w)}
-                                    aria-label={`Edit ${w.word}`}
-                                    className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-300 hover:bg-blue-500/10 transition"
-                                >
-                                    <EditIcon className="w-4 h-4" />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setDeleteTarget(w)}
-                                    aria-label={`Delete ${w.word}`}
-                                    className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition"
-                                >
-                                    <TrashIcon className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+            {error && (
+                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
+                    <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
+                    <span className="text-sm text-red-400">{error}</span>
                 </div>
+            )}
+
+            <div className="rounded-2xl border border-white/8 bg-white/3 p-5 mb-5 min-h-[120px]">
+                {loading ? (
+                    <div className="flex items-center justify-center py-16">
+                        <SpinnerIcon className="w-5 h-5 text-blue-400 animate-spin" />
+                    </div>
+                ) : words.length === 0 ? (
+                    <div className="flex items-center justify-center py-16 text-sm text-gray-500">
+                        No words found.
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-5 gap-3">
+                        {words.map((w) => (
+                            <div
+                                key={w.id}
+                                className={`flex items-center justify-between gap-2 rounded-full border pl-5 pr-2 py-3 transition
+                  ${w.is_used
+                                        ? "border-white/10 bg-white/[0.03]"
+                                        : "border-emerald-500/20 bg-emerald-500/[0.06]"
+                                    }`}
+                            >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                    <span className={`w-2 h-2 rounded-full shrink-0 ${w.is_used ? "bg-gray-500" : "bg-emerald-400"}`} />
+                                    <span className="text-sm font-semibold uppercase tracking-wider text-white truncate">
+                                        {w.word}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditTarget(w)}
+                                        aria-label={`Edit ${w.word}`}
+                                        className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-300 hover:bg-blue-500/10 transition"
+                                    >
+                                        <EditIcon className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setDeleteTarget(w)}
+                                        aria-label={`Delete ${w.word}`}
+                                        className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition"
+                                    >
+                                        <TrashIcon className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div className="flex items-center justify-between px-1">
                 <p className="text-xs text-gray-600">
-                    Page {meta.page} of {meta.totalPages} &middot; {meta.limit} per page
+                    {meta ? `Page ${meta.page} of ${meta.totalPages} · ${meta.limit} per page` : "—"}
                 </p>
                 <div className="flex gap-2">
                     <button
-                        disabled={!meta.hasPrevPage}
+                        disabled={!meta?.hasPrevPage || loading}
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
                         className="text-xs px-3 py-1.5 rounded-lg border border-white/8 text-gray-500 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/5 transition"
                     >
                         Previous
                     </button>
                     <button
-                        disabled={!meta.hasNextPage}
+                        disabled={!meta?.hasNextPage || loading}
+                        onClick={() => setPage((p) => p + 1)}
                         className="text-xs px-3 py-1.5 rounded-lg border border-white/8 text-gray-500 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/5 transition"
                     >
                         Next
@@ -306,6 +329,14 @@ function AlertCircleIcon({ className }) {
     return (
         <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+    );
+}
+function SpinnerIcon({ className }) {
+    return (
+        <svg className={className} fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
     );
 }
