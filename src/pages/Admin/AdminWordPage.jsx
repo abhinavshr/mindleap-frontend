@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchWords } from "../../api/admin";
+import { fetchWords, addWord } from "../../api/admin";
 
 export default function AdminWordsPage() {
     const [words, setWords] = useState([]);
@@ -40,11 +40,9 @@ export default function AdminWordsPage() {
         };
     }, [page, limit]);
 
-    const handleAddWord = (word) => {
-        setWords((prev) => [
-            { id: prev.length ? Math.max(...prev.map((w) => w.id)) + 1 : 1, word: word.toUpperCase(), date: null, is_used: 0 },
-            ...prev,
-        ]);
+    const handleAddWord = async (word) => {
+        const res = await addWord(word);
+        setWords((prev) => [res.data.data, ...prev]);
         setShowAddModal(false);
     };
 
@@ -190,15 +188,23 @@ export default function AdminWordsPage() {
 function WordFormModal({ title, submitLabel, initialValue = "", onClose, onSubmit }) {
     const [value, setValue] = useState(initialValue);
     const [error, setError] = useState("");
+    const [submitting, setSubmitting] = useState(false);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const trimmed = value.trim();
         if (!/^[A-Za-z]{5}$/.test(trimmed)) {
             setError("Word must be exactly 5 letters (A-Z only).");
             return;
         }
         setError("");
-        onSubmit(trimmed);
+        setSubmitting(true);
+        try {
+            await onSubmit(trimmed);
+        } catch (err) {
+            setError(err.response?.data?.message || "Something went wrong. Please try again.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -242,16 +248,25 @@ function WordFormModal({ title, submitLabel, initialValue = "", onClose, onSubmi
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 h-11 rounded-xl border border-white/8 text-sm font-medium text-gray-400 hover:bg-white/5 transition"
+                        disabled={submitting}
+                        className="flex-1 h-11 rounded-xl border border-white/8 text-sm font-medium text-gray-400 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
                         Cancel
                     </button>
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.99] text-white text-sm font-semibold transition shadow-lg shadow-blue-900/30"
+                        disabled={submitting}
+                        className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold flex items-center justify-center gap-2 transition shadow-lg shadow-blue-900/30"
                     >
-                        {submitLabel}
+                        {submitting ? (
+                            <>
+                                <SpinnerIcon className="w-4 h-4 animate-spin" />
+                                Saving…
+                            </>
+                        ) : (
+                            submitLabel
+                        )}
                     </button>
                 </div>
             </div>
