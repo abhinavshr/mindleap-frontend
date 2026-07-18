@@ -44,3 +44,6 @@ export const fetchWords = (page = 1, limit = 100) =>
 
 export const addWord = (word) =>
   adminApi.post("/admin/words/add", { word });
+
+export const editWord = (id, { word, is_used }) =>
+  adminApi.put(`/admin/words/edit/${id}`, { word, is_used });
