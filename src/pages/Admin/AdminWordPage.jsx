@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchWords, addWord } from "../../api/admin";
+import { fetchWords, addWord, editWord } from "../../api/admin";
 
 export default function AdminWordsPage() {
     const [words, setWords] = useState([]);
@@ -46,8 +46,10 @@ export default function AdminWordsPage() {
         setShowAddModal(false);
     };
 
-    const handleEditWord = (id, newWord) => {
-        setWords((prev) => prev.map((w) => (w.id === id ? { ...w, word: newWord.toUpperCase() } : w)));
+    const handleEditWord = async (id, newWord, isUsed) => {
+        const res = await editWord(id, { word: newWord, is_used: isUsed });
+        const updated = res.data.data;
+        setWords((prev) => prev.map((w) => (w.id === updated.id ? updated : w)));
         setEditTarget(null);
     };
 
@@ -169,8 +171,10 @@ export default function AdminWordsPage() {
                     title="Edit word"
                     submitLabel="Save changes"
                     initialValue={editTarget.word}
+                    initialIsUsed={editTarget.is_used}
+                    showUsedToggle
                     onClose={() => setEditTarget(null)}
-                    onSubmit={(word) => handleEditWord(editTarget.id, word)}
+                    onSubmit={(word, isUsed) => handleEditWord(editTarget.id, word, isUsed)}
                 />
             )}
 
@@ -185,8 +189,9 @@ export default function AdminWordsPage() {
     );
 }
 
-function WordFormModal({ title, submitLabel, initialValue = "", onClose, onSubmit }) {
+function WordFormModal({ title, submitLabel, initialValue = "", initialIsUsed = false, showUsedToggle = false, onClose, onSubmit }) {
     const [value, setValue] = useState(initialValue);
+    const [isUsed, setIsUsed] = useState(initialIsUsed);
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
@@ -199,7 +204,7 @@ function WordFormModal({ title, submitLabel, initialValue = "", onClose, onSubmi
         setError("");
         setSubmitting(true);
         try {
-            await onSubmit(trimmed);
+            await onSubmit(trimmed, isUsed);
         } catch (err) {
             setError(err.response?.data?.message || "Something went wrong. Please try again.");
         } finally {
@@ -243,6 +248,36 @@ function WordFormModal({ title, submitLabel, initialValue = "", onClose, onSubmi
                     />
                     <p className="text-[11px] text-gray-600 mt-1.5">Must be exactly 5 letters.</p>
                 </div>
+
+                {showUsedToggle && (
+                    <div className="mb-6">
+                        <label className="block text-[13px] font-medium text-gray-400 mb-1.5">Status</label>
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsUsed(false)}
+                                className={`flex-1 py-2.5 rounded-xl border text-xs font-medium transition
+                  ${!isUsed
+                                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                                        : "border-white/5 bg-white/[0.03] text-gray-500 hover:border-white/10 hover:bg-white/5"
+                                    }`}
+                            >
+                                Unused
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setIsUsed(true)}
+                                className={`flex-1 py-2.5 rounded-xl border text-xs font-medium transition
+                  ${isUsed
+                                        ? "border-white/20 bg-white/10 text-gray-300"
+                                        : "border-white/5 bg-white/[0.03] text-gray-500 hover:border-white/10 hover:bg-white/5"
+                                    }`}
+                            >
+                                Used
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex gap-3">
                     <button
