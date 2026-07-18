@@ -31,6 +31,7 @@ import AdminUsersPage from "./pages/Admin/AdminUserPage";
 import AdminListPage from "./pages/Admin/AdminListPage";
 import AdminContactPage from "./pages/Admin/AdminContactPage";
 import AdminSettingsPage from "./pages/Admin/AdminSettingPage";
+import AdminWordsPage from "./pages/Admin/AdminWordPage";
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
@@ -167,6 +168,7 @@ function App() {
                 path="users"
                 element={<AdminUsersPage />}
               />
+              <Route path="words" element={<AdminWordsPage />} />
               <Route
                 path="admin-list"
                 element={<AdminListPage />}
