@@ -41,3 +41,6 @@ export const fetchAdminProfile = () =>
 
 export const fetchWords = (page = 1, limit = 100) =>
   adminApi.get("/admin/words/list", { params: { page, limit } });
+
+export const addWord = (word) =>
+  adminApi.post("/admin/words/add", { word });
