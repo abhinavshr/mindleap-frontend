@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchDashboardStats } from "../../api/admin";
 
@@ -16,32 +16,86 @@ export default function AdminDashboardPage() {
             return;
         }
 
-        let cancelled = false;
+        const controller = new AbortController();
 
         const loadStats = async () => {
             setLoading(true);
             setError("");
             try {
-                const res = await fetchDashboardStats();
-                if (!cancelled) setStats(res.data.data);
+                const res = await fetchDashboardStats({ signal: controller.signal });
+                setStats(res.data.data);
             } catch (err) {
-                if (!cancelled) {
+                if (err.name !== "CanceledError" && err.code !== "ERR_CANCELED") {
                     setError(err.response?.data?.message || "Failed to load dashboard stats.");
                 }
             } finally {
-                if (!cancelled) setLoading(false);
+                if (!controller.signal.aborted) setLoading(false);
             }
         };
 
         loadStats();
-        return () => {
-            cancelled = true;
-        };
+        return () => controller.abort();
     }, [isSuperAdmin, navigate]);
 
-    if (!isSuperAdmin) {
-        return null;
-    }
+    // ── Derived data — only recomputed when stats actually change ──────────
+    const derived = useMemo(() => {
+        if (!stats) return null;
+
+        const pct = (part, total) => (total ? Math.round((part / total) * 100) : 0);
+
+        const verifiedPct  = pct(stats.verifiedUsers, stats.totalUsers);
+        const bannedPct    = pct(stats.bannedUsers, stats.totalUsers);
+        const classicPct   = pct(stats.totalClassicGames, stats.totalGames);
+        const speedPct     = 100 - classicPct;
+        const usedWordsPct = pct(stats.usedWords, stats.totalWords);
+
+        const kpis = [
+            { label: "Total users", value: stats.totalUsers, icon: UsersIcon, sub: `${stats.newUsersToday} new today` },
+            { label: "Total games", value: stats.totalGames, icon: GameIcon, sub: `${stats.gamesPlayedToday} played today` },
+            { label: "Total words", value: stats.totalWords.toLocaleString(), icon: WordIcon, sub: `${stats.unusedWords.toLocaleString()} unused` },
+            { label: "Banned users", value: stats.bannedUsers, icon: BanIcon, sub: `${bannedPct}% of total` },
+        ];
+
+        const breakdowns = [
+            {
+                title: "User verification",
+                total: `${stats.totalUsers} total`,
+                barPct: verifiedPct,
+                barColor: "bg-blue-500",
+                rows: [
+                    { label: "Verified", value: stats.verifiedUsers, dot: "bg-blue-500" },
+                    { label: "Unverified", value: stats.unverifiedUsers, dot: "bg-white/15" },
+                    { label: "Banned", value: stats.bannedUsers, dot: "bg-red-500", divider: true },
+                ],
+            },
+            {
+                title: "Games by type",
+                total: `${stats.totalGames} total`,
+                splitBar: [
+                    { pct: classicPct, color: "bg-blue-500" },
+                    { pct: speedPct, color: "bg-indigo-400" },
+                ],
+                rows: [
+                    { label: "Classic", value: stats.totalClassicGames, dot: "bg-blue-500" },
+                    { label: "Speed", value: stats.totalSpeedGames, dot: "bg-indigo-400" },
+                ],
+            },
+            {
+                title: "Word usage",
+                total: `${stats.totalWords.toLocaleString()} total`,
+                barPct: usedWordsPct,
+                barColor: "bg-emerald-500",
+                rows: [
+                    { label: "Used", value: stats.usedWords.toLocaleString(), dot: "bg-emerald-500" },
+                    { label: "Unused", value: stats.unusedWords.toLocaleString(), dot: "bg-white/15" },
+                ],
+            },
+        ];
+
+        return { kpis, breakdowns };
+    }, [stats]);
+
+    if (!isSuperAdmin) return null;
 
     if (loading) {
         return (
@@ -62,143 +116,21 @@ export default function AdminDashboardPage() {
         );
     }
 
-    if (!stats) return null;
-
-    const verifiedPct = stats.totalUsers
-        ? Math.round((stats.verifiedUsers / stats.totalUsers) * 100)
-        : 0;
-    const classicPct = stats.totalGames
-        ? Math.round((stats.totalClassicGames / stats.totalGames) * 100)
-        : 0;
-    const speedPct = 100 - classicPct;
-    const usedWordsPct = stats.totalWords
-        ? Math.round((stats.usedWords / stats.totalWords) * 100)
-        : 0;
-    const bannedPct = stats.totalUsers
-        ? Math.round((stats.bannedUsers / stats.totalUsers) * 100)
-        : 0;
-
-    const kpis = [
-        { label: "Total users", value: stats.totalUsers, icon: UsersIcon, sub: `${stats.newUsersToday} new today` },
-        { label: "Total games", value: stats.totalGames, icon: GameIcon, sub: `${stats.gamesPlayedToday} played today` },
-        { label: "Total words", value: stats.totalWords.toLocaleString(), icon: WordIcon, sub: `${stats.unusedWords.toLocaleString()} unused` },
-        { label: "Banned users", value: stats.bannedUsers, icon: BanIcon, sub: `${bannedPct}% of total` },
-    ];
+    if (!derived) return null;
 
     return (
         <div className="w-full">
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {kpis.map((k) => {
-                    const Icon = k.icon;
-                    return (
-                        <div key={k.label} className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                                    <Icon className="w-4 h-4 text-blue-400" />
-                                </div>
-                            </div>
-                            <div className="text-2xl font-bold text-white">{k.value}</div>
-                            <div className="text-xs text-gray-500 mt-1">{k.label}</div>
-                            <div className="text-[11px] text-gray-600 mt-2">{k.sub}</div>
-                        </div>
-                    );
-                })}
+                {derived.kpis.map((k) => (
+                    <KpiCard key={k.label} {...k} />
+                ))}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-
-                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6">
-                    <div className="flex items-center justify-between mb-5">
-                        <h2 className="text-sm font-semibold text-white">User verification</h2>
-                        <span className="text-xs text-gray-500">{stats.totalUsers} total</span>
-                    </div>
-
-                    <div className="w-full h-2.5 rounded-full bg-white/5 overflow-hidden mb-4">
-                        <div
-                            className="h-full bg-blue-500 rounded-full transition-all"
-                            style={{ width: `${verifiedPct}%` }}
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-blue-500" />
-                            <span className="text-gray-300">Verified</span>
-                        </div>
-                        <span className="text-gray-400">{stats.verifiedUsers}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm mt-2">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-white/15" />
-                            <span className="text-gray-300">Unverified</span>
-                        </div>
-                        <span className="text-gray-400">{stats.unverifiedUsers}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm mt-2 pt-2 border-t border-white/5">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-red-500" />
-                            <span className="text-gray-300">Banned</span>
-                        </div>
-                        <span className="text-gray-400">{stats.bannedUsers}</span>
-                    </div>
-                </div>
-
-                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6">
-                    <div className="flex items-center justify-between mb-5">
-                        <h2 className="text-sm font-semibold text-white">Games by type</h2>
-                        <span className="text-xs text-gray-500">{stats.totalGames} total</span>
-                    </div>
-
-                    <div className="w-full h-2.5 rounded-full bg-white/5 overflow-hidden flex mb-4">
-                        <div className="h-full bg-blue-500" style={{ width: `${classicPct}%` }} />
-                        <div className="h-full bg-indigo-400" style={{ width: `${speedPct}%` }} />
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-blue-500" />
-                            <span className="text-gray-300">Classic</span>
-                        </div>
-                        <span className="text-gray-400">{stats.totalClassicGames}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm mt-2">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-indigo-400" />
-                            <span className="text-gray-300">Speed</span>
-                        </div>
-                        <span className="text-gray-400">{stats.totalSpeedGames}</span>
-                    </div>
-                </div>
-
-                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6">
-                    <div className="flex items-center justify-between mb-5">
-                        <h2 className="text-sm font-semibold text-white">Word usage</h2>
-                        <span className="text-xs text-gray-500">{stats.totalWords.toLocaleString()} total</span>
-                    </div>
-
-                    <div className="w-full h-2.5 rounded-full bg-white/5 overflow-hidden mb-4">
-                        <div
-                            className="h-full bg-emerald-500 rounded-full transition-all"
-                            style={{ width: `${usedWordsPct}%` }}
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                            <span className="text-gray-300">Used</span>
-                        </div>
-                        <span className="text-gray-400">{stats.usedWords.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm mt-2">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-white/15" />
-                            <span className="text-gray-300">Unused</span>
-                        </div>
-                        <span className="text-gray-400">{stats.unusedWords.toLocaleString()}</span>
-                    </div>
-                </div>
+                {derived.breakdowns.map((b) => (
+                    <BreakdownCard key={b.title} {...b} />
+                ))}
             </div>
 
             <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12">
@@ -221,6 +153,57 @@ export default function AdminDashboardPage() {
     );
 }
 
+// ── Reusable pieces ─────────────────────────────────────────────────────────
+function KpiCard({ label, value, icon: Icon, sub }) {
+    return (
+        <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
+            <div className="flex items-center justify-between mb-4">
+                <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                    <Icon className="w-4 h-4 text-blue-400" />
+                </div>
+            </div>
+            <div className="text-2xl font-bold text-white">{value}</div>
+            <div className="text-xs text-gray-500 mt-1">{label}</div>
+            <div className="text-[11px] text-gray-600 mt-2">{sub}</div>
+        </div>
+    );
+}
+
+function BreakdownCard({ title, total, barPct, barColor, splitBar, rows }) {
+    return (
+        <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6">
+            <div className="flex items-center justify-between mb-5">
+                <h2 className="text-sm font-semibold text-white">{title}</h2>
+                <span className="text-xs text-gray-500">{total}</span>
+            </div>
+
+            <div className="w-full h-2.5 rounded-full bg-white/5 overflow-hidden mb-4 flex">
+                {splitBar
+                    ? splitBar.map((seg, i) => (
+                          <div key={i} className={`h-full ${seg.color}`} style={{ width: `${seg.pct}%` }} />
+                      ))
+                    : <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${barPct}%` }} />}
+            </div>
+
+            {rows.map((row) => (
+                <div
+                    key={row.label}
+                    className={`flex items-center justify-between text-sm mt-2 first:mt-0 ${
+                        row.divider ? "pt-2 border-t border-white/5" : ""
+                    }`}
+                >
+                    <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${row.dot}`} />
+                        <span className="text-gray-300">{row.label}</span>
+                    </div>
+                    <span className="text-gray-400">{row.value}</span>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+// ── Icons ─────────────────────────────────────────────────────────────────
 function UsersIcon({ className }) {
     return (
         <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>

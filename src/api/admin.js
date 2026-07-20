@@ -1,7 +1,7 @@
 import adminApi from "./adminaxios";
 
-export const fetchDashboardStats = () =>
-  adminApi.get("/admin/dashboard/stats");
+export const fetchDashboardStats = (config) =>
+  adminApi.get("/admin/dashboard/stats", config);
 
 export const fetchUsers = (page = 1, limit = 10) =>
   adminApi.get("/admin/users", { params: { page, limit } });
