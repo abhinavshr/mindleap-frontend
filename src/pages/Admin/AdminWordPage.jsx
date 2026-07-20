@@ -10,10 +10,24 @@ export default function AdminWordsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    const [search, setSearch] = useState("");                   // what the user types
+    const [debouncedSearch, setDebouncedSearch] = useState("");  // what we actually query with
+
     const [showAddModal, setShowAddModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
+
+    // Debounce the search input so we don't hit the API on every keystroke
+    useEffect(() => {
+        const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+        return () => clearTimeout(t);
+    }, [search]);
+
+    // Reset to page 1 whenever the (debounced) search term changes
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -22,7 +36,7 @@ export default function AdminWordsPage() {
             setLoading(true);
             setError("");
             try {
-                const res = await fetchWords(page, limit, { signal: controller.signal });
+                const res = await fetchWords(page, limit, debouncedSearch, { signal: controller.signal });
                 setWords(res.data.data);
                 setMeta(res.data.meta);
             } catch (err) {
@@ -36,7 +50,7 @@ export default function AdminWordsPage() {
 
         loadWords();
         return () => controller.abort();
-    }, [page, limit]);
+    }, [page, limit, debouncedSearch]);
 
     // ── Stable callbacks — kept referentially identical across renders so
     // memoized WordPill rows don't re-render just because the page's state changed ──
@@ -45,7 +59,11 @@ export default function AdminWordsPage() {
 
     const handleAddWord = async (word) => {
         const res = await addWord(word);
-        setWords((prev) => [res.data.data, ...prev]);
+        // Only splice the new word into the visible list if it would actually
+        // match the active search — otherwise just leave it to show up on refetch/search change.
+        if (!debouncedSearch || word.toUpperCase().includes(debouncedSearch.toUpperCase())) {
+            setWords((prev) => [res.data.data, ...prev]);
+        }
         setShowAddModal(false);
     };
 
@@ -90,6 +108,28 @@ export default function AdminWordsPage() {
                 </button>
             </div>
 
+            {/* Search bar — server-side, debounced */}
+            <div className="relative mb-5">
+                <SearchIcon className="w-4 h-4 text-gray-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search all words…"
+                    className="w-full h-11 pl-11 pr-10 rounded-xl border border-white/8 bg-white/5 text-sm text-white placeholder-gray-600 outline-none focus:border-blue-500/50 focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-500/10 transition uppercase tracking-wider"
+                />
+                {search && (
+                    <button
+                        type="button"
+                        onClick={() => setSearch("")}
+                        aria-label="Clear search"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-300 hover:bg-white/5 transition"
+                    >
+                        <XIcon className="w-3.5 h-3.5" />
+                    </button>
+                )}
+            </div>
+
             {error && (
                 <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
                     <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
@@ -104,7 +144,7 @@ export default function AdminWordsPage() {
                     </div>
                 ) : words.length === 0 ? (
                     <div className="flex items-center justify-center py-16 text-sm text-gray-500">
-                        No words found.
+                        {debouncedSearch ? `No words match "${debouncedSearch}".` : "No words found."}
                     </div>
                 ) : (
                     <div className="grid grid-cols-5 gap-3">
@@ -401,6 +441,13 @@ function XIcon({ className }) {
     return (
         <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+    );
+}
+function SearchIcon({ className }) {
+    return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
         </svg>
     );
 }
