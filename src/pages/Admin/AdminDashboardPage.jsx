@@ -71,12 +71,18 @@ export default function AdminDashboardPage() {
         ? Math.round((stats.totalClassicGames / stats.totalGames) * 100)
         : 0;
     const speedPct = 100 - classicPct;
+    const usedWordsPct = stats.totalWords
+        ? Math.round((stats.usedWords / stats.totalWords) * 100)
+        : 0;
+    const bannedPct = stats.totalUsers
+        ? Math.round((stats.bannedUsers / stats.totalUsers) * 100)
+        : 0;
 
     const kpis = [
         { label: "Total users", value: stats.totalUsers, icon: UsersIcon, sub: `${stats.newUsersToday} new today` },
         { label: "Total games", value: stats.totalGames, icon: GameIcon, sub: `${stats.gamesPlayedToday} played today` },
-        { label: "Total words", value: stats.totalWords.toLocaleString(), icon: WordIcon, sub: "In word bank" },
-        { label: "Verified users", value: stats.verifiedUsers, icon: ShieldCheckIcon, sub: `${verifiedPct}% of total` },
+        { label: "Total words", value: stats.totalWords.toLocaleString(), icon: WordIcon, sub: `${stats.unusedWords.toLocaleString()} unused` },
+        { label: "Banned users", value: stats.bannedUsers, icon: BanIcon, sub: `${bannedPct}% of total` },
     ];
 
     return (
@@ -100,7 +106,7 @@ export default function AdminDashboardPage() {
                 })}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
 
                 <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6">
                     <div className="flex items-center justify-between mb-5">
@@ -129,6 +135,13 @@ export default function AdminDashboardPage() {
                         </div>
                         <span className="text-gray-400">{stats.unverifiedUsers}</span>
                     </div>
+                    <div className="flex items-center justify-between text-sm mt-2 pt-2 border-t border-white/5">
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-red-500" />
+                            <span className="text-gray-300">Banned</span>
+                        </div>
+                        <span className="text-gray-400">{stats.bannedUsers}</span>
+                    </div>
                 </div>
 
                 <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6">
@@ -155,6 +168,35 @@ export default function AdminDashboardPage() {
                             <span className="text-gray-300">Speed</span>
                         </div>
                         <span className="text-gray-400">{stats.totalSpeedGames}</span>
+                    </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6">
+                    <div className="flex items-center justify-between mb-5">
+                        <h2 className="text-sm font-semibold text-white">Word usage</h2>
+                        <span className="text-xs text-gray-500">{stats.totalWords.toLocaleString()} total</span>
+                    </div>
+
+                    <div className="w-full h-2.5 rounded-full bg-white/5 overflow-hidden mb-4">
+                        <div
+                            className="h-full bg-emerald-500 rounded-full transition-all"
+                            style={{ width: `${usedWordsPct}%` }}
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                            <span className="text-gray-300">Used</span>
+                        </div>
+                        <span className="text-gray-400">{stats.usedWords.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm mt-2">
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-white/15" />
+                            <span className="text-gray-300">Unused</span>
+                        </div>
+                        <span className="text-gray-400">{stats.unusedWords.toLocaleString()}</span>
                     </div>
                 </div>
             </div>
@@ -200,10 +242,10 @@ function WordIcon({ className }) {
         </svg>
     );
 }
-function ShieldCheckIcon({ className }) {
+function BanIcon({ className }) {
     return (
         <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 105.636 5.636a9 9 0 0012.728 12.728zM5.636 5.636l12.728 12.728" />
         </svg>
     );
 }
