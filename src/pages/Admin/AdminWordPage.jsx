@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchWords, addWord, editWord } from "../../api/admin";
+import toast from "react-hot-toast";
+import { fetchWords, addWord, editWord, deleteWord } from "../../api/admin";
 
 export default function AdminWordsPage() {
     const [words, setWords] = useState([]);
@@ -12,6 +13,7 @@ export default function AdminWordsPage() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -53,9 +55,18 @@ export default function AdminWordsPage() {
         setEditTarget(null);
     };
 
-    const handleDeleteWord = () => {
-        setWords((prev) => prev.filter((w) => w.id !== deleteTarget.id));
-        setDeleteTarget(null);
+    const handleDeleteWord = async () => {
+        setDeletingId(deleteTarget.id);
+        try {
+            await deleteWord(deleteTarget.id);
+            setWords((prev) => prev.filter((w) => w.id !== deleteTarget.id));
+            toast.success(`'${deleteTarget.word}' deleted successfully.`);
+            setDeleteTarget(null);
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to delete word.");
+        } finally {
+            setDeletingId(null);
+        }
     };
 
     return (
@@ -181,6 +192,7 @@ export default function AdminWordsPage() {
             {deleteTarget && (
                 <DeleteWordModal
                     word={deleteTarget}
+                    deleting={deletingId === deleteTarget.id}
                     onClose={() => setDeleteTarget(null)}
                     onConfirm={handleDeleteWord}
                 />
@@ -309,7 +321,7 @@ function WordFormModal({ title, submitLabel, initialValue = "", initialIsUsed = 
     );
 }
 
-function DeleteWordModal({ word, onClose, onConfirm }) {
+function DeleteWordModal({ word, deleting, onClose, onConfirm }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -329,16 +341,25 @@ function DeleteWordModal({ word, onClose, onConfirm }) {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 h-11 rounded-xl border border-white/8 text-sm font-medium text-gray-400 hover:bg-white/5 transition"
+                        disabled={deleting}
+                        className="flex-1 h-11 rounded-xl border border-white/8 text-sm font-medium text-gray-400 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
                         Cancel
                     </button>
                     <button
                         type="button"
                         onClick={onConfirm}
-                        className="flex-1 h-11 rounded-xl bg-red-600 hover:bg-red-500 active:scale-[0.99] text-white text-sm font-semibold transition shadow-lg shadow-red-900/30"
+                        disabled={deleting}
+                        className="flex-1 h-11 rounded-xl bg-red-600 hover:bg-red-500 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold flex items-center justify-center gap-2 transition shadow-lg shadow-red-900/30"
                     >
-                        Delete
+                        {deleting ? (
+                            <>
+                                <SpinnerIcon className="w-4 h-4 animate-spin" />
+                                Deleting…
+                            </>
+                        ) : (
+                            "Delete"
+                        )}
                     </button>
                 </div>
             </div>
