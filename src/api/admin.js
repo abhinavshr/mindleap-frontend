@@ -39,8 +39,8 @@ export const deleteContact = (id) =>
 export const fetchAdminProfile = () =>
   adminApi.get("/admin/profile");
 
-export const fetchWords = (page = 1, limit = 100) =>
-  adminApi.get("/admin/words/list", { params: { page, limit } });
+export const fetchWords = (page = 1, limit = 100, config) =>
+  adminApi.get("/admin/words/list", { params: { page, limit }, ...config });
 
 export const addWord = (word) =>
   adminApi.post("/admin/words/add", { word });

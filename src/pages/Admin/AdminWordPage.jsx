@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { fetchWords, addWord, editWord, deleteWord } from "../../api/admin";
 
@@ -16,31 +16,32 @@ export default function AdminWordsPage() {
     const [deletingId, setDeletingId] = useState(null);
 
     useEffect(() => {
-        let cancelled = false;
+        const controller = new AbortController();
 
         const loadWords = async () => {
             setLoading(true);
             setError("");
             try {
-                const res = await fetchWords(page, limit);
-                if (!cancelled) {
-                    setWords(res.data.data);
-                    setMeta(res.data.meta);
-                }
+                const res = await fetchWords(page, limit, { signal: controller.signal });
+                setWords(res.data.data);
+                setMeta(res.data.meta);
             } catch (err) {
-                if (!cancelled) {
+                if (err.name !== "CanceledError" && err.code !== "ERR_CANCELED") {
                     setError(err.response?.data?.message || "Failed to load words.");
                 }
             } finally {
-                if (!cancelled) setLoading(false);
+                if (!controller.signal.aborted) setLoading(false);
             }
         };
 
         loadWords();
-        return () => {
-            cancelled = true;
-        };
+        return () => controller.abort();
     }, [page, limit]);
+
+    // ── Stable callbacks — kept referentially identical across renders so
+    // memoized WordPill rows don't re-render just because the page's state changed ──
+    const handleEditClick = useCallback((word) => setEditTarget(word), []);
+    const handleDeleteClick = useCallback((word) => setDeleteTarget(word), []);
 
     const handleAddWord = async (word) => {
         const res = await addWord(word);
@@ -108,39 +109,7 @@ export default function AdminWordsPage() {
                 ) : (
                     <div className="grid grid-cols-5 gap-3">
                         {words.map((w) => (
-                            <div
-                                key={w.id}
-                                className={`flex items-center justify-between gap-2 rounded-full border pl-5 pr-2 py-3 transition
-                  ${w.is_used
-                                        ? "border-white/10 bg-white/[0.03]"
-                                        : "border-emerald-500/20 bg-emerald-500/[0.06]"
-                                    }`}
-                            >
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                    <span className={`w-2 h-2 rounded-full shrink-0 ${w.is_used ? "bg-gray-500" : "bg-emerald-400"}`} />
-                                    <span className="text-sm font-semibold uppercase tracking-wider text-white truncate">
-                                        {w.word}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-1 shrink-0">
-                                    <button
-                                        type="button"
-                                        onClick={() => setEditTarget(w)}
-                                        aria-label={`Edit ${w.word}`}
-                                        className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-300 hover:bg-blue-500/10 transition"
-                                    >
-                                        <EditIcon className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setDeleteTarget(w)}
-                                        aria-label={`Delete ${w.word}`}
-                                        className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition"
-                                    >
-                                        <TrashIcon className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
+                            <WordPill key={w.id} word={w} onEdit={handleEditClick} onDelete={handleDeleteClick} />
                         ))}
                     </div>
                 )}
@@ -200,6 +169,45 @@ export default function AdminWordsPage() {
         </div>
     );
 }
+
+// ── Memoized pill row — with up to 100 rows on screen, this avoids
+// re-rendering every pill whenever unrelated page state changes ──────────────
+const WordPill = memo(function WordPill({ word: w, onEdit, onDelete }) {
+    return (
+        <div
+            className={`flex items-center justify-between gap-2 rounded-full border pl-5 pr-2 py-3 transition
+        ${w.is_used
+                    ? "border-white/10 bg-white/[0.03]"
+                    : "border-emerald-500/20 bg-emerald-500/[0.06]"
+                }`}
+        >
+            <div className="flex items-center gap-2.5 min-w-0">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${w.is_used ? "bg-gray-500" : "bg-emerald-400"}`} />
+                <span className="text-sm font-semibold uppercase tracking-wider text-white truncate">
+                    {w.word}
+                </span>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+                <button
+                    type="button"
+                    onClick={() => onEdit(w)}
+                    aria-label={`Edit ${w.word}`}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-300 hover:bg-blue-500/10 transition"
+                >
+                    <EditIcon className="w-4 h-4" />
+                </button>
+                <button
+                    type="button"
+                    onClick={() => onDelete(w)}
+                    aria-label={`Delete ${w.word}`}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition"
+                >
+                    <TrashIcon className="w-4 h-4" />
+                </button>
+            </div>
+        </div>
+    );
+});
 
 function WordFormModal({ title, submitLabel, initialValue = "", initialIsUsed = false, showUsedToggle = false, onClose, onSubmit }) {
     const [value, setValue] = useState(initialValue);
