@@ -47,3 +47,6 @@ export const addWord = (word) =>
 
 export const editWord = (id, { word, is_used }) =>
   adminApi.put(`/admin/words/edit/${id}`, { word, is_used });
+
+export const deleteWord = (id) =>
+  adminApi.delete(`/admin/words/delete/${id}`);
