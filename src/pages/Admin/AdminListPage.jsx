@@ -138,7 +138,7 @@ export default function AdminListPage() {
             <ErrorBanner message={error} />
             <ErrorBanner message={actionError} />
 
-            <div className="rounded-2xl border border-white/8 bg-white/[0.03] overflow-hidden">
+            <div className="rounded-2xl border border-white/8 bg-white/3 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
@@ -233,7 +233,7 @@ function ErrorBanner({ message }) {
 // Memoized so unrelated state updates (e.g. typing in a modal) don't re-render every row.
 function AdminRowBase({ admin, onDeleteClick }) {
     return (
-        <tr className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition">
+        <tr className="border-b border-white/5 last:border-0 hover:bg-white/2 transition">
             <td className="px-5 py-4">
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-300 text-xs font-semibold shrink-0">
@@ -445,7 +445,7 @@ function AddAdminModal({ onClose, onSubmit }) {
                             className={`flex-1 py-2.5 rounded-xl border text-xs font-medium transition
                 ${role === r.value
                                     ? "border-blue-500/40 bg-blue-500/10 text-blue-300"
-                                    : "border-white/5 bg-white/[0.03] text-gray-500 hover:border-white/10 hover:bg-white/5 hover:text-gray-400"
+                                    : "border-white/5 bg-white/3 text-gray-500 hover:border-white/10 hover:bg-white/5 hover:text-gray-400"
                                 }`}
                         >
                             {r.label}
