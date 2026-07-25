@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchUsers, banUser, unbanUser } from "../../api/admin";
 
 function formatDate(iso) {
@@ -7,6 +7,11 @@ function formatDate(iso) {
         month: "short",
         day: "numeric",
     });
+}
+
+function initialsFor(u) {
+    const source = u.username || u.email || "?";
+    return source.slice(0, 2).toUpperCase();
 }
 
 export default function AdminUsersPage() {
@@ -25,6 +30,7 @@ export default function AdminUsersPage() {
         const loadUsers = async () => {
             setLoading(true);
             setError("");
+            setBanError("");
             try {
                 const res = await fetchUsers(page, limit);
                 if (!cancelled) {
@@ -46,11 +52,16 @@ export default function AdminUsersPage() {
         };
     }, [page, limit]);
 
-    const toggleBan = async (u) => {
+    const toggleBan = useCallback(async (u) => {
+        const action = u.is_banned ? "unban" : "ban";
+        if (action === "ban" && !window.confirm(`Ban ${u.username || u.email}? They will lose access immediately.`)) {
+            return;
+        }
+
         setBanError("");
         setBanningId(u.id);
         try {
-            const res = u.is_banned ? await unbanUser(u.id) : await banUser(u.id);
+            const res = action === "unban" ? await unbanUser(u.id) : await banUser(u.id);
             const updated = res.data.data;
             setUsers((prev) =>
                 prev.map((usr) => (usr.id === updated.id ? { ...usr, is_banned: updated.is_banned } : usr))
@@ -60,11 +71,16 @@ export default function AdminUsersPage() {
         } finally {
             setBanningId(null);
         }
-    };
+    }, []);
+
+    const goToPage = useCallback((updater) => {
+        setPage(updater);
+    }, []);
+
+    const busy = loading || banningId !== null;
 
     return (
         <div className="w-full">
-
             <div className="flex items-center justify-between mb-5">
                 <div>
                     <h2 className="text-sm font-semibold text-white">All users</h2>
@@ -75,14 +91,22 @@ export default function AdminUsersPage() {
             </div>
 
             {error && (
-                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
+                <div
+                    role="alert"
+                    aria-live="assertive"
+                    className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5"
+                >
                     <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
                     <span className="text-sm text-red-400">{error}</span>
                 </div>
             )}
 
             {banError && (
-                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
+                <div
+                    role="alert"
+                    aria-live="assertive"
+                    className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5"
+                >
                     <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
                     <span className="text-sm text-red-400">{banError}</span>
                 </div>
@@ -91,22 +115,23 @@ export default function AdminUsersPage() {
             <div className="rounded-2xl border border-white/8 bg-white/[0.03] overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
+                        <caption className="sr-only">List of platform users with level, XP, verification and ban status</caption>
                         <thead>
                             <tr className="border-b border-white/8 text-left">
-                                <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">User</th>
-                                <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Level</th>
-                                <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">XP</th>
-                                <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Verified</th>
-                                <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Joined</th>
-                                <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
-                                <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">Action</th>
+                                <th scope="col" className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">User</th>
+                                <th scope="col" className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Level</th>
+                                <th scope="col" className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">XP</th>
+                                <th scope="col" className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Verified</th>
+                                <th scope="col" className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Joined</th>
+                                <th scope="col" className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
+                                <th scope="col" className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
                                     <td colSpan={7} className="px-5 py-10 text-center">
-                                        <SpinnerIcon className="w-5 h-5 text-blue-400 animate-spin mx-auto" />
+                                        <SpinnerIcon className="w-5 h-5 text-blue-400 animate-spin mx-auto" role="status" aria-label="Loading users" />
                                     </td>
                                 </tr>
                             ) : users.length === 0 ? (
@@ -121,10 +146,10 @@ export default function AdminUsersPage() {
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-9 h-9 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-300 text-xs font-semibold shrink-0">
-                                                    {u.username.slice(0, 2).toUpperCase()}
+                                                    {initialsFor(u)}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="text-sm font-medium text-white truncate">{u.username}</p>
+                                                    <p className="text-sm font-medium text-white truncate">{u.username || "—"}</p>
                                                     <p className="text-xs text-gray-500 truncate">{u.email}</p>
                                                 </div>
                                             </div>
@@ -133,7 +158,7 @@ export default function AdminUsersPage() {
                                             <span className="text-sm text-gray-300">Lvl {u.current_level}</span>
                                             <p className="text-xs text-gray-600 mt-0.5">{u.current_title}</p>
                                         </td>
-                                        <td className="px-5 py-4 text-sm text-gray-300">{u.total_xp.toLocaleString()}</td>
+                                        <td className="px-5 py-4 text-sm text-gray-300">{(u.total_xp ?? 0).toLocaleString()}</td>
                                         <td className="px-5 py-4">
                                             {u.is_verified ? (
                                                 <span className="inline-flex items-center gap-1.5 text-xs text-blue-300">
@@ -161,6 +186,7 @@ export default function AdminUsersPage() {
                                                 type="button"
                                                 onClick={() => toggleBan(u)}
                                                 disabled={banningId === u.id}
+                                                aria-label={`${u.is_banned ? "Unban" : "Ban"} ${u.username || u.email}`}
                                                 className={`text-xs font-medium px-3.5 py-1.5 rounded-lg border transition disabled:opacity-50 disabled:cursor-not-allowed
                           ${u.is_banned
                                                         ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
@@ -192,15 +218,15 @@ export default function AdminUsersPage() {
                     </p>
                     <div className="flex gap-2">
                         <button
-                            disabled={!meta?.hasPrevPage || loading}
-                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            disabled={!meta?.hasPrevPage || busy}
+                            onClick={() => goToPage((p) => Math.max(1, p - 1))}
                             className="text-xs px-3 py-1.5 rounded-lg border border-white/8 text-gray-500 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/5 transition"
                         >
                             Previous
                         </button>
                         <button
-                            disabled={!meta?.hasNextPage || loading}
-                            onClick={() => setPage((p) => p + 1)}
+                            disabled={!meta?.hasNextPage || busy}
+                            onClick={() => goToPage((p) => p + 1)}
                             className="text-xs px-3 py-1.5 rounded-lg border border-white/8 text-gray-500 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/5 transition"
                         >
                             Next
@@ -226,9 +252,9 @@ function AlertCircleIcon({ className }) {
         </svg>
     );
 }
-function SpinnerIcon({ className }) {
+function SpinnerIcon({ className, role, "aria-label": ariaLabel }) {
     return (
-        <svg className={className} fill="none" viewBox="0 0 24 24">
+        <svg className={className} fill="none" viewBox="0 0 24 24" role={role} aria-label={ariaLabel}>
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
