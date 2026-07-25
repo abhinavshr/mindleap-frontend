@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { fetchContacts, fetchContactById, markContactAsRead, markContactAsUnread, deleteContact } from "../../api/admin";
 
@@ -10,6 +10,54 @@ function formatDateTime(iso) {
         hour: "numeric",
         minute: "2-digit",
     });
+}
+
+function initialsFor(c) {
+    const source = c.name || c.email || "?";
+    return source.slice(0, 2).toUpperCase();
+}
+
+const FOCUSABLE_SELECTOR =
+    'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/** Locks background scroll, closes on Escape, and traps Tab focus while a dialog is mounted. */
+function useDialogA11y(dialogRef, onClose, { closeOnEscape = true } = {}) {
+    useEffect(() => {
+        const previouslyFocused = document.activeElement;
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        const node = dialogRef.current;
+        const focusable = node?.querySelectorAll(FOCUSABLE_SELECTOR);
+        (focusable?.[0] || node)?.focus();
+
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape" && closeOnEscape) {
+                onClose();
+                return;
+            }
+            if (e.key !== "Tab" || !node) return;
+            const items = node.querySelectorAll(FOCUSABLE_SELECTOR);
+            if (items.length === 0) return;
+            const first = items[0];
+            const last = items[items.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+            document.body.style.overflow = originalOverflow;
+            previouslyFocused?.focus?.();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [closeOnEscape]);
 }
 
 export default function AdminContactPage() {
@@ -53,9 +101,10 @@ export default function AdminContactPage() {
         };
     }, [page, limit]);
 
-    const unreadCount = contacts.filter((c) => !c.is_read).length;
+    // Scoped to the currently loaded page — see note below on wiring a real total if the API provides one.
+    const unreadCountOnPage = contacts.filter((c) => !c.is_read).length;
 
-    const openContact = async (contact) => {
+    const openContact = useCallback(async (contact) => {
         setDetailError("");
         setOpeningId(contact.id);
         try {
@@ -70,9 +119,9 @@ export default function AdminContactPage() {
         } finally {
             setOpeningId(null);
         }
-    };
+    }, []);
 
-    const toggleReadStatus = async (contact) => {
+    const toggleReadStatus = useCallback(async (contact) => {
         setTogglingId(contact.id);
         try {
             const res = contact.is_read
@@ -89,13 +138,22 @@ export default function AdminContactPage() {
         } finally {
             setTogglingId(null);
         }
-    };
+    }, []);
 
-    const handleDeleteContact = async () => {
+    const handleDeleteContact = useCallback(async () => {
+        if (!deleteTarget) return;
         setDeletingId(deleteTarget.id);
         try {
             await deleteContact(deleteTarget.id);
-            setContacts((prev) => prev.filter((c) => c.id !== deleteTarget.id));
+            setContacts((prev) => {
+                const next = prev.filter((c) => c.id !== deleteTarget.id);
+                // Deleted the last item on a page beyond the first — step back rather than
+                // leaving the admin staring at an empty table with no forward context.
+                if (next.length === 0 && page > 1) {
+                    setPage((p) => Math.max(1, p - 1));
+                }
+                return next;
+            });
             if (selected?.id === deleteTarget.id) setSelected(null);
             toast.success("Contact submission deleted.");
             setDeleteTarget(null);
@@ -104,29 +162,28 @@ export default function AdminContactPage() {
         } finally {
             setDeletingId(null);
         }
-    };
+    }, [deleteTarget, page, selected]);
 
     return (
         <div className="w-full">
-
             <div className="flex items-center justify-between mb-5">
                 <div>
                     <h2 className="text-sm font-semibold text-white">Contact submissions</h2>
                     <p className="text-xs text-gray-500 mt-0.5">
-                        {meta ? `${meta.total} total · ${unreadCount} unread` : "Loading…"}
+                        {meta ? `${meta.total} total · ${unreadCountOnPage} unread on this page` : "Loading…"}
                     </p>
                 </div>
             </div>
 
             {error && (
-                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
+                <div role="alert" aria-live="assertive" className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
                     <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
                     <span className="text-sm text-red-400">{error}</span>
                 </div>
             )}
 
             {detailError && (
-                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
+                <div role="alert" aria-live="assertive" className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
                     <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
                     <span className="text-sm text-red-400">{detailError}</span>
                 </div>
@@ -135,20 +192,21 @@ export default function AdminContactPage() {
             <div className="rounded-2xl border border-white/8 bg-white/3 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
+                        <caption className="sr-only">Contact form submissions with read status and actions</caption>
                         <thead>
                             <tr className="border-b border-white/8 text-left">
-                                <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">From</th>
-                                <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Subject</th>
-                                <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
-                                <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Received</th>
-                                <th className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">Action</th>
+                                <th scope="col" className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">From</th>
+                                <th scope="col" className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Subject</th>
+                                <th scope="col" className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
+                                <th scope="col" className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Received</th>
+                                <th scope="col" className="px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
                                     <td colSpan={5} className="px-5 py-10 text-center">
-                                        <SpinnerIcon className="w-5 h-5 text-blue-400 animate-spin mx-auto" />
+                                        <SpinnerIcon className="w-5 h-5 text-blue-400 animate-spin mx-auto" role="status" aria-label="Loading contacts" />
                                     </td>
                                 </tr>
                             ) : contacts.length === 0 ? (
@@ -163,10 +221,10 @@ export default function AdminContactPage() {
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-9 h-9 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-300 text-xs font-semibold shrink-0">
-                                                    {c.name.slice(0, 2).toUpperCase()}
+                                                    {initialsFor(c)}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="text-sm font-medium text-white truncate">{c.name}</p>
+                                                    <p className="text-sm font-medium text-white truncate">{c.name || "—"}</p>
                                                     <p className="text-xs text-gray-500 truncate">{c.email}</p>
                                                 </div>
                                             </div>
@@ -284,24 +342,36 @@ export default function AdminContactPage() {
 }
 
 function ContactDetailModal({ contact, onClose, onToggleRead, toggling }) {
+    const dialogRef = useRef(null);
+    const titleId = useId();
+    useDialogA11y(dialogRef, onClose);
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-gray-900 p-6 shadow-2xl">
+            <div
+                ref={dialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                tabIndex={-1}
+                className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-gray-900 p-6 shadow-2xl outline-none"
+            >
                 <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-300 text-sm font-semibold shrink-0">
-                            {contact.name.slice(0, 2).toUpperCase()}
+                            {initialsFor(contact)}
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-white">{contact.name}</p>
+                            <p id={titleId} className="text-sm font-medium text-white">{contact.name || "—"}</p>
                             <p className="text-xs text-gray-500">{contact.email}</p>
                         </div>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
+                        aria-label="Close"
                         className="text-gray-500 hover:text-gray-300 transition"
                     >
                         <XIcon className="w-5 h-5" />
@@ -315,7 +385,7 @@ function ContactDetailModal({ contact, onClose, onToggleRead, toggling }) {
 
                 <div className="mb-6">
                     <p className="text-[11px] font-semibold tracking-widest text-gray-600 uppercase mb-1.5">Message</p>
-                    <p className="text-sm text-gray-300 leading-relaxed rounded-xl border border-white/8 bg-white/3 p-4">
+                    <p className="text-sm text-gray-300 leading-relaxed rounded-xl border border-white/8 bg-white/3 p-4 whitespace-pre-wrap">
                         {contact.message}
                     </p>
                 </div>
@@ -350,19 +420,33 @@ function ContactDetailModal({ contact, onClose, onToggleRead, toggling }) {
 }
 
 function DeleteContactModal({ contact, deleting, onClose, onConfirm }) {
+    const dialogRef = useRef(null);
+    const titleId = useId();
+    const safeClose = useCallback(() => {
+        if (!deleting) onClose();
+    }, [deleting, onClose]);
+    useDialogA11y(dialogRef, safeClose, { closeOnEscape: !deleting });
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={safeClose} />
 
-            <div className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-gray-900 p-6 shadow-2xl">
+            <div
+                ref={dialogRef}
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                tabIndex={-1}
+                className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-gray-900 p-6 shadow-2xl outline-none"
+            >
                 <div className="w-11 h-11 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-4">
                     <AlertCircleIcon className="w-5 h-5 text-red-400" />
                 </div>
 
-                <h3 className="text-base font-semibold text-white mb-1.5">Delete submission</h3>
+                <h3 id={titleId} className="text-base font-semibold text-white mb-1.5">Delete submission</h3>
                 <p className="text-sm text-gray-500 mb-6">
                     Are you sure you want to delete the message from{" "}
-                    <span className="text-gray-300">{contact.name}</span>? This action cannot be undone.
+                    <span className="text-gray-300">{contact.name || "this contact"}</span>? This action cannot be undone.
                 </p>
 
                 <div className="flex gap-3">
@@ -409,9 +493,9 @@ function AlertCircleIcon({ className }) {
         </svg>
     );
 }
-function SpinnerIcon({ className }) {
+function SpinnerIcon({ className, role, "aria-label": ariaLabel }) {
     return (
-        <svg className={className} fill="none" viewBox="0 0 24 24">
+        <svg className={className} fill="none" viewBox="0 0 24 24" role={role} aria-label={ariaLabel}>
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
