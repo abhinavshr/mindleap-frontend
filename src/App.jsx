@@ -23,6 +23,7 @@ import AboutUsPage from "./pages/AboutUsPage";
 import ContactUsPage from "./pages/ContactUsPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import Footer from "./components/Reuseable/Footer";
+import PageTransitionLoader from "./components/Reuseable/PageTransitionLoader";
 
 import AdminLoginPage from "./pages/Admin/AdminLogin";
 import AdminLayout, { DashboardPage, PlaceholderPage } from "./components/Admin/AdminLayout";
@@ -104,6 +105,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="flex min-h-screen flex-col">
+        <PageTransitionLoader />
         <Toaster
           position="top-center"
           toastOptions={{
