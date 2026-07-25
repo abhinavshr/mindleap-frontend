@@ -137,7 +137,7 @@ export default function AdminWordsPage() {
                 </div>
             )}
 
-            <div className="rounded-2xl border border-white/8 bg-white/3 p-5 mb-5 min-h-[120px]">
+            <div className="rounded-2xl border border-white/8 bg-white/3 p-5 mb-5 min-h-30">
                 {loading ? (
                     <div className="flex items-center justify-center py-16">
                         <SpinnerIcon className="w-5 h-5 text-blue-400 animate-spin" />
@@ -210,15 +210,13 @@ export default function AdminWordsPage() {
     );
 }
 
-// ── Memoized pill row — with up to 100 rows on screen, this avoids
-// re-rendering every pill whenever unrelated page state changes ──────────────
 const WordPill = memo(function WordPill({ word: w, onEdit, onDelete }) {
     return (
         <div
             className={`flex items-center justify-between gap-2 rounded-full border pl-5 pr-2 py-3 transition
         ${w.is_used
-                    ? "border-white/10 bg-white/[0.03]"
-                    : "border-emerald-500/20 bg-emerald-500/[0.06]"
+                    ? "border-white/10 bg-white/3"
+                    : "border-emerald-500/20 bg-emerald-500/6"
                 }`}
         >
             <div className="flex items-center gap-2.5 min-w-0">
@@ -319,7 +317,7 @@ function WordFormModal({ title, submitLabel, initialValue = "", initialIsUsed = 
                                 className={`flex-1 py-2.5 rounded-xl border text-xs font-medium transition
                   ${!isUsed
                                         ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-                                        : "border-white/5 bg-white/[0.03] text-gray-500 hover:border-white/10 hover:bg-white/5"
+                                        : "border-white/5 bg-white/3 text-gray-500 hover:border-white/10 hover:bg-white/5"
                                     }`}
                             >
                                 Unused
@@ -330,7 +328,7 @@ function WordFormModal({ title, submitLabel, initialValue = "", initialIsUsed = 
                                 className={`flex-1 py-2.5 rounded-xl border text-xs font-medium transition
                   ${isUsed
                                         ? "border-white/20 bg-white/10 text-gray-300"
-                                        : "border-white/5 bg-white/[0.03] text-gray-500 hover:border-white/10 hover:bg-white/5"
+                                        : "border-white/5 bg-white/3 text-gray-500 hover:border-white/10 hover:bg-white/5"
                                     }`}
                             >
                                 Used

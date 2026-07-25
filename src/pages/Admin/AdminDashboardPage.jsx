@@ -133,7 +133,7 @@ export default function AdminDashboardPage() {
                 ))}
             </div>
 
-            <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12">
+            <div className="rounded-2xl border border-white/8 bg-white/3 p-6 flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-12">
                 <div>
                     <h2 className="text-sm font-semibold text-white mb-1">Today</h2>
                     <p className="text-xs text-gray-500">Live activity since midnight</p>
@@ -156,7 +156,7 @@ export default function AdminDashboardPage() {
 // ── Reusable pieces ─────────────────────────────────────────────────────────
 function KpiCard({ label, value, icon: Icon, sub }) {
     return (
-        <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
+        <div className="rounded-2xl border border-white/8 bg-white/3 p-5">
             <div className="flex items-center justify-between mb-4">
                 <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
                     <Icon className="w-4 h-4 text-blue-400" />
@@ -171,7 +171,7 @@ function KpiCard({ label, value, icon: Icon, sub }) {
 
 function BreakdownCard({ title, total, barPct, barColor, splitBar, rows }) {
     return (
-        <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6">
+        <div className="rounded-2xl border border-white/8 bg-white/3 p-6">
             <div className="flex items-center justify-between mb-5">
                 <h2 className="text-sm font-semibold text-white">{title}</h2>
                 <span className="text-xs text-gray-500">{total}</span>
