@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { fetchAdminProfile } from "../../api/admin";
 import { changeAdminPassword } from "../../api/auth";
 
@@ -17,6 +17,11 @@ function formatDateTime(iso) {
         hour: "numeric",
         minute: "2-digit",
     });
+}
+
+function initialsFor(profile) {
+    const source = profile.username || profile.email || "?";
+    return source.slice(0, 2).toUpperCase();
 }
 
 export default function AdminSettingsPage() {
@@ -51,7 +56,7 @@ export default function AdminSettingsPage() {
     if (loading) {
         return (
             <div className="w-full flex items-center justify-center py-24">
-                <SpinnerIcon className="w-6 h-6 text-blue-400 animate-spin" />
+                <SpinnerIcon className="w-6 h-6 text-blue-400 animate-spin" role="status" aria-label="Loading profile" />
             </div>
         );
     }
@@ -59,7 +64,7 @@ export default function AdminSettingsPage() {
     if (error) {
         return (
             <div className="w-full">
-                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                <div role="alert" aria-live="assertive" className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
                     <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
                     <span className="text-sm text-red-400">{error}</span>
                 </div>
@@ -71,7 +76,6 @@ export default function AdminSettingsPage() {
 
     return (
         <div className="w-full">
-
             <div className="mb-6">
                 <h2 className="text-sm font-semibold text-white">Profile</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Your account details</p>
@@ -80,7 +84,7 @@ export default function AdminSettingsPage() {
             <div className="rounded-2xl border border-white/8 bg-white/3 p-6 mb-8">
                 <div className="flex items-center gap-4 mb-6">
                     <div className="w-14 h-14 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-300 text-lg font-semibold shrink-0">
-                        {profile.username.slice(0, 2).toUpperCase()}
+                        {initialsFor(profile)}
                     </div>
                     <div>
                         <p className="text-base font-semibold text-white">{profile.username}</p>
@@ -131,32 +135,44 @@ function ChangePasswordCard() {
     const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = () => {
-        setError("");
-        setSuccess("");
+    const handleSubmit = useCallback(
+        async (e) => {
+            e?.preventDefault();
+            setError("");
+            setSuccess("");
 
-        if (!currentPw || !newPw || !confirmPw) {
-            setError("All fields are required.");
-            return;
-        }
-        if (newPw.length < 8) {
-            setError("New password must be at least 8 characters.");
-            return;
-        }
-        if (newPw !== confirmPw) {
-            setError("New password and confirm password do not match.");
-            return;
-        }
+            if (!currentPw || !newPw || !confirmPw) {
+                setError("All fields are required.");
+                return;
+            }
+            if (newPw.length < 8) {
+                setError("New password must be at least 8 characters.");
+                return;
+            }
+            if (newPw !== confirmPw) {
+                setError("New password and confirm password do not match.");
+                return;
+            }
+            if (newPw === currentPw) {
+                setError("New password must be different from your current password.");
+                return;
+            }
 
-        setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-            setSuccess("Password updated successfully.");
-            setCurrentPw("");
-            setNewPw("");
-            setConfirmPw("");
-        }, 600);
-    };
+            setLoading(true);
+            try {
+                await changeAdminPassword({ currentPassword: currentPw, newPassword: newPw });
+                setSuccess("Password updated successfully.");
+                setCurrentPw("");
+                setNewPw("");
+                setConfirmPw("");
+            } catch (err) {
+                setError(err.response?.data?.message || "Failed to update password.");
+            } finally {
+                setLoading(false);
+            }
+        },
+        [currentPw, newPw, confirmPw]
+    );
 
     return (
         <div className="rounded-2xl border border-white/8 bg-white/3 p-6">
@@ -166,82 +182,108 @@ function ChangePasswordCard() {
             </div>
 
             {error && (
-                <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
+                <div role="alert" aria-live="assertive" className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
                     <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
                     <span className="text-sm text-red-400">{error}</span>
                 </div>
             )}
 
             {success && (
-                <div className="flex items-center gap-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3 mb-5">
+                <div role="status" aria-live="polite" className="flex items-center gap-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3 mb-5">
                     <CheckCircleIcon className="w-4 h-4 text-emerald-400 shrink-0" />
                     <span className="text-sm text-emerald-400">{success}</span>
                 </div>
             )}
 
-            <PasswordField
-                label="Current password"
-                value={currentPw}
-                onChange={setCurrentPw}
-                show={showCurrent}
-                onToggleShow={() => setShowCurrent((s) => !s)}
-                placeholder="Enter your current password"
-            />
-            <PasswordField
-                label="New password"
-                value={newPw}
-                onChange={setNewPw}
-                show={showNew}
-                onToggleShow={() => setShowNew((s) => !s)}
-                placeholder="Enter a new password"
-            />
-            <PasswordField
-                label="Confirm new password"
-                value={confirmPw}
-                onChange={setConfirmPw}
-                show={showConfirm}
-                onToggleShow={() => setShowConfirm((s) => !s)}
-                placeholder="Re-enter the new password"
-                marginClass="mb-6"
-            />
+            <form onSubmit={handleSubmit} noValidate>
+                <PasswordField
+                    label="Current password"
+                    value={currentPw}
+                    onChange={setCurrentPw}
+                    show={showCurrent}
+                    onToggleShow={() => setShowCurrent((s) => !s)}
+                    placeholder="Enter your current password"
+                    autoComplete="current-password"
+                    disabled={loading}
+                    autoFocus
+                />
+                <PasswordField
+                    label="New password"
+                    value={newPw}
+                    onChange={setNewPw}
+                    show={showNew}
+                    onToggleShow={() => setShowNew((s) => !s)}
+                    placeholder="Enter a new password"
+                    autoComplete="new-password"
+                    disabled={loading}
+                />
+                <PasswordField
+                    label="Confirm new password"
+                    value={confirmPw}
+                    onChange={setConfirmPw}
+                    show={showConfirm}
+                    onToggleShow={() => setShowConfirm((s) => !s)}
+                    placeholder="Re-enter the new password"
+                    autoComplete="new-password"
+                    disabled={loading}
+                    marginClass="mb-6"
+                />
 
-            <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={loading}
-                className="h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold flex items-center justify-center gap-2 transition shadow-lg shadow-blue-900/30"
-            >
-                {loading ? (
-                    <>
-                        <SpinnerIcon className="w-4 h-4 animate-spin" />
-                        Updating…
-                    </>
-                ) : (
-                    "Update password"
-                )}
-            </button>
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold flex items-center justify-center gap-2 transition shadow-lg shadow-blue-900/30"
+                >
+                    {loading ? (
+                        <>
+                            <SpinnerIcon className="w-4 h-4 animate-spin" />
+                            Updating…
+                        </>
+                    ) : (
+                        "Update password"
+                    )}
+                </button>
+            </form>
         </div>
     );
 }
 
-function PasswordField({ label, value, onChange, show, onToggleShow, placeholder, marginClass = "mb-4" }) {
+function PasswordField({
+    label,
+    value,
+    onChange,
+    show,
+    onToggleShow,
+    placeholder,
+    autoComplete = "new-password",
+    disabled = false,
+    autoFocus = false,
+    marginClass = "mb-4",
+}) {
+    const id = useId();
     return (
         <div className={marginClass}>
-            <label className="block text-[13px] font-medium text-gray-400 mb-1.5">{label}</label>
+            <label htmlFor={id} className="block text-[13px] font-medium text-gray-400 mb-1.5">
+                {label}
+            </label>
             <div className="relative">
                 <input
+                    id={id}
                     type={show ? "text" : "password"}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder={placeholder}
-                    autoComplete="new-password"
-                    className="w-full h-11 px-4 pr-11 rounded-xl border border-white/8 bg-white/5 text-sm text-white placeholder-gray-600 outline-none focus:border-blue-500/50 focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-500/10 transition"
+                    autoComplete={autoComplete}
+                    disabled={disabled}
+                    autoFocus={autoFocus}
+                    className="w-full h-11 px-4 pr-11 rounded-xl border border-white/8 bg-white/5 text-sm text-white placeholder-gray-600 outline-none focus:border-blue-500/50 focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-500/10 transition disabled:opacity-60"
                 />
                 <button
                     type="button"
                     onClick={onToggleShow}
+                    disabled={disabled}
                     aria-label={show ? "Hide password" : "Show password"}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition disabled:opacity-60"
                 >
                     {show ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
                 </button>
@@ -279,9 +321,9 @@ function CheckCircleIcon({ className }) {
         </svg>
     );
 }
-function SpinnerIcon({ className }) {
+function SpinnerIcon({ className, role, "aria-label": ariaLabel }) {
     return (
-        <svg className={className} fill="none" viewBox="0 0 24 24">
+        <svg className={className} fill="none" viewBox="0 0 24 24" role={role} aria-label={ariaLabel}>
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
