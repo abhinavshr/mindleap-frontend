@@ -24,6 +24,7 @@ import ContactUsPage from "./pages/ContactUsPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import Footer from "./components/Reuseable/Footer";
 import PageTransitionLoader from "./components/Reuseable/PageTransitionLoader";
+import AdminPageTransitionLoader from "./components/Admin/AdminPageTransitionLoader";
 
 import AdminLoginPage from "./pages/Admin/AdminLogin";
 import AdminLayout, { DashboardPage, PlaceholderPage } from "./components/Admin/AdminLayout";
@@ -54,6 +55,12 @@ function AdminProtectedRoute({ children }) {
   }
 
   return children;
+}
+
+function TransitionLoaderSwitcher() {
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin");
+  return isAdmin ? <AdminPageTransitionLoader /> : <PageTransitionLoader />;
 }
 
 function App() {
@@ -105,7 +112,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="flex min-h-screen flex-col">
-        <PageTransitionLoader />
+        <TransitionLoaderSwitcher />
         <Toaster
           position="top-center"
           toastOptions={{
