@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { X, AlertCircle, Loader2 } from "lucide-react";
 import { fetchContacts, fetchContactById, markContactAsRead, markContactAsUnread, deleteContact } from "../../api/admin";
 
 function formatDateTime(iso) {
@@ -177,14 +178,14 @@ export default function AdminContactPage() {
 
             {error && (
                 <div role="alert" aria-live="assertive" className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
-                    <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
                     <span className="text-sm text-red-400">{error}</span>
                 </div>
             )}
 
             {detailError && (
                 <div role="alert" aria-live="assertive" className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-5">
-                    <AlertCircleIcon className="w-4 h-4 text-red-400 shrink-0" />
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
                     <span className="text-sm text-red-400">{detailError}</span>
                 </div>
             )}
@@ -206,7 +207,7 @@ export default function AdminContactPage() {
                             {loading ? (
                                 <tr>
                                     <td colSpan={5} className="px-5 py-10 text-center">
-                                        <SpinnerIcon className="w-5 h-5 text-blue-400 animate-spin mx-auto" role="status" aria-label="Loading contacts" />
+                                        <Loader2 className="w-5 h-5 text-blue-400 animate-spin mx-auto" role="status" aria-label="Loading contacts" />
                                     </td>
                                 </tr>
                             ) : contacts.length === 0 ? (
@@ -257,7 +258,7 @@ export default function AdminContactPage() {
                                                 >
                                                     {togglingId === c.id ? (
                                                         <span className="inline-flex items-center gap-1.5">
-                                                            <SpinnerIcon className="w-3.5 h-3.5 animate-spin" />
+                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                                             Updating…
                                                         </span>
                                                     ) : c.is_read ? (
@@ -274,7 +275,7 @@ export default function AdminContactPage() {
                                                 >
                                                     {openingId === c.id ? (
                                                         <span className="inline-flex items-center gap-1.5">
-                                                            <SpinnerIcon className="w-3.5 h-3.5 animate-spin" />
+                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                                             Loading…
                                                         </span>
                                                     ) : (
@@ -374,7 +375,7 @@ function ContactDetailModal({ contact, onClose, onToggleRead, toggling }) {
                         aria-label="Close"
                         className="text-gray-500 hover:text-gray-300 transition"
                     >
-                        <XIcon className="w-5 h-5" />
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
@@ -404,7 +405,7 @@ function ContactDetailModal({ contact, onClose, onToggleRead, toggling }) {
                     >
                         {toggling ? (
                             <span className="inline-flex items-center gap-1.5">
-                                <SpinnerIcon className="w-3.5 h-3.5 animate-spin" />
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                 Updating…
                             </span>
                         ) : contact.is_read ? (
@@ -440,7 +441,7 @@ function DeleteContactModal({ contact, deleting, onClose, onConfirm }) {
                 className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-gray-900 p-6 shadow-2xl outline-none"
             >
                 <div className="w-11 h-11 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-4">
-                    <AlertCircleIcon className="w-5 h-5 text-red-400" />
+                    <AlertCircle className="w-5 h-5 text-red-400" />
                 </div>
 
                 <h3 id={titleId} className="text-base font-semibold text-white mb-1.5">Delete submission</h3>
@@ -466,7 +467,7 @@ function DeleteContactModal({ contact, deleting, onClose, onConfirm }) {
                     >
                         {deleting ? (
                             <>
-                                <SpinnerIcon className="w-4 h-4 animate-spin" />
+                                <Loader2 className="w-4 h-4 animate-spin" />
                                 Deleting…
                             </>
                         ) : (
@@ -476,28 +477,5 @@ function DeleteContactModal({ contact, deleting, onClose, onConfirm }) {
                 </div>
             </div>
         </div>
-    );
-}
-
-function XIcon({ className }) {
-    return (
-        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-    );
-}
-function AlertCircleIcon({ className }) {
-    return (
-        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-        </svg>
-    );
-}
-function SpinnerIcon({ className, role, "aria-label": ariaLabel }) {
-    return (
-        <svg className={className} fill="none" viewBox="0 0 24 24" role={role} aria-label={ariaLabel}>
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
     );
 }
