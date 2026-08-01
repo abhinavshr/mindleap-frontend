@@ -44,6 +44,27 @@ const popIn = {
   },
 };
 
+// Tab panel transition — direction-aware so classic<->speed reads as a clear swap either way
+const panelVariants = {
+  enter: (direction) => ({
+    opacity: 0,
+    x: direction > 0 ? 40 : -40,
+    scale: 0.98,
+  }),
+  center: {
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+  },
+  exit: (direction) => ({
+    opacity: 0,
+    x: direction > 0 ? -40 : 40,
+    scale: 0.98,
+    transition: { duration: 0.25, ease: [0.4, 0, 1, 1] },
+  }),
+};
+
 /* ─────────────────────────────────────────
    Rank icon
 ───────────────────────────────────────── */
@@ -106,20 +127,27 @@ const Spinner = () => (
 );
 
 /* ─────────────────────────────────────────
-   Tab button
+   Tab button — active pill slides between tabs via shared layoutId
 ───────────────────────────────────────── */
 const Tab = ({ active, onClick, children, dark }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold border-2 transition-colors duration-150 ${
+    className={`relative isolate flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold border-2 transition-colors duration-150 ${
       active
-        ? "bg-[#2B2017] border-[#2B2017] text-[#FDFBF5]"
+        ? "border-[#2B2017] text-[#FDFBF5]"
         : dark
         ? "text-[#CBBEAC] border-[#3A2A1C] hover:text-[#FFE9B0]"
         : "text-[#5A4636] border-[#2B2017] hover:text-[#C64B2A]"
     }`}
   >
-    {children}
+    {active && (
+      <motion.span
+        layoutId="tab-active-bg"
+        className="absolute inset-0 rounded-lg bg-[#2B2017] z-0"
+        transition={{ type: "spring", stiffness: 500, damping: 32 }}
+      />
+    )}
+    <span className="relative z-10 flex items-center gap-2">{children}</span>
   </button>
 );
 
@@ -145,6 +173,7 @@ const YouBadge = () => (
 ───────────────────────────────────────── */
 export default function LeaderboardPage({ dark, onToggleDark }) {
   const [activeTab, setActiveTab]         = useState("classic"); // "classic" | "speed"
+  const [direction, setDirection]         = useState(0); // -1 = speed->classic, 1 = classic->speed
   const [leaderboard, setLeaderboard]     = useState([]);
   const [speedBoard, setSpeedBoard]       = useState([]);
   const [loadingClassic, setLoadingClassic] = useState(true);
@@ -163,6 +192,12 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
       return null;
     }
   }, []);
+
+  const switchTab = (tab) => {
+    if (tab === activeTab) return;
+    setDirection(tab === "speed" ? 1 : -1);
+    setActiveTab(tab);
+  };
 
   // ── Load classic leaderboard on mount ────────────────────────────────────
   useEffect(() => {
@@ -264,15 +299,15 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <Tab active={activeTab === "classic"} onClick={() => setActiveTab("classic")} dark={dark}>
+          <Tab active={activeTab === "classic"} onClick={() => switchTab("classic")} dark={dark}>
             <FaTrophy size={13} /> Classic
           </Tab>
-          <Tab active={activeTab === "speed"} onClick={() => setActiveTab("speed")} dark={dark}>
+          <Tab active={activeTab === "speed"} onClick={() => switchTab("speed")} dark={dark}>
             <FaBolt size={13} /> Speed
           </Tab>
         </motion.div>
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" custom={direction} initial={false}>
 
           {/* ══════════════════════════════════════
               CLASSIC TAB
@@ -281,10 +316,11 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
             <motion.div
               key="classic"
               className="w-full max-w-2xl"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
+              custom={direction}
+              variants={panelVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
             >
               {/* My rank card */}
               <AnimatePresence>
@@ -450,10 +486,11 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
             <motion.div
               key="speed"
               className="w-full max-w-2xl"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
+              custom={direction}
+              variants={panelVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
             >
               {/* My Speed Stats Card */}
               <AnimatePresence>
