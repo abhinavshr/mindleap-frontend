@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-const LOGO_SRC = "../../assets/images/logo.png";
+const LOGO_SRC = "/assets/images/logo.png";
 
 const HOLD_MS = 450; 
 const EXIT_MS = 300; 
