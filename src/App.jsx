@@ -98,6 +98,12 @@ function App() {
     checkHealth();
   }, [checkHealth]);
 
+  useEffect(() => {
+    if (healthStatus === "ok") {
+      window.__RENDER_READY__ = true;
+    }
+  }, [healthStatus]);
+
   if (healthStatus !== "ok") {
     return (
       <BackendDownPage
