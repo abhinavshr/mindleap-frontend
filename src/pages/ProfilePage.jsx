@@ -14,9 +14,6 @@ import { getMyLevel, getMyBadges, getMyRewards } from "../api/Level";
 
 let _profileCache = null;
 
-// How many badges to show before the "Show more" toggle kicks in.
-// Keep this a multiple of the grid's column count (3 on mobile, 4 on sm+)
-// so the row doesn't look cut off oddly.
 const BADGES_INITIAL_COUNT = 12;
 
 const fadeUp = {
