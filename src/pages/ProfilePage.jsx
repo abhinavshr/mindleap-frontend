@@ -7,12 +7,17 @@ import {
   AnimatePresence,
   useReducedMotion,
 } from "framer-motion";
-import { FaBolt, FaStar, FaGift, FaChevronRight, FaTrophy, FaFire, FaLock, FaCheckCircle } from "react-icons/fa";
+import { FaBolt, FaStar, FaGift, FaChevronRight, FaChevronDown, FaChevronUp, FaTrophy, FaFire, FaLock, FaCheckCircle } from "react-icons/fa";
 import Navbar from "../components/Reuseable/Navbar";
 import { getMe } from "../api/auth";
 import { getMyLevel, getMyBadges, getMyRewards } from "../api/Level";
 
 let _profileCache = null;
+
+// How many badges to show before the "Show more" toggle kicks in.
+// Keep this a multiple of the grid's column count (3 on mobile, 4 on sm+)
+// so the row doesn't look cut off oddly.
+const BADGES_INITIAL_COUNT = 12;
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -170,14 +175,18 @@ const RewardCard = ({ reward, dark, index }) => {
   );
 };
 
-const BadgeCard = ({ b, dark }) => {
+const BadgeCard = ({ b, dark, index }) => {
   const [hovered, setHovered] = useState(false);
   const earnedDate = b.earned && b.earned_at
     ? new Date(b.earned_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : null;
   return (
-    <div
+    <motion.div
       className="relative"
+      custom={index}
+      variants={cardVariant}
+      initial="hidden"
+      animate="visible"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setHovered(true)}
@@ -239,7 +248,7 @@ const BadgeCard = ({ b, dark }) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };
 
@@ -269,6 +278,7 @@ export default function ProfilePage({ dark, onToggleDark }) {
   const [levelData, setLevelData]     = useState(null);
   const [badges, setBadges]           = useState([]);
   const [rewards, setRewards]         = useState([]);
+  const [showAllBadges, setShowAllBadges] = useState(false);
   const navigate                      = useNavigate();
 
   useEffect(() => {
@@ -306,6 +316,12 @@ export default function ProfilePage({ dark, onToggleDark }) {
   const distribution = Object.entries(profileData?.guess_distribution ?? {})
     .map(([guess, count]) => ({ guess: parseInt(guess), count }));
   const maxCount = Math.max(...distribution.map((d) => d.count), 1);
+
+  // Only render a limited slice of badges until the user asks to see more.
+  // This avoids mounting (and animating) all 45 badge cards + their hover
+  // tooltip logic on first paint.
+  const visibleBadges = showAllBadges ? badges : badges.slice(0, BADGES_INITIAL_COUNT);
+  const hasMoreBadges  = badges.length > BADGES_INITIAL_COUNT;
 
   if (loading) {
     return (
@@ -455,8 +471,30 @@ export default function ProfilePage({ dark, onToggleDark }) {
             </div>
             <p style={sub(dark)} className="text-xs mb-4">Hover a badge to see how to earn it</p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-              {badges.map((b) => <BadgeCard key={b.key} b={b} dark={dark} />)}
+              {visibleBadges.map((b, i) => <BadgeCard key={b.key} b={b} dark={dark} index={i} />)}
             </div>
+
+            {hasMoreBadges && (
+              <div className="flex justify-center mt-4 pt-4" style={divider}>
+                <motion.button
+                  onClick={() => setShowAllBadges((v) => !v)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold"
+                  style={{
+                    border:     `2px solid ${dark ? "#3A2A1C" : "#D4B896"}`,
+                    color:      dark ? "#F7EEDB" : "#2B2017",
+                    background: dark ? "#1B120C" : "#FFF3DA",
+                  }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {showAllBadges ? (
+                    <>Show less <FaChevronUp size={10} /></>
+                  ) : (
+                    <>Show {badges.length - BADGES_INITIAL_COUNT} more <FaChevronDown size={10} /></>
+                  )}
+                </motion.button>
+              </div>
+            )}
           </motion.div>
         )}
 
