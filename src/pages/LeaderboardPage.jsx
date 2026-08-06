@@ -262,9 +262,12 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
   }, [activeTab, speedStatsLoaded, currentUser]);
 
   return (
-    <div className={`min-h-screen flex flex-col font-copy transition-colors duration-300 ${
-      dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
-    }`}>
+    <div
+      className={`min-h-screen h-full flex flex-col font-copy transition-colors duration-300 overflow-y-auto overflow-x-hidden overscroll-y-contain ${
+        dark ? "bg-[#0F0B08] text-[#F7EEDB]" : "arcade-bg text-[#2B2017]"
+      }`}
+      style={{ WebkitOverflowScrolling: "touch" }}
+    >
       <Helmet>
         <title>Mindleap Leaderboard - Compete & Track Rankings</title>
         <meta name="description" content="View the Mindleap leaderboard and compete with players worldwide. Track your ranking and compare statistics." />
@@ -276,7 +279,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
       </Helmet>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
 
-      <div className="flex flex-col items-center py-10 px-4 sm:px-6">
+      <div className="flex flex-col items-center py-10 px-4 sm:px-6 pb-24">
 
         {/* Title */}
         <motion.h1
@@ -392,6 +395,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                   <span className={`text-sm text-right hidden sm:block ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>Avg</span>
                 </div>
 
+                <div className="max-h-[65vh] sm:max-h-[70vh] overflow-y-auto overscroll-contain">
                 <AnimatePresence mode="wait">
                   {loadingClassic && <Spinner key="spinner" />}
                 </AnimatePresence>
@@ -466,6 +470,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                     );
                   })}
                 </AnimatePresence>
+                </div>
               </motion.div>
 
               <motion.p
@@ -592,6 +597,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                   <span className={`text-xs text-right hidden sm:block ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>XP</span>
                 </div>
 
+                <div className="max-h-[65vh] sm:max-h-[70vh] overflow-y-auto overscroll-contain">
                 {/* Loading */}
                 <AnimatePresence mode="wait">
                   {loadingSpeed && <Spinner key="speed-spinner" />}
@@ -650,6 +656,10 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                           </div>
                           <div className={`sm:hidden text-xs ${dark ? "text-[#CBBEAC]" : "text-[#5A4636]"}`}>
                             Best {p.best_time != null ? `${p.best_time}s` : "—"} · Win {p.win_rate}%
+                            {" · "}
+                            <span className={`font-semibold ${dark ? "text-[#2FAF74]" : "text-[#1E7E52]"}`}>
+                              {p.total_xp} XP
+                            </span>
                           </div>
                         </div>
 
@@ -699,6 +709,7 @@ export default function LeaderboardPage({ dark, onToggleDark }) {
                     );
                   })}
                 </AnimatePresence>
+                </div>
               </motion.div>
 
               <motion.p
