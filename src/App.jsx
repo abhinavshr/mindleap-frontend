@@ -8,7 +8,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import ProfilePage from './pages/ProfilePage'
-import SpeedGamePage from './pages/SpeedGamePage'
+import SpeedGamePage from './feature/speedGame/SpeedGamePage'
 import AllLevelsPage from "./pages/LevelPage";
 import HallOfFamePage from "./pages/HallOfFrame";
 import MissionsPage from "./pages/MissionPage";
