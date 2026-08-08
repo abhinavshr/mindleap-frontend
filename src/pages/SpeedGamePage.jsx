@@ -10,9 +10,6 @@ import { startSpeedGame, submitSpeedGuess, expireSpeedSession } from "../api/spe
 import toast from "react-hot-toast";
 import { Howl, Howler } from "howler";
 
-// ── Speed-win modal animation variants (deliberately different from the
-//    daily-game congrats modal: slides up from the bottom, uses speed
-//    streaks instead of confetti, and a stopwatch/XP counter instead of stars) ──
 const speedOverlayVariant = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.2 } },
@@ -102,7 +99,7 @@ function SpeedWinModal({ show, onClose, onPlayAgain, dark, timeTaken, timeLimit,
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/55"
+          className="fixed inset-0 z-60 flex items-end sm:items-center justify-center bg-black/55"
           onClick={onClose}
         >
           <motion.div
@@ -125,7 +122,7 @@ function SpeedWinModal({ show, onClose, onPlayAgain, dark, timeTaken, timeLimit,
                   animate={{ x: "220%", opacity: [0, 1, 0] }}
                   transition={{ duration: 0.6, delay: s.delay, ease: "easeOut" }}
                   style={{ top: `${s.top}%`, width: `${s.width}px` }}
-                  className="absolute h-[3px] -rotate-12 rounded-full bg-[#F2B84B]"
+                  className="absolute h-0.75 -rotate-12 rounded-full bg-[#F2B84B]"
                 />
               ))}
             </div>
@@ -241,6 +238,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
   const [xpEarned, setXpEarned]         = useState(0);
   const [timeTaken, setTimeTaken]       = useState(0);
   const [revealedWord, setRevealedWord] = useState("");
+  const [revealPending, setRevealPending] = useState(false);
   const [submitting, setSubmitting]     = useState(false);
   const [showWinModal, setShowWinModal] = useState(false);
   const timerRef = useRef(null);
@@ -294,21 +292,37 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
     };
   }, []);
 
-  const extractReveal = (data) => data?.secret || data?.word || data?.answer || "";
+  const extractReveal = (data) =>
+    data?.secret || data?.word || data?.answer || data?.correctWord || "";
+
+  const fetchRevealWithRetry = async (sid, attempt = 1) => {
+    try {
+      const res = await expireSpeedSession(sid);
+      const data = res.data;
+      const reveal = extractReveal(data);
+      if (reveal) {
+        setRevealedWord(reveal.toUpperCase());
+        return true;
+      }
+      return false;
+    } catch (err) {
+      if (attempt < 2) {
+        await new Promise((r) => setTimeout(r, 400));
+        return fetchRevealWithRetry(sid, attempt + 1);
+      }
+      const msg = err?.response?.data?.message || "Failed to expire session.";
+      toast.error(msg);
+      return false;
+    }
+  };
 
   const handleTimeUp = useCallback(async () => {
     if (timeUpHandledRef.current) return;
     timeUpHandledRef.current = true;
-    try {
-      if (!sessionId) return;
-      const res  = await expireSpeedSession(sessionId);
-      const data = res.data;
-      const reveal = extractReveal(data);
-      if (reveal) setRevealedWord(reveal.toUpperCase());
-    } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to expire session.";
-      toast.error(msg);
-    }
+    if (!sessionId) return;
+    setRevealPending(true);
+    await fetchRevealWithRetry(sessionId);
+    setRevealPending(false);
   }, [sessionId]);
 
   useEffect(() => {
@@ -367,6 +381,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       setXpEarned(0);
       setTimeTaken(0);
       setRevealedWord("");
+      setRevealPending(false);
       timeUpHandledRef.current = false;
       setGameState("playing");
       if (data.resumed) showMessage("Session resumed!", "info", 2000);
@@ -449,11 +464,15 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
       else if (msg.includes("Session already ended")) {
         showMessage("Session expired.", "lose", 0);
         setGameState("timeup");
+        if (sessionId && !revealedWord) {
+          setRevealPending(true);
+          fetchRevealWithRetry(sessionId).finally(() => setRevealPending(false));
+        }
       } else toast.error(msg || "Failed to submit guess.");
     } finally {
       setSubmitting(false);
     }
-  }, [currentGuess, guesses, gameState, submitting, wordLength, sessionId]);
+  }, [currentGuess, guesses, gameState, submitting, wordLength, sessionId, revealedWord]);
 
   const handleKey = useCallback((key) => {
     if (gameState !== "playing" || submitting) return;
@@ -649,7 +668,9 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
                   `Solved in ${timeTaken}s with ${guesses.length} guess${guesses.length !== 1 ? "es" : ""}`
                 ) : (
                   <>
-                    {revealedWord && (
+                    {revealPending ? (
+                      <>Fetching the word… </>
+                    ) : revealedWord ? (
                       <>
                         The word was{" "}
                         <span className={`font-bold ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
@@ -657,6 +678,8 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
                         </span>
                         .{" "}
                       </>
+                    ) : (
+                      <>Couldn't retrieve the word this time. </>
                     )}
                     Better luck next time!
                   </>
