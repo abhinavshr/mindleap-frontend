@@ -62,6 +62,13 @@ export default function Navbar({ dark = false, onToggleDark }) {
           <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}>
             <Link to="/" className={navLink}>Home</Link>
           </motion.div>
+
+          {user && (
+            <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}>
+              <Link to="/speed-game" className={navLink}>Speed Game</Link>
+            </motion.div>
+          )}
+
           <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}>
             <Link to="/leaderboard" className={navLink}>Leaderboard</Link>
           </motion.div>
@@ -71,9 +78,6 @@ export default function Navbar({ dark = false, onToggleDark }) {
 
           {user ? (
             <>
-              <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}>
-                <Link to="/speed-game" className={navLink}>Speed Game</Link>
-              </motion.div>
               <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}>
                 <Link to="/profile" className={navLink}>Profile</Link>
               </motion.div>
@@ -202,14 +206,18 @@ export default function Navbar({ dark = false, onToggleDark }) {
             }`}
           >
             <div className="px-6 py-4 flex flex-col gap-4">
-              <Link to="/"            className={navLink} onClick={() => setMenuOpen(false)}>Home</Link>
+              <Link to="/" className={navLink} onClick={() => setMenuOpen(false)}>Home</Link>
+
+              {user && (
+                <Link to="/speed-game" className={navLink} onClick={() => setMenuOpen(false)}>Speed Game</Link>
+              )}
+
               <Link to="/leaderboard" className={navLink} onClick={() => setMenuOpen(false)}>Leaderboard</Link>
               <Link to="/about-us"    className={navLink} onClick={() => setMenuOpen(false)}>About Us</Link>
 
               {user ? (
                 <>
-                  <Link to="/speed-game" className={navLink} onClick={() => setMenuOpen(false)}>Speed Game</Link>
-                  <Link to="/profile"    className={navLink} onClick={() => setMenuOpen(false)}>Profile</Link>
+                  <Link to="/profile" className={navLink} onClick={() => setMenuOpen(false)}>Profile</Link>
                   <button
                     onClick={handleLogout}
                     className={`text-sm font-semibold px-4 py-2 rounded-md border-2 transition-colors duration-150 text-left ${
