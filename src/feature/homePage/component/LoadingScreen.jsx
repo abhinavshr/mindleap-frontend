@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import Navbar from "../../components/Reuseable/Navbar";
 import PageHead from "./PageHead";
+import Navbar from "@/components/Reuseable/Navbar";
 
 export default function LoadingScreen({ dark, onToggleDark }) {
   return (
