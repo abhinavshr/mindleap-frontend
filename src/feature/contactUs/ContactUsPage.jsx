@@ -56,7 +56,6 @@ export default function ContactUsPage({ dark, onToggleDark }) {
       <ContactSuccessModal
         show={showSuccess}
         onClose={() => setShowSuccess(false)}
-        onSendAnother={() => setShowSuccess(false)}
         dark={dark}
       />
 

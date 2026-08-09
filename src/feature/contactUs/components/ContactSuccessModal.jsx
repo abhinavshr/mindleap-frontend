@@ -1,15 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { FaPaperPlane, FaClock, FaCheckCircle } from "react-icons/fa";
+import { FaCheckCircle } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
-import {
-  overlayVariant,
-  cardVariant,
-  boltFlashVariant,
-  ribbonVariant,
-} from "../constants/animations";
+import { overlayVariant, cardVariant, boltFlashVariant } from "../constants/animations";
 import QuestStreaks from "./QuestStreaks";
 
-export default function ContactSuccessModal({ show, onClose, onSendAnother, dark }) {
+export default function ContactSuccessModal({ show, onClose, dark }) {
   return (
     <AnimatePresence>
       {show && (
@@ -48,65 +43,32 @@ export default function ContactSuccessModal({ show, onClose, onSendAnother, dark
             </button>
 
             <motion.div
-              variants={ribbonVariant}
+              variants={boltFlashVariant}
               initial="hidden"
               animate="visible"
-              className="inline-block mb-4 px-3 py-1 rounded-full text-[11px] font-extrabold tracking-wide bg-[#2FAF74] text-[#0B1F16] shadow-sm"
+              className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 mb-4"
+              style={{ background: dark ? "#2B1A0E" : "#FFE9B0" }}
             >
-              QUEST SENT
+              <FaCheckCircle size={26} style={{ color: "#F2B84B" }} />
             </motion.div>
 
-            <div className="flex items-center gap-3 mb-5">
-              <motion.div
-                variants={boltFlashVariant}
-                initial="hidden"
-                animate="visible"
-                className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
-                style={{ background: dark ? "#2B1A0E" : "#FFE9B0" }}
-              >
-                <FaCheckCircle size={26} style={{ color: "#F2B84B" }} />
-              </motion.div>
-              <div className="text-left">
-                <h2 className={`text-xl font-extrabold leading-tight ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
-                  Message Sent!
-                </h2>
-                <p className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#7A5C3E]"}`}>
-                  Your message is in our queue.
-                </p>
-              </div>
-            </div>
+            <h2 className={`text-xl font-extrabold leading-tight mb-1 ${dark ? "text-[#F7EEDB]" : "text-[#2B2017]"}`}>
+              Thank you for your message!
+            </h2>
+            <p className={`text-sm mb-5 ${dark ? "text-[#CBBEAC]" : "text-[#7A5C3E]"}`}>
+              We've got it, and we'll reply soon.
+            </p>
 
-            <div className={`rounded-xl px-4 py-3.5 mb-5 ${dark ? "bg-[#241811]" : "bg-[#FFF3DA]"}`}>
-              <div className="flex items-center justify-between">
-                <span
-                  className={`flex items-center gap-1.5 text-xs font-semibold ${
-                    dark ? "text-[#F2B84B]" : "text-[#C58B1D]"
-                  }`}
-                >
-                  <FaClock size={12} /> Expected reply
-                </span>
-                <span className="text-sm font-extrabold text-[#F2B84B]">Within 24h</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={onClose}
-                className={`flex-1 text-sm font-semibold px-4 py-2.5 rounded-xl border-2 transition-transform active:scale-95 ${
-                  dark ? "border-[#3A2A1C] text-[#F7EEDB]" : "border-[#2B2017] text-[#2B2017]"
-                }`}
-              >
-                Close
-              </button>
-              <button
-                onClick={onSendAnother}
-                className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-xl transition-transform active:scale-95 ${
-                  dark ? "bg-[#F2B84B] text-[#2B2017]" : "bg-[#2B2017] text-[#FDFBF5]"
-                }`}
-              >
-                <FaPaperPlane size={12} /> Send Another
-              </button>
-            </div>
+            <button
+              onClick={onClose}
+              className={`w-full text-sm font-semibold px-4 py-2.5 rounded-xl border-2 transition-transform active:scale-95 ${
+                dark
+                  ? "bg-[#F2B84B] border-[#F2B84B] text-[#2B2017]"
+                  : "bg-[#2B2017] border-[#2B2017] text-[#FDFBF5]"
+              }`}
+            >
+              Close
+            </button>
           </motion.div>
         </motion.div>
       )}

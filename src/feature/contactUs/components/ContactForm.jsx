@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { FaPaperPlane } from "react-icons/fa";
 import QuestChips from "./QuestChips";
+import SendingIndicator from "./SendingIndicator";
 
 export default function ContactForm({
   dark,
@@ -100,10 +101,7 @@ export default function ContactForm({
           } disabled:opacity-60 disabled:cursor-not-allowed`}
         >
           {submitting ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Sending…
-            </>
+            <SendingIndicator />
           ) : (
             <>
               <FaPaperPlane size={14} /> Send Message
