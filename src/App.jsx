@@ -20,7 +20,7 @@ import ForgotPasswordOtpPage from "./feature/auth/ForgotPasswordOtpPage";
 import ResetPasswordPage from "./feature/auth/ResetPasswordPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import AboutUsPage from "./pages/AboutUsPage";
-import ContactUsPage from "./pages/ContactUsPage";
+import ContactUsPage from "./feature/contactUs/ContactUsPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import Footer from "./components/Reuseable/Footer";
 import PageTransitionLoader from "./components/Reuseable/PageTransitionLoader";
