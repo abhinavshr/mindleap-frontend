@@ -35,13 +35,34 @@ const processQueue = (error, token = null) => {
     failedQueue = [];
 };
 
+// A 401 from any of these means "these credentials/tokens are wrong",
+// not "your session expired mid-use" — so it should never trigger the
+// refresh-token flow or a forced redirect. It should just reject and
+// let the calling component show its own error message.
+const NO_REFRESH_ENDPOINTS = [
+    '/auth/login',
+    '/auth/register',
+    '/auth/refresh-token',
+    '/auth/forgot-password',
+    '/auth/verify-reset-otp',
+    '/auth/reset-password',
+    '/admin/login',
+];
+
+const isNoRefreshEndpoint = (url = '') =>
+    NO_REFRESH_ENDPOINTS.some((endpoint) => url.includes(endpoint));
+
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
+        const requestUrl      = originalRequest?.url || '';
 
-        // Only handle 401 and only retry once
-        if (error.response?.status !== 401 || originalRequest._retry) {
+        if (
+            error.response?.status !== 401 ||
+            originalRequest._retry ||
+            isNoRefreshEndpoint(requestUrl)
+        ) {
             return Promise.reject(error);
         }
 
@@ -70,25 +91,24 @@ api.interceptors.response.use(
 
             const newToken = res.data.accessToken;
 
-            // Save new token
             localStorage.setItem('accessToken', newToken);
-
-            // Update default headers for future requests
             api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
 
-            // Unblock all queued requests
             processQueue(null, newToken);
 
-            // Retry the original failed request with new token
             originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
             return api(originalRequest);
 
         } catch (refreshError) {
-            // Refresh failed — log out and redirect
             processQueue(refreshError, null);
             localStorage.removeItem('accessToken');
             localStorage.removeItem('user');
-            window.location.href = '/login';
+
+            if (window.location.pathname !== '/login') {
+                const redirect = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.href = `/login?redirect=${redirect}`;
+            }
+
             return Promise.reject(refreshError);
         } finally {
             isRefreshing = false;
