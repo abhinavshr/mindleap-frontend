@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import toast from "react-hot-toast";
-import Navbar from "../components/Reuseable/Navbar";
-import { requestPasswordReset } from "../api/auth";
+import { requestPasswordReset } from "@/api/auth";
+import Navbar from "@/components/Reuseable/Navbar";
 
 export default function ForgotPasswordEmailPage({ dark, onToggleDark }) {
   const [email, setEmail] = useState("");

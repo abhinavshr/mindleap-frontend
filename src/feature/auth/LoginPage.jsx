@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { Helmet } from "react-helmet-async";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import Navbar from "../components/Reuseable/Navbar";
-import { loginUser } from "../api/auth";
+import { loginUser } from "@/api/auth";
+import Navbar from "@/components/Reuseable/Navbar";
 
 export default function LoginPage({ dark, onToggleDark }) {
   const [form, setForm] = useState({ email: "", password: "" });
