@@ -2,22 +2,33 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import toast from "react-hot-toast";
-import Navbar from "../components/Reuseable/Navbar";
-import { verifyResetOtp } from "../api/auth";
+import Navbar from "@/components/Reuseable/Navbar";
+import { resetPassword } from "@/api/auth";
 
-export default function ForgotPasswordOtpPage({ dark, onToggleDark }) {
-  const [otp, setOtp] = useState("");
+export default function ResetPasswordPage({ dark, onToggleDark }) {
+  const [form, setForm] = useState({ password: "", confirmPassword: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const email = location.state?.email ?? "";
 
-  const inputBase = `w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors duration-150 tracking-[0.35em] text-center ${
+  const inputBase = `w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors duration-150 ${
     dark
       ? "bg-[#141517] border-[#2B2F33] text-white placeholder-[#5B6166] focus:border-[#7DBE6A]"
       : "bg-white border-[#D9D1C6] text-[#1A1A1B] placeholder-[#8B8378] focus:border-[#6AAA64]"
   }`;
+
+  const eyeIconClass = `absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-xl ${
+    dark ? "text-[#63696E] hover:text-[#B8BDC2]" : "text-[#8B8378] hover:text-[#5C5247]"
+  } transition-colors duration-150`;
+
+  const handleChange = (e) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,18 +37,22 @@ export default function ForgotPasswordOtpPage({ dark, onToggleDark }) {
       navigate("/forgot-password");
       return;
     }
-    if (!otp) {
-      toast.error("OTP is required.");
+    if (!form.password || !form.confirmPassword) {
+      toast.error("Both password fields are required.");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      toast.error("Passwords do not match.");
       return;
     }
 
     try {
       setLoading(true);
-      await verifyResetOtp(email, otp);
-      toast.success("OTP verified.");
-      navigate("/forgot-password/reset", { state: { email, otp } });
+      await resetPassword(email, form.password, form.confirmPassword);
+      toast.success("Password updated. Please log in.");
+      navigate("/login");
     } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to verify OTP.";
+      const msg = err?.response?.data?.message || "Failed to reset password.";
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -49,9 +64,9 @@ export default function ForgotPasswordOtpPage({ dark, onToggleDark }) {
       dark ? "bg-[#0E0F10]" : "bg-[#F6F4F0]"
     }`}>
       <Helmet>
-        <title>Verify Your Email - Reset Mindleap Password</title>
-        <meta name="description" content="Enter the OTP sent to your email to verify your account and reset your Mindleap password." />
-        <link rel="canonical" href="https://mindleap.live/forgot-password/verify" />
+        <title>Set Your New Mindleap Password</title>
+        <meta name="description" content="Enter your new password to complete the password reset process on Mindleap." />
+        <link rel="canonical" href="https://mindleap.live/forgot-password/reset" />
         <meta name="robots" content="noindex, follow" />
       </Helmet>
       <Navbar dark={dark} onToggleDark={onToggleDark} />
@@ -85,13 +100,13 @@ export default function ForgotPasswordOtpPage({ dark, onToggleDark }) {
             <p className={`text-xs uppercase tracking-[0.25em] ${
               dark ? "text-[#9DA3A6]" : "text-[#7C6F62]"
             }`}>
-              Verification
+              Final step
             </p>
             <h1 className={`mt-3 text-4xl leading-tight ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
-              Enter the OTP
+              Choose a new password
             </h1>
             <p className={`mt-4 text-base ${dark ? "text-[#B9BEC2]" : "text-[#5C5247]"}`}>
-              We sent a six-digit code to your email. Enter it to continue.
+              Create a fresh secret phrase you will remember.
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -101,10 +116,10 @@ export default function ForgotPasswordOtpPage({ dark, onToggleDark }) {
                 <p className={`text-xs uppercase tracking-[0.22em] ${
                   dark ? "text-[#9AA0A4]" : "text-[#806B57]"
                 }`}>
-                  Tip
+                  Password tips
                 </p>
                 <p className={`mt-3 text-sm ${dark ? "text-[#C7CBD0]" : "text-[#5A4E43]"}`}>
-                  Check your spam folder if you cannot find it.
+                  Use at least 8 characters with a mix of letters and numbers.
                 </p>
               </div>
               <div className={`rounded-2xl border px-5 py-4 ${
@@ -113,10 +128,10 @@ export default function ForgotPasswordOtpPage({ dark, onToggleDark }) {
                 <p className={`text-xs uppercase tracking-[0.22em] ${
                   dark ? "text-[#9AA0A4]" : "text-[#806B57]"
                 }`}>
-                  Resend
+                  After reset
                 </p>
                 <p className={`mt-3 text-sm ${dark ? "text-[#C7CBD0]" : "text-[#5A4E43]"}`}>
-                  If you did not receive a code, send a new one.
+                  You will be asked to sign in again.
                 </p>
               </div>
             </div>
@@ -134,10 +149,10 @@ export default function ForgotPasswordOtpPage({ dark, onToggleDark }) {
               <p className={`text-xs uppercase tracking-[0.24em] ${
                 dark ? "text-[#8D9398]" : "text-[#7A6D60]"
               }`}>
-                OTP verification
+                Reset password
               </p>
               <h2 className={`mt-2 text-2xl ${dark ? "text-white" : "text-[#1A1A1B]"}`}>
-                Confirm the code
+                Set your new secret
               </h2>
             </div>
 
@@ -146,18 +161,43 @@ export default function ForgotPasswordOtpPage({ dark, onToggleDark }) {
                 <label className={`block text-sm font-semibold mb-1.5 ${
                   dark ? "text-[#D7D7D7]" : "text-[#1A1A1B]"
                 }`}>
-                  One-time code
+                  New password
                 </label>
-                <input
-                  type="text"
-                  name="otp"
-                  placeholder="------"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className={inputBase}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="Enter new password"
+                    value={form.password}
+                    onChange={handleChange}
+                    className={`${inputBase} pr-10`}
+                    autoComplete="new-password"
+                  />
+                  <span className={eyeIconClass} onClick={() => setShowPassword((prev) => !prev)}>
+                    {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label className={`block text-sm font-semibold mb-1.5 ${
+                  dark ? "text-[#D7D7D7]" : "text-[#1A1A1B]"
+                }`}>
+                  Confirm password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    placeholder="Confirm new password"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    className={`${inputBase} pr-10`}
+                    autoComplete="new-password"
+                  />
+                  <span className={eyeIconClass} onClick={() => setShowConfirmPassword((prev) => !prev)}>
+                    {showConfirmPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                  </span>
+                </div>
               </div>
 
               <motion.button
@@ -167,14 +207,14 @@ export default function ForgotPasswordOtpPage({ dark, onToggleDark }) {
                 disabled={loading}
                 className="w-full py-3 rounded-lg bg-[#6AAA64] hover:bg-[#538d4e] active:bg-[#4a7d45] text-white font-bold text-sm tracking-wide transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? "Verifying..." : "Verify OTP"}
+                {loading ? "Updating..." : "Update password"}
               </motion.button>
             </form>
 
             <p className={`text-center text-sm mt-5 ${dark ? "text-[#818384]" : "text-[#6F665A]"}`}>
-              Need a new code?{" "}
-              <Link to="/forgot-password" className="text-[#6AAA64] hover:underline font-medium">
-                Send again
+              Changed your mind?{" "}
+              <Link to="/login" className="text-[#6AAA64] hover:underline font-medium">
+                Return to login
               </Link>
             </p>
           </motion.div>

@@ -4,8 +4,8 @@ import { Toaster } from 'react-hot-toast'
 import { Analytics } from '@vercel/analytics/react'
 import axios from "axios";
 import HomePage from './feature/homePage/HomePage'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
+import LoginPage from "./feature/auth/LoginPage";
+import RegisterPage from './feature/auth/RegisterPage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import ProfilePage from './pages/ProfilePage'
 import SpeedGamePage from './feature/speedGame/SpeedGamePage'
@@ -15,9 +15,9 @@ import MissionsPage from "./pages/MissionPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import PublicProfilePage from "./pages/PublicProfilePage";
 import BackendDownPage from "./pages/BackendDownPage";
-import ForgotPasswordEmailPage from "./pages/ForgotPasswordEmailPage";
-import ForgotPasswordOtpPage from "./pages/ForgotPasswordOtpPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ForgotPasswordEmailPage from "./feature/auth/ForgotPasswordEmailPage";
+import ForgotPasswordOtpPage from "./feature/auth/ForgotPasswordOtpPage";
+import ResetPasswordPage from "./feature/auth/ResetPasswordPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import AboutUsPage from "./pages/AboutUsPage";
 import ContactUsPage from "./pages/ContactUsPage";
