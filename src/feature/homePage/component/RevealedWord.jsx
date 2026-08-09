@@ -1,5 +1,5 @@
+import { revealContainerVariant, revealLetterVariant } from "@/utils/animationVariants";
 import { motion, AnimatePresence } from "framer-motion";
-import { revealContainerVariant, revealLetterVariant } from "../../utils/animationVariants";
 
 export default function RevealedWord({ gameOver, revealedWord, dark }) {
   return (

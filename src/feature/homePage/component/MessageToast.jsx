@@ -1,7 +1,7 @@
+import { popIn, toastVariant } from "@/utils/animationVariants";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTrophy } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
-import { toastVariant, popIn } from "../../utils/animationVariants";
 
 const toastBg = {
   win: "bg-[#2FAF74] text-[#0B1F16]",

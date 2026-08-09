@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
-import Board from "../../components/Board/Board";
-import AdComponent from "../../components/Ads/AdComponent";
+import { fadeSlideUp, winPulseVariant } from "@/utils/animationVariants";
+import Board from "@/components/Board/Board";
 import BoardConfetti from "./BoardConfetti";
-import { fadeSlideUp, winPulseVariant } from "../../utils/animationVariants";
+import AdComponent from "@/components/Ads/AdComponent";
 
 export default function GameBoardPanel({
   guesses,

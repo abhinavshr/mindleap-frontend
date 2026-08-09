@@ -1,17 +1,17 @@
 import { motion } from "framer-motion";
-import Navbar from "../components/Reuseable/Navbar";
-import Keyboard from "../components/Keyboard/Keyboard";
+import Navbar from "../../components/Reuseable/Navbar";
+import Keyboard from "../../components/Keyboard/Keyboard";
 
-import useWordleGame from "../hooks/useWordleGame";
-import { fadeSlideUp } from "../utils/animationVariants";
-import PageHead from "@/components/Home/PageHead";
-import GuestBanner from "@/components/Home/GuestBanner";
-import MessageToast from "@/components/Home/MessageToast";
-import WinModal from "@/components/Home/WinModal";
-import GameBoardPanel from "@/components/Home/GameBoardPanel";
-import RevealedWord from "@/components/Home/RevealedWord";
-import LoadingScreen from "@/components/Home/LoadingScreen";
-import ColorLegend from "@/components/Home/ColorLegend";
+import useWordleGame from "../../hooks/useWordleGame";
+import { fadeSlideUp } from "../../utils/animationVariants";
+import LoadingScreen from "./component/LoadingScreen";
+import PageHead from "./component/PageHead";
+import GuestBanner from "./component/GuestBanner";
+import MessageToast from "./component/MessageToast";
+import WinModal from "./component/WinModal";
+import GameBoardPanel from "./component/GameBoardPanel";
+import RevealedWord from "./component/RevealedWord";
+import ColorLegend from "./component/ColorLegend";
 
 export default function HomePage({ dark, onToggleDark }) {
   const {

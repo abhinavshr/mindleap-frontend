@@ -1,6 +1,6 @@
+import { bannerVariant } from "@/utils/animationVariants";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { bannerVariant } from "../../utils/animationVariants";
 
 export default function GuestBanner({ isAuth, dark }) {
   return (

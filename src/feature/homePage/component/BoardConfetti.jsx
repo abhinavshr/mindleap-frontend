@@ -1,5 +1,5 @@
+import { burstVariant } from "@/utils/animationVariants";
 import { motion, AnimatePresence } from "framer-motion";
-import { burstVariant } from "../../utils/animationVariants";
 
 /**
  * The confetti + glow burst that plays directly over the game board

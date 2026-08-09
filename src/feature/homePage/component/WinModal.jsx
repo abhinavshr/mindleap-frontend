@@ -1,16 +1,9 @@
+import { modalCardVariant, modalOverlayVariant, modalTextItem, modalTextStagger, starPopVariant, trophyBounceVariant } from "@/utils/animationVariants";
+import { getWinPraise, getWinStars } from "@/utils/winHelpers";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTrophy, FaStar, FaRedo } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
 import { Link } from "react-router-dom";
-import {
-  modalOverlayVariant,
-  modalCardVariant,
-  trophyBounceVariant,
-  modalTextStagger,
-  modalTextItem,
-  starPopVariant,
-} from "../../utils/animationVariants";
-import { getWinStars, getWinPraise } from "../../utils/winHelpers";
 
 export default function WinModal({
   show,
