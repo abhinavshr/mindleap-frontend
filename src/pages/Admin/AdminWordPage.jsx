@@ -57,8 +57,9 @@ export default function AdminWordsPage() {
     const handleEditClick = useCallback((word) => setEditTarget(word), []);
     const handleDeleteClick = useCallback((word) => setDeleteTarget(word), []);
 
-    const handleAddWord = async (word) => {
-        const res = await addWord(word);
+    const handleAddWord = async (word, _isUsed, meaning) => {
+        const payload = meaning?.trim() ? { word, meaning: meaning.trim() } : { word };
+        const res = await addWord(payload);
         // Only splice the new word into the visible list if it would actually
         // match the active search — otherwise just leave it to show up on refetch/search change.
         if (!debouncedSearch || word.toUpperCase().includes(debouncedSearch.toUpperCase())) {
@@ -67,8 +68,11 @@ export default function AdminWordsPage() {
         setShowAddModal(false);
     };
 
-    const handleEditWord = async (id, newWord, isUsed) => {
-        const res = await editWord(id, { word: newWord, is_used: isUsed });
+    const handleEditWord = async (id, newWord, isUsed, meaning) => {
+        const payload = { word: newWord, is_used: isUsed };
+        if (meaning?.trim()) payload.meaning = meaning.trim();
+
+        const res = await editWord(id, payload);
         const updated = res.data.data;
         setWords((prev) => prev.map((w) => (w.id === updated.id ? updated : w)));
         setEditTarget(null);
@@ -192,9 +196,10 @@ export default function AdminWordsPage() {
                     submitLabel="Save changes"
                     initialValue={editTarget.word}
                     initialIsUsed={editTarget.is_used}
+                    initialMeaning={editTarget.meaning || ""}
                     showUsedToggle
                     onClose={() => setEditTarget(null)}
-                    onSubmit={(word, isUsed) => handleEditWord(editTarget.id, word, isUsed)}
+                    onSubmit={(word, isUsed, meaning) => handleEditWord(editTarget.id, word, isUsed, meaning)}
                 />
             )}
 
@@ -247,9 +252,19 @@ const WordPill = memo(function WordPill({ word: w, onEdit, onDelete }) {
     );
 });
 
-function WordFormModal({ title, submitLabel, initialValue = "", initialIsUsed = false, showUsedToggle = false, onClose, onSubmit }) {
+function WordFormModal({
+    title,
+    submitLabel,
+    initialValue = "",
+    initialIsUsed = false,
+    initialMeaning = "",
+    showUsedToggle = false,
+    onClose,
+    onSubmit,
+}) {
     const [value, setValue] = useState(initialValue);
     const [isUsed, setIsUsed] = useState(initialIsUsed);
+    const [meaning, setMeaning] = useState(initialMeaning);
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
@@ -262,7 +277,7 @@ function WordFormModal({ title, submitLabel, initialValue = "", initialIsUsed = 
         setError("");
         setSubmitting(true);
         try {
-            await onSubmit(trimmed, isUsed);
+            await onSubmit(trimmed, isUsed, meaning);
         } catch (err) {
             setError(err.response?.data?.message || "Something went wrong. Please try again.");
         } finally {
@@ -305,6 +320,22 @@ function WordFormModal({ title, submitLabel, initialValue = "", initialIsUsed = 
                         className="w-full h-11 px-4 rounded-xl border border-white/8 bg-white/5 text-sm text-white placeholder-gray-600 outline-none focus:border-blue-500/50 focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-500/10 transition uppercase tracking-wider"
                     />
                     <p className="text-[11px] text-gray-600 mt-1.5">Must be exactly 5 letters.</p>
+                </div>
+
+                <div className="mb-6">
+                    <label className="block text-[13px] font-medium text-gray-400 mb-1.5">
+                        Meaning <span className="text-gray-600 font-normal">(optional)</span>
+                    </label>
+                    <textarea
+                        value={meaning}
+                        onChange={(e) => setMeaning(e.target.value)}
+                        placeholder="Leave blank to auto-fetch from the dictionary…"
+                        rows={3}
+                        className="w-full px-4 py-2.5 rounded-xl border border-white/8 bg-white/5 text-sm text-white placeholder-gray-600 outline-none focus:border-blue-500/50 focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-500/10 transition resize-none"
+                    />
+                    <p className="text-[11px] text-gray-600 mt-1.5">
+                        If left blank, we'll try to fetch a definition automatically. If none is found, you'll need to enter one here.
+                    </p>
                 </div>
 
                 {showUsedToggle && (
