@@ -27,6 +27,7 @@ export default function HomePage({ dark, onToggleDark }) {
     loading,
     submitting,
     revealedWord,
+    revealedMeaning,
     shakeRow,
     showWinFx,
     showWinModal,
@@ -63,6 +64,8 @@ export default function HomePage({ dark, onToggleDark }) {
         winAttempts={winAttempts}
         maxGuesses={maxGuesses}
         confettiPieces={modalConfettiPieces}
+        revealedWord={revealedWord}
+        revealedMeaning={revealedMeaning}
       />
 
       <main className="flex-1 min-h-0 flex flex-col items-center justify-start md:justify-center overflow-hidden px-4 sm:px-6 pb-3 md:pb-0">
@@ -78,7 +81,12 @@ export default function HomePage({ dark, onToggleDark }) {
           />
         </div>
 
-        <RevealedWord gameOver={gameOver} revealedWord={revealedWord} dark={dark} />
+        <RevealedWord
+          gameOver={gameOver}
+          revealedWord={revealedWord}
+          revealedMeaning={revealedMeaning}
+          dark={dark}
+        />
 
         {/* Bottom group: legend + keyboard, pushed together to the bottom */}
         <div className="w-full flex flex-col items-center mt-auto gap-2 md:gap-1 pb-4 md:pb-0">
