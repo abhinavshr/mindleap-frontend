@@ -5,6 +5,10 @@
 export const extractReveal = (data) =>
   data?.secret || data?.word || data?.answer || data?.correctWord || "";
 
+// Backend also returns `meaning` alongside `secret` on the same branches.
+export const extractMeaning = (data) =>
+  data?.meaning || "";
+
 export const getSpeedBadge = (timeTaken, timeLimit) => {
   const ratio = timeTaken / timeLimit;
   if (ratio <= 0.25) return "LIGHTNING FAST";

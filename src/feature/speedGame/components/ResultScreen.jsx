@@ -11,6 +11,7 @@ export default function ResultScreen({
   wordLength,
   xpEarned,
   revealedWord,
+  revealedMeaning,
   revealPending,
   onPlayAgain,
 }) {
@@ -62,6 +63,12 @@ export default function ResultScreen({
             </>
           )}
         </p>
+
+        {!won && !revealPending && revealedMeaning && (
+          <p className={`text-xs mt-2 max-w-xs mx-auto ${dark ? "text-[#A99A85]" : "text-[#7A5C3E]"}`}>
+            {revealedMeaning}
+          </p>
+        )}
       </div>
 
       {won && (

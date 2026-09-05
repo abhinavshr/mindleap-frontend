@@ -22,6 +22,8 @@ export default function SpeedWinModal({
   timeLimit,
   guessCount,
   xpEarned,
+  revealedWord,
+  revealedMeaning,
 }) {
   const badge = getSpeedBadge(timeTaken || 0, timeLimit || 60);
 
@@ -126,6 +128,26 @@ export default function SpeedWinModal({
                 </span>
               </motion.div>
             </motion.div>
+
+            {(revealedWord || revealedMeaning) && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45, duration: 0.3 }}
+                className="mb-5 text-left"
+              >
+                {revealedWord && (
+                  <p className={`text-sm font-bold tracking-wide uppercase ${dark ? "text-[#F2B84B]" : "text-[#2B2017]"}`}>
+                    {revealedWord}
+                  </p>
+                )}
+                {revealedMeaning && (
+                  <p className={`text-xs mt-1 ${dark ? "text-[#A99A85]" : "text-[#7A5C3E]"}`}>
+                    {revealedMeaning}
+                  </p>
+                )}
+              </motion.div>
+            )}
 
             <motion.div
               initial={{ opacity: 0, y: 8 }}
