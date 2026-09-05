@@ -6,9 +6,9 @@ import { createConfettiPieces } from "../utils/winHelpers";
 
 const GUEST_KEY = () => `guest_game_${new Date().toISOString().slice(0, 10)}`;
 
-const saveGuestSession = (guessArray, isOver, revealed = "") => {
+const saveGuestSession = (guessArray, isOver, revealed = "", meaning = "") => {
   localStorage.setItem(GUEST_KEY(), JSON.stringify({
-    guesses: guessArray, gameOver: isOver, revealedWord: revealed,
+    guesses: guessArray, gameOver: isOver, revealedWord: revealed, revealedMeaning: meaning,
   }));
 };
 
@@ -53,6 +53,7 @@ export default function useWordleGame() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [revealedWord, setRevealedWord] = useState("");
+  const [revealedMeaning, setRevealedMeaning] = useState("");
   const [shakeRow, setShakeRow] = useState(false);
   const [showWinFx, setShowWinFx] = useState(false);
   const [showWinModal, setShowWinModal] = useState(false);
@@ -134,6 +135,7 @@ export default function useWordleGame() {
             if (session.gameOver) {
               setGameOver(true);
               if (session.revealedWord) setRevealedWord(session.revealedWord);
+              if (session.revealedMeaning) setRevealedMeaning(session.revealedMeaning);
             }
             setLoading(false);
             return;
@@ -158,6 +160,7 @@ export default function useWordleGame() {
               const playedRes = await checkAlreadyPlayed();
               const playedData = playedRes.data;
               if (playedData.word) setRevealedWord(playedData.word.toUpperCase());
+              if (playedData.meaning) setRevealedMeaning(playedData.meaning);
             } catch { }
             showMessage("You've used all your guesses today.", "lose", 5000);
           }
@@ -203,7 +206,7 @@ export default function useWordleGame() {
 
       if (!data.isAuth) {
         const newGuesses = [...guesses, newGuess];
-        saveGuestSession(newGuesses, false, "");
+        saveGuestSession(newGuesses, false, "", "");
       }
 
       const priority = { correct: 3, present: 2, absent: 1 };
@@ -225,23 +228,30 @@ export default function useWordleGame() {
         showMessage("You won!", "win", 4000);
         setGameOver(true);
         setWinAttempts(data.attempts ?? guesses.length + 1);
+        if (data.word) setRevealedWord(data.word.toUpperCase());
+        if (data.meaning) setRevealedMeaning(data.meaning);
         // Slight delay so the last row's flip animation finishes before the modal appears
         setTimeout(() => setShowWinModal(true), 900);
         if (!data.isAuth) {
           const newGuesses = [...guesses, newGuess];
-          saveGuestSession(newGuesses, true, "");
+          saveGuestSession(newGuesses, true, data.word ? data.word.toUpperCase() : "", data.meaning || "");
         }
       } else if (data.gameOver) {
         if (data.word) {
           setRevealedWord(data.word.toUpperCase());
           showMessage(`The word was ${data.word.toUpperCase()}`, "lose", 6000);
         }
+        if (data.meaning) setRevealedMeaning(data.meaning);
         setGameOver(true);
+        if (!data.isAuth) {
+          const newGuesses = [...guesses, newGuess];
+          saveGuestSession(newGuesses, true, data.word ? data.word.toUpperCase() : "", data.meaning || "");
+        }
       } else if (!data.isAuth && guesses.length + 1 >= maxGuesses) {
         showMessage("Game over! Login to track your stats.", "lose", 6000);
         setGameOver(true);
         const newGuesses = [...guesses, newGuess];
-        saveGuestSession(newGuesses, true, "");
+        saveGuestSession(newGuesses, true, "", "");
       }
     } catch (err) {
       setGuesses((prev) => prev.slice(0, -1));
@@ -292,6 +302,7 @@ export default function useWordleGame() {
     loading,
     submitting,
     revealedWord,
+    revealedMeaning,
     shakeRow,
     showWinFx,
     showWinModal,

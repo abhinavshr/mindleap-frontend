@@ -13,6 +13,8 @@ export default function WinModal({
   winAttempts,
   maxGuesses,
   confettiPieces,
+  revealedWord,
+  revealedMeaning,
 }) {
   const winStars = getWinStars(winAttempts || 1, maxGuesses);
   const winPraise = getWinPraise(winAttempts || 1);
@@ -119,6 +121,18 @@ export default function WinModal({
               <motion.p variants={modalTextItem} className={`text-xs ${dark ? "text-[#CBBEAC]" : "text-[#7A5C3E]"}`}>
                 Solved in {winAttempts} / {maxGuesses} guesses
               </motion.p>
+
+              {revealedWord && (
+                <motion.p variants={modalTextItem} className={`text-sm font-bold tracking-wide mt-1 ${dark ? "text-[#F2B84B]" : "text-[#2B2017]"}`}>
+                  {revealedWord}
+                </motion.p>
+              )}
+
+              {revealedMeaning && (
+                <motion.p variants={modalTextItem} className={`text-xs max-w-xs ${dark ? "text-[#A99A85]" : "text-[#7A5C3E]"}`}>
+                  {revealedMeaning}
+                </motion.p>
+              )}
 
               <motion.div variants={modalTextItem} className="flex items-center gap-2 mt-5 w-full">
                 <button
