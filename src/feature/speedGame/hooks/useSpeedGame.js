@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 import { startSpeedGame, submitSpeedGuess } from "../../../api/speedGame";
-import { extractReveal, buildKeyStatuses } from "../utils/speedGameUtils";
+import { extractReveal, extractMeaning, buildKeyStatuses } from "../utils/speedGameUtils";
 import useWordReveal from "./useWordReveal";
 import useWinSound from "./useWinSound";
 import useSpeedTimer from "./useSpeedTimer";
@@ -28,10 +28,21 @@ export default function useSpeedGame() {
   const [submitting, setSubmitting] = useState(false);
   const [showWinModal, setShowWinModal] = useState(false);
 
+  // Speed-win meaning is tracked separately from the loss/timeup reveal
+  // (which comes from useWordReveal), since a win response arrives inline
+  // via submitSpeedGuess rather than through a reveal request.
+  const [winMeaning, setWinMeaning] = useState("");
+
   const timeUpHandledRef = useRef(false);
 
-  const { revealedWord, revealPending, requestReveal, setRevealDirectly, resetReveal } =
-    useWordReveal();
+  const {
+    revealedWord,
+    revealedMeaning,
+    revealPending,
+    requestReveal,
+    setRevealDirectly,
+    resetReveal,
+  } = useWordReveal();
   const { playWinSound } = useWinSound();
 
   const showMessage = useCallback((msg, type = "info", duration = 2500) => {
@@ -72,6 +83,7 @@ export default function useSpeedGame() {
       setMessage("");
       setXpEarned(0);
       setTimeTaken(0);
+      setWinMeaning("");
       resetReveal();
       timeUpHandledRef.current = false;
       setGameState("playing");
@@ -106,7 +118,7 @@ export default function useSpeedGame() {
 
       if (data.timeUp) {
         timeUpHandledRef.current = true;
-        setRevealDirectly(extractReveal(data));
+        setRevealDirectly(extractReveal(data), extractMeaning(data));
         setGuesses((prev) => prev.slice(0, -1));
         setGameState("timeup");
         showMessage("Time's up!", "lose", 0);
@@ -124,6 +136,7 @@ export default function useSpeedGame() {
       if (data.won) {
         setTimeTaken(data.timeTaken);
         setXpEarned(data.xpEarned);
+        setWinMeaning(extractMeaning(data));
         setGameState("won");
         await playWinSound();
         showMessage("You won!", "win", 0);
@@ -134,7 +147,7 @@ export default function useSpeedGame() {
 
       if (data.lost) {
         const reveal = extractReveal(data);
-        setRevealDirectly(reveal);
+        setRevealDirectly(reveal, extractMeaning(data));
         setGameState("lost");
         showMessage(`The word was ${reveal ? reveal.toUpperCase() : ""}`, "lose", 0);
         return;
@@ -215,6 +228,9 @@ export default function useSpeedGame() {
     xpEarned,
     timeTaken,
     revealedWord,
+    // for wins, meaning comes inline from submitSpeedGuess (winMeaning);
+    // for loss/timeup, it comes from the reveal flow (revealedMeaning)
+    revealedMeaning: gameState === "won" ? winMeaning : revealedMeaning,
     revealPending,
     submitting,
     showWinModal,

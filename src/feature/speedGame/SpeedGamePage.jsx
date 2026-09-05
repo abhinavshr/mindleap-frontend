@@ -28,6 +28,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
     xpEarned,
     timeTaken,
     revealedWord,
+    revealedMeaning,
     revealPending,
     submitting,
     showWinModal,
@@ -65,6 +66,8 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
         timeLimit={timeLimit}
         guessCount={guesses.length}
         xpEarned={xpEarned}
+        revealedWord={revealedWord}
+        revealedMeaning={revealedMeaning}
       />
 
       <main className="flex-1 flex flex-col items-center md:justify-center py-6 sm:py-7 md:py-4 px-4 sm:px-6 gap-4 sm:gap-5 md:gap-3 md:min-h-0 scale-[0.93] sm:scale-[0.96] md:scale-[0.94] lg:scale-100 origin-top [@media(max-height:760px)]:justify-start [@media(max-height:760px)]:py-5 [@media(max-height:760px)]:gap-3 [@media(max-height:760px)]:scale-100">
@@ -97,6 +100,7 @@ export default function SpeedGamePage({ dark = false, onToggleDark }) {
             wordLength={wordLength}
             xpEarned={xpEarned}
             revealedWord={revealedWord}
+            revealedMeaning={revealedMeaning}
             revealPending={revealPending}
             onPlayAgain={startGame}
           />

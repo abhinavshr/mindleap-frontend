@@ -1,11 +1,12 @@
 import { useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { expireSpeedSession } from "../../../api/speedGame";
-import { extractReveal } from "../utils/speedGameUtils";
+import { extractReveal, extractMeaning } from "../utils/speedGameUtils";
 
 
 export default function useWordReveal() {
   const [revealedWord, setRevealedWord] = useState("");
+  const [revealedMeaning, setRevealedMeaning] = useState("");
   const [revealPending, setRevealPending] = useState(false);
 
   const MAX_ATTEMPTS = 4;
@@ -20,6 +21,7 @@ export default function useWordReveal() {
 
         if (reveal) {
           setRevealedWord(reveal.toUpperCase());
+          setRevealedMeaning(extractMeaning(data));
           return true;
         }
 
@@ -52,14 +54,23 @@ export default function useWordReveal() {
     [fetchRevealWithRetry]
   );
 
-  const setRevealDirectly = useCallback((word) => {
+  const setRevealDirectly = useCallback((word, meaning = "") => {
     if (word) setRevealedWord(word.toUpperCase());
+    setRevealedMeaning(meaning || "");
   }, []);
 
   const resetReveal = useCallback(() => {
     setRevealedWord("");
+    setRevealedMeaning("");
     setRevealPending(false);
   }, []);
 
-  return { revealedWord, revealPending, requestReveal, setRevealDirectly, resetReveal };
+  return {
+    revealedWord,
+    revealedMeaning,
+    revealPending,
+    requestReveal,
+    setRevealDirectly,
+    resetReveal,
+  };
 }
