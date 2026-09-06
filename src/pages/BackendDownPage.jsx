@@ -24,6 +24,9 @@ const EMOJI_POOL = [
   "🐶", "🐱", "🦊", "🐸", "🦄", "🐙", "🦋", "🦁",
   "🐯", "🐧", "🦖", "🐳", "🦚", "🌺", "🍄", "🎃",
   "🔮", "🌈", "🎸", "🍕",
+  "🐼", "🐨", "🐵", "🦉", "🐢", "🦈", "🐝", "🐬",
+  "🦩", "🦕", "🌵", "🍉", "🍩", "🎈", "🎨", "🚀",
+  "⚡", "🔥", "🌙", "⭐",
 ];
 
 const DIFFICULTIES = {
@@ -178,7 +181,6 @@ function MemoryGame({ dark }) {
       const newMoves = moves + 1;
       setMoves(newMoves);
 
-        <Footer dark={dark} />
       if (cards[a].key === cards[b].key) {
         const newMatched = new Set([...matched, cards[a].key]);
         setMatched(newMatched);
